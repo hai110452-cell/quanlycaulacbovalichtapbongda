@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NestJS Backend - Quản Lý Câu Lạc Bộ Bóng Đá
 
-## Getting Started
+## Mô tả
 
-First, run the development server:
+Backend NestJS cho hệ thống Quản Lý Câu Lạc Bộ và Lịch Tập Bóng Đá, sử dụng PostgreSQL (Neon) kết nối qua connection string.
+
+## Cấu trúc Module
+
+- **Auth** - Đăng ký / Đăng nhập với JWT
+- **Users** - Quản lý người dùng hệ thống
+- **Players** - Quản lý cầu thủ
+- **Fields** - Quản lý sân bóng
+- **Schedules** - Lịch tập & thi đấu
+- **Attendances** - Điểm danh buổi tập
+- **Matches** - Kết quả trận đấu
+- **Clubs** - Thông tin câu lạc bộ
+- **Notifications** - Thông báo
+
+## Cài đặt
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Cấu hình
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sao chép file `.env.example` → `.env` và điền connection string PostgreSQL:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+## Chạy ứng dụng
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Development
+npm run start:dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Production
+npm run build
+npm run start:prod
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Endpoints
 
-## Deploy on Vercel
+| Method | Endpoint | Mô tả |
+|--------|----------|--------|
+| POST | /api/auth/register | Đăng ký tài khoản |
+| POST | /api/auth/login | Đăng nhập |
+| GET | /api/clubs | Lấy thông tin CLB |
+| PUT | /api/clubs | Cập nhật thông tin CLB |
+| GET | /api/players | Lấy danh sách cầu thủ |
+| POST | /api/players | Thêm cầu thủ |
+| GET | /api/players/:id | Chi tiết cầu thủ |
+| PUT | /api/players/:id | Cập nhật cầu thủ |
+| DELETE | /api/players/:id | Xóa cầu thủ |
+| GET | /api/fields | Lấy danh sách sân |
+| POST | /api/fields | Thêm sân |
+| PUT | /api/fields/:id | Cập nhật sân |
+| DELETE | /api/fields/:id | Xóa sân |
+| GET | /api/schedules | Danh sách lịch tập |
+| POST | /api/schedules | Tạo lịch tập |
+| GET | /api/schedules/:id | Chi tiết lịch tập |
+| PUT | /api/schedules/:id | Cập nhật lịch tập |
+| DELETE | /api/schedules/:id | Xóa lịch tập |
+| GET | /api/attendances | Danh sách điểm danh |
+| POST | /api/attendances | Lưu điểm danh |
+| GET | /api/matches | Danh sách trận đấu |
+| POST | /api/matches | Thêm kết quả trận |
+| DELETE | /api/matches/:id | Xóa trận đấu |
+| GET | /api/notifications | Lấy thông báo |
+| POST | /api/notifications | Tạo thông báo |
+| PATCH | /api/notifications | Đánh dấu đã đọc |
+| DELETE | /api/notifications | Xóa tất cả thông báo |
+| GET | /api/users | Danh sách người dùng |
+| POST | /api/users | Tạo người dùng |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

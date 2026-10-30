@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sân Bóng & Cơ Sở Vật Chất - Sao Vàng FC</title>
+  <!-- CSS tách biệt hoàn toàn -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/fields.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Navbar -->
+    <header class="app-navbar">
+      <div class="navbar-container">
+        <a href="/index.html" class="brand-logo">
+          <div class="brand-icon">⚽</div>
+          <div class="brand-text">
+            <span class="brand-title">SAO VÀNG FC <span class="brand-tag">Club Hub</span></span>
+            <span class="brand-subtitle">Quản lý câu lạc bộ & Lịch tập</span>
+          </div>
+        </a>
+
+        <nav>
+          <ul class="nav-links">
+            <li class="nav-item"><a href="/index.html">📊 Tổng quan</a></li>
+            <li class="nav-item"><a href="/players.html">🏃 Cầu thủ</a></li>
+            <li class="nav-item"><a href="/schedules.html">📅 Lịch tập</a></li>
+            <li class="nav-item"><a href="/matches.html">⚽ Trận đấu</a></li>
+            <li class="nav-item"><a href="/attendance.html">✅ Điểm danh</a></li>
+            <li class="nav-item active"><a href="/fields.html">🏟️ Sân bóng</a></li>
+          </ul>
+        </nav>
+
+        <div class="nav-auth" id="navbarAuth"></div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title"><span>🏟️</span> Quản Lý Sân Bóng & Cơ Sở Vật Chất</h1>
+          <p class="page-subtitle">Danh sách sân bãi tập luyện, thi đấu và thông tin mặt sân của CLB</p>
+        </div>
+      </div>
+
+      <!-- Danh sách sân bóng -->
+      <section class="fields-grid" id="fieldsContainer">
+        <!-- Render bởi js/fields.js -->
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>© 2026 Quản Lý Câu Lạc Bộ & Lịch Tập Bóng Đá.</p>
+    </footer>
+  </div>
+
+  <!-- Scripts tách biệt -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/fields.js"></script>
+</body>
+</html>

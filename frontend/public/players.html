@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Cầu Thủ - Sao Vàng FC</title>
+  <!-- CSS tách biệt hoàn toàn -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/players.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Navbar -->
+    <header class="app-navbar">
+      <div class="navbar-container">
+        <a href="/index.html" class="brand-logo">
+          <div class="brand-icon">⚽</div>
+          <div class="brand-text">
+            <span class="brand-title">SAO VÀNG FC <span class="brand-tag">Club Hub</span></span>
+            <span class="brand-subtitle">Quản lý câu lạc bộ & Lịch tập</span>
+          </div>
+        </a>
+
+        <nav>
+          <ul class="nav-links">
+            <li class="nav-item"><a href="/index.html">📊 Tổng quan</a></li>
+            <li class="nav-item active"><a href="/players.html">🏃 Cầu thủ</a></li>
+            <li class="nav-item"><a href="/schedules.html">📅 Lịch tập</a></li>
+            <li class="nav-item"><a href="/matches.html">⚽ Trận đấu</a></li>
+            <li class="nav-item"><a href="/attendance.html">✅ Điểm danh & Thống kê</a></li>
+            <li class="nav-item"><a href="/fields.html">🏟️ Sân bóng</a></li>
+          </ul>
+        </nav>
+
+        <div class="nav-auth" id="navbarAuth"></div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title"><span>🏃</span> Quản Lý Cầu Thủ (<span id="playerTotalCount">0</span>)</h1>
+          <p class="page-subtitle">Hồ sơ danh sách cầu thủ thuộc biên chế câu lạc bộ Sao Vàng FC kèm tìm kiếm nâng cao & xuất báo cáo</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <button id="btnExportPlayersExcel" class="btn btn-secondary" style="font-size: 13px;">📥 Xuất Excel</button>
+          <button id="btnPrintPlayersPDF" class="btn btn-secondary" style="font-size: 13px;">📄 In / Xuất PDF</button>
+          <button id="btnOpenAddModal" class="btn btn-primary">➕ Thêm Cầu Thủ Mới</button>
+        </div>
+      </div>
+
+      <!-- Phân quyền Notice -->
+      <div id="playerRoleNotice" class="alert alert-info" style="display: none; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;"></div>
+
+      <!-- TÍNH NĂNG 4: BỘ LỌC VÀ TÌM KIẾM NÂNG CAO -->
+      <section style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 28px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px;">
+          <div class="search-input-wrapper" style="margin: 0;">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              id="searchPlayerInput"
+              class="search-input"
+              placeholder="Tìm theo tên, số áo, số ĐT..."
+            >
+          </div>
+          <div>
+            <select id="filterStatusSelect" class="form-control" style="font-size: 13px;">
+              <option value="Tất cả">⚡ Tất cả trạng thái</option>
+              <option value="Đang thi đấu">🟢 Đang thi đấu</option>
+              <option value="Chấn thương">🔴 Đang chấn thương</option>
+              <option value="Nghỉ phép">🟡 Đang nghỉ phép</option>
+            </select>
+          </div>
+          <div>
+            <select id="filterFootSelect" class="form-control" style="font-size: 13px;">
+              <option value="Tất cả">👟 Tất cả chân thuận</option>
+              <option value="Chân phải">Chân phải</option>
+              <option value="Chân trái">Chân trái</option>
+              <option value="Cả hai chân">Cả hai chân</option>
+            </select>
+          </div>
+          <div>
+            <select id="filterSortSelect" class="form-control" style="font-size: 13px;">
+              <option value="jersey-asc">🔢 Số áo: Nhỏ ➔ Lớn</option>
+              <option value="jersey-desc">🔢 Số áo: Lớn ➔ Nhỏ</option>
+              <option value="name-asc">🔤 Tên: A ➔ Z</option>
+              <option value="name-desc">🔤 Tên: Z ➔ A</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06);">
+          <div class="filter-pills" id="positionFilters">
+            <span style="font-size: 12px; color: var(--text-muted); margin-right: 4px; display: inline-flex; align-items: center;">Vị trí:</span>
+            <button class="filter-btn active" data-pos="Tất cả">Tất cả</button>
+            <button class="filter-btn" data-pos="Thủ môn">Thủ môn</button>
+            <button class="filter-btn" data-pos="Hậu vệ">Hậu vệ</button>
+            <button class="filter-btn" data-pos="Tiền vệ">Tiền vệ</button>
+            <button class="filter-btn" data-pos="Tiền đạo">Tiền đạo</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="playerMatchIndicator" style="font-size: 12px; color: #93c5fd; font-weight: 600;"></span>
+            <button id="btnResetFilters" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;">🔄 Đặt lại</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Danh sách card cầu thủ -->
+      <section class="players-grid" id="playersContainer">
+        <!-- Render bởi js/players.js -->
+      </section>
+    </main>
+
+    <!-- TÍNH NĂNG 3: MODAL XEM HỒ SƠ CHI TIẾT CẦU THỦ -->
+    <div class="modal-overlay" id="profilePlayerModal">
+      <div class="modal-box" style="max-width: 640px;">
+        <div class="modal-header">
+          <div style="display: flex; alignItems: center; gap: 12px;">
+            <div id="profJerseyBadge" style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #022c22;">#10</div>
+            <div>
+              <h3 id="profName" style="font-size: 20px; font-weight: 800; color: #fff;">Tên Cầu Thủ</h3>
+              <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+                <span id="profPosition" class="badge badge-info">Tiền vệ</span>
+                <span id="profStatus" class="badge badge-success">Đang thi đấu</span>
+              </div>
+            </div>
+          </div>
+          <button class="modal-close" id="btnCloseProfileModal">&times;</button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+          <div>
+            <h4 style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">📌 Chỉ Số Nhân Trắc & Thông Tin</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; background: rgba(30, 41, 59, 0.5); padding: 14px; border-radius: var(--radius-sm); font-size: 13px;">
+              <div>🎂 Ngày sinh: <strong id="profDob" style="color: #fff;">—</strong></div>
+              <div>📞 Điện thoại: <strong id="profPhone" style="color: #fff;">—</strong></div>
+              <div>📏 Chiều cao: <strong id="profHeight" style="color: #fff;">1m78</strong></div>
+              <div>⚖️ Cân nặng: <strong id="profWeight" style="color: #fff;">74kg</strong></div>
+              <div>👟 Chân thuận: <strong id="profFoot" style="color: #fff;">Chân phải</strong></div>
+              <div>📅 Gia nhập: <strong id="profJoined" style="color: #fff;">2023</strong></div>
+            </div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 13px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">📋 Lịch Sử Tham Gia Luyện Tập Gần Nhất</h4>
+            <div style="background: var(--bg-input); border-radius: var(--radius-sm); border: 1px solid var(--border-color); overflow: hidden;">
+              <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: #0f172a; text-align: left; color: var(--text-muted);">
+                    <th style="padding: 10px 14px;">Ngày</th>
+                    <th style="padding: 10px 14px;">Nội dung buổi tập</th>
+                    <th style="padding: 10px 14px;">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody id="profHistoryTableBody">
+                  <!-- Render history -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 20px;">
+          <button type="button" class="btn btn-primary" id="btnCloseProfileModalBtn">Đóng Hồ Sơ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Thêm Cầu Thủ -->
+    <div class="modal-overlay" id="addPlayerModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>➕ Thêm Cầu Thủ Mới</h3>
+          <button class="modal-close" id="btnCloseModal">&times;</button>
+        </div>
+        <form id="addPlayerForm">
+          <div class="form-group">
+            <label for="newPlayerName" class="form-label">Họ và tên cầu thủ:</label>
+            <input type="text" id="newPlayerName" class="form-control" placeholder="Ví dụ: Nguyễn Quang Hải" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label for="newPlayerJersey" class="form-label">Số áo thi đấu:</label>
+              <input type="number" id="newPlayerJersey" class="form-control" placeholder="Ví dụ: 19" min="1" max="99" required>
+            </div>
+            <div class="form-group">
+              <label for="newPlayerPosition" class="form-label">Vị trí thi đấu:</label>
+              <select id="newPlayerPosition" class="form-control">
+                <option value="Thủ môn">Thủ môn</option>
+                <option value="Hậu vệ">Hậu vệ</option>
+                <option value="Tiền vệ" selected>Tiền vệ</option>
+                <option value="Tiền đạo">Tiền đạo</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label for="newPlayerDob" class="form-label">Ngày sinh:</label>
+              <input type="date" id="newPlayerDob" class="form-control" value="2000-01-01">
+            </div>
+            <div class="form-group">
+              <label for="newPlayerPhone" class="form-label">Điện thoại:</label>
+              <input type="tel" id="newPlayerPhone" class="form-control" placeholder="0901234567">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="newPlayerStatus" class="form-label">Tình trạng thi đấu:</label>
+            <select id="newPlayerStatus" class="form-control">
+              <option value="Đang thi đấu" selected>Đang thi đấu</option>
+              <option value="Chấn thương">Chấn thương</option>
+              <option value="Nghỉ phép">Nghỉ phép</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnCancelModal">Hủy</button>
+            <button type="submit" class="btn btn-primary">Lưu Cầu Thủ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>© 2026 Quản Lý Câu Lạc Bộ & Lịch Tập Bóng Đá.</p>
+    </footer>
+  </div>
+
+  <!-- Scripts tách biệt -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/exportUtils.js"></script>
+  <script src="/js/players.js"></script>
+</body>
+</html>

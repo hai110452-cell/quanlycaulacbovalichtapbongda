@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kết Quả Trận Đấu & Lịch Sử Thi Đấu - Sao Vàng FC</title>
+  <!-- CSS tách biệt hoàn toàn -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/matches.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Navbar -->
+    <header class="app-navbar">
+      <div class="navbar-container">
+        <a href="/index.html" class="brand-logo">
+          <div class="brand-icon">⚽</div>
+          <div class="brand-text">
+            <span class="brand-title">SAO VÀNG FC <span class="brand-tag">Club Hub</span></span>
+            <span class="brand-subtitle">Quản lý câu lạc bộ & Lịch tập</span>
+          </div>
+        </a>
+
+        <nav>
+          <ul class="nav-links">
+            <li class="nav-item"><a href="/index.html">📊 Tổng quan</a></li>
+            <li class="nav-item"><a href="/players.html">🏃 Cầu thủ</a></li>
+            <li class="nav-item"><a href="/schedules.html">📅 Lịch tập</a></li>
+            <li class="nav-item active"><a href="/matches.html">⚽ Trận đấu</a></li>
+            <li class="nav-item"><a href="/attendance.html">✅ Điểm danh & Thống kê</a></li>
+            <li class="nav-item"><a href="/fields.html">🏟️ Sân bóng</a></li>
+          </ul>
+        </nav>
+
+        <div class="nav-auth" id="navbarAuth"></div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title"><span>⚽</span> Quản Lý Kết Quả Trận Đấu & Lịch Sử Thi Đấu</h1>
+          <p class="page-subtitle">Ghi nhận tỷ số, danh sách cầu thủ ghi bàn, MVP trận đấu và phong độ đội bóng</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="btnExportExcel" class="btn btn-secondary" style="font-size: 13px;">📥 Xuất Excel</button>
+          <button id="btnPrintPDF" class="btn btn-secondary" style="font-size: 13px;">📄 In / Xuất PDF</button>
+          <button id="btnOpenAddMatch" class="btn btn-primary">➕ Nhập Kết Quả</button>
+        </div>
+      </div>
+
+      <!-- Phân quyền Notice -->
+      <div id="matchRoleNotice" class="alert alert-info" style="display: none; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;"></div>
+
+      <!-- KPI cards -->
+      <section class="match-kpi-grid">
+        <div class="match-kpi-card">
+          <span class="match-kpi-title">Tổng Trận Đã Đấu</span>
+          <div class="match-kpi-num" id="kpiTotalMatches">3</div>
+          <span class="match-kpi-desc" id="kpiUpcomingMatches">+1 trận sắp tới</span>
+        </div>
+        <div class="match-kpi-card">
+          <span class="match-kpi-title">Thành Tích (T-H-B)</span>
+          <div class="match-kpi-num" style="color: #34d399;" id="kpiRecord">2 - 1 - 0</div>
+          <span class="match-kpi-desc">Tỷ lệ thắng: <strong id="kpiWinRate">67%</strong></span>
+        </div>
+        <div class="match-kpi-card">
+          <span class="match-kpi-title">Bàn Thắng Đã Ghi</span>
+          <div class="match-kpi-num" style="color: #60a5fa;" id="kpiGoalsFor">9</div>
+          <span class="match-kpi-desc" id="kpiAvgGoals">Trung bình: 3.0 bàn/trận</span>
+        </div>
+        <div class="match-kpi-card">
+          <span class="match-kpi-title">Hiệu Số Bàn Thắng</span>
+          <div class="match-kpi-num" style="color: #34d399;" id="kpiDiff">+6</div>
+          <span class="match-kpi-desc" id="kpiGoalsAgainst">Thủng lưới 3 bàn</span>
+        </div>
+      </section>
+
+      <!-- Bộ lọc và tìm kiếm -->
+      <section style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+        <div class="search-input-wrapper" style="max-width: 320px; margin: 0;">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchMatchInput" class="search-input" placeholder="Tìm theo đối thủ, giải đấu...">
+        </div>
+        <div class="filter-pills" id="matchOutcomeFilters">
+          <button class="filter-btn active" data-filter="Tất cả">Tất cả</button>
+          <button class="filter-btn" data-filter="Thắng">Thắng</button>
+          <button class="filter-btn" data-filter="Hòa">Hòa</button>
+          <button class="filter-btn" data-filter="Thua">Thua</button>
+          <button class="filter-btn" data-filter="Sắp diễn ra">Sắp diễn ra</button>
+        </div>
+      </section>
+
+      <!-- Danh sách trận đấu -->
+      <section class="matches-list" id="matchesContainer"></section>
+    </main>
+
+    <!-- Modal Nhập Kết Quả Trận Đấu -->
+    <div class="modal-overlay" id="addMatchModal">
+      <div class="modal-box" style="max-width: 600px;">
+        <div class="modal-header">
+          <h3>➕ Nhập Kết Quả Trận Đấu Mới</h3>
+          <button class="modal-close" id="btnCloseAddMatch">&times;</button>
+        </div>
+        <form id="addMatchForm">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Tên đội đối thủ:</label>
+              <input type="text" id="matchOpponent" required class="form-control" placeholder="Hải Phòng United">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phân loại trận:</label>
+              <select id="matchType" class="form-control">
+                <option value="Giao hữu">Giao hữu</option>
+                <option value="Giải đấu">Giải đấu chính thức</option>
+                <option value="Cúp Mở Rộng">Cúp Mở Rộng</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Ngày thi đấu:</label>
+              <input type="date" id="matchDate" required class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sân thi đấu:</label>
+              <select id="matchField" class="form-control">
+                <option value="Sân bóng Sao Vàng A (Sân 7)">Sân bóng Sao Vàng A (Sân 7)</option>
+                <option value="Sân bóng Sao Vàng B (Sân 11)">Sân bóng Sao Vàng B (Sân 11)</option>
+                <option value="Sân vận động Mỹ Đình Mini">Sân vận động Mỹ Đình Mini</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="background: rgba(30, 41, 59, 0.5); padding: 14px; border-radius: var(--radius-sm); margin-bottom: 14px;">
+            <label class="form-label" style="margin-bottom: 8px;">Tỷ số trận đấu:</label>
+            <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;">
+              <div>
+                <span style="font-size: 12px; color: #34d399; font-weight: 600;">Sao Vàng FC</span>
+                <input type="number" id="matchHomeScore" min="0" value="0" class="form-control" style="font-size: 18px; text-align: center; font-weight: bold;">
+              </div>
+              <span style="font-size: 20px; font-weight: bold;">-</span>
+              <div>
+                <span style="font-size: 12px; color: #f87171; font-weight: 600;">Đối thủ</span>
+                <input type="number" id="matchAwayScore" min="0" value="0" class="form-control" style="font-size: 18px; text-align: center; font-weight: bold;">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cầu thủ ghi bàn (Cách nhau dấu phẩy, VD: Quang Hải 18', Tiến Linh 55'):</label>
+            <input type="text" id="matchScorersInput" class="form-control" placeholder="Tiến Linh 25', Quang Hải 70'">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">Cầu thủ xuất sắc nhất (MVP):</label>
+              <input type="text" id="matchMVP" class="form-control" placeholder="Nguyễn Quang Hải">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Trạng thái:</label>
+              <select id="matchStatus" class="form-control">
+                <option value="Đã kết thúc">Đã kết thúc</option>
+                <option value="Sắp diễn ra">Sắp diễn ra</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nhận định của HLV:</label>
+            <textarea id="matchNotes" rows="2" class="form-control" placeholder="Chiến thuật hiệu quả, pressing tầm cao..."></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnCancelAddMatch">Hủy</button>
+            <button type="submit" class="btn btn-primary">Lưu Kết Quả</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>© 2026 Quản Lý Câu Lạc Bộ & Lịch Tập Bóng Đá. Giao diện cấu trúc tách biệt rõ ràng HTML & CSS.</p>
+    </footer>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/exportUtils.js"></script>
+  <script src="/js/matches.js"></script>
+</body>
+</html>

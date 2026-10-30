@@ -75,4 +75,39 @@ export interface User {
   avatarUrl?: string;
   createdAt?: string;
 }
+export interface GoalScorer {
+  id?: string;
+  playerName: string;
+  minute: number;
+  isPenalty?: boolean;
+}
 
+export type MatchStatus = 'Đã kết thúc' | 'Đang diễn ra' | 'Sắp diễn ra';
+
+export interface MatchResult {
+  id: string;
+  opponent: string;
+  opponentLogo?: string;
+  matchType: 'Giao hữu' | 'Giải đấu' | 'Cúp Mở Rộng';
+  date: string;
+  time: string;
+  fieldName: string;
+  homeScore: number;
+  awayScore: number;
+  status: MatchStatus;
+  goalScorers: GoalScorer[];
+  mvp?: string;
+  yellowCards?: number;
+  redCards?: number;
+  notes?: string;
+}
+
+export interface ScheduleNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'new' | 'change' | 'cancel' | 'reminder';
+  timestamp: string;
+  read: boolean;
+  scheduleId?: string;
+}

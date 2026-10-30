@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tổng quan - Sao Vàng FC | Hệ thống quản lý CLB bóng đá</title>
+  <meta name="description" content="Tổng quan hệ thống quản lý câu lạc bộ Sao Vàng FC">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    /* DASHBOARD SPECIFIC */
+    .hero-card {
+      background: linear-gradient(135deg, #0a1a0e 0%, #0d2810 50%, #15803d 100%);
+      border-radius: 20px;
+      padding: 36px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+    }
+    .hero-card::before {
+      content: '⚽';
+      position: absolute;
+      right: 32px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 100px;
+      opacity: 0.1;
+    }
+    .hero-card::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: 200px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(34,197,94,0.2) 0%, transparent 70%);
+    }
+    .hero-greeting {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 6px;
+    }
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
+    }
+    .hero-title span { color: #4ade80; }
+    .hero-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.55);
+      max-width: 500px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .hero-btn-primary {
+      background: #22c55e;
+      color: #fff;
+    }
+    .hero-btn-primary:hover { background: #4ade80; transform: translateY(-1px); }
+    .hero-btn-outline {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .hero-btn-outline:hover { background: rgba(255,255,255,0.18); }
+
+    /* QUICK ACTION GRID */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .quick-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 20px 16px;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .quick-card:hover {
+      border-color: #22c55e;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(34,197,94,0.15);
+    }
+    .quick-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .quick-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0a1a0e;
+      margin-bottom: 3px;
+    }
+    .quick-sub { font-size: 11px; color: #9ca3af; }
+
+    /* CONTENT GRID */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* SCHEDULE LIST */
+    .schedule-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .schedule-item:last-child { border-bottom: none; }
+    .schedule-date-box {
+      min-width: 50px;
+      text-align: center;
+      background: #f0fdf4;
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 10px;
+      padding: 6px;
+    }
+    .sdb-day {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #16a34a;
+      line-height: 1;
+    }
+    .sdb-month { font-size: 10px; font-weight: 600; color: #9ca3af; text-transform: uppercase; }
+    .schedule-info .s-title { font-size: 14px; font-weight: 600; color: #0a1a0e; margin-bottom: 3px; }
+    .schedule-info .s-meta { font-size: 12px; color: #6b7280; display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* ACTIVITY LIST */
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f3f4f6;
+      align-items: flex-start;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .dot-green  { background: rgba(34,197,94,0.12); }
+    .dot-blue   { background: rgba(59,130,246,0.12); }
+    .dot-orange { background: rgba(245,158,11,0.12); }
+    .dot-red    { background: rgba(239,68,68,0.1); }
+
+    .activity-info .a-text { font-size: 13px; color: #374151; line-height: 1.4; }
+    .activity-info .a-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+    /* NOTIFICATION PREVIEW */
+    .notif-item {
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      transition: background 0.15s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .notif-item:hover { background: #f9fdf9; border-color: rgba(34,197,94,0.1); }
+    .notif-item.unread { background: #f0fdf4; }
+    .notif-badge-dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+    .notif-title { font-size: 13px; font-weight: 600; color: #0a1a0e; margin-bottom: 2px; }
+    .notif-body  { font-size: 12px; color: #6b7280; line-height: 1.4; }
+    .notif-time  { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+
+    /* ATTENDANCE CHART */
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      height: 120px;
+      gap: 8px;
+      padding: 0 4px;
+    }
+    .chart-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .chart-pct { font-size: 10px; font-weight: 700; color: #16a34a; }
+    .chart-bar {
+      width: 100%;
+      max-width: 32px;
+      background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+      border-radius: 4px 4px 0 0;
+      transition: all 0.3s ease;
+    }
+    .chart-bar:hover { background: linear-gradient(180deg, #4ade80 0%, #22c55e 100%); }
+    .chart-label { font-size: 10px; color: #9ca3af; font-weight: 500; }
+    .chart-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 10px;
+      padding: 0 4px;
+    }
+    .chart-footer .good { color: #16a34a; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="appSidebar"></aside>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- TOP HEADER -->
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div>
+          <div class="header-page-title">📊 Tổng quan</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="header-search">
+          <span>🔍</span>
+          <input type="text" placeholder="Tìm kiếm...">
+        </div>
+        <a href="/notifications.html" class="icon-btn" title="Thông báo">🔔</a>
+        <a href="/members.html" class="icon-btn" title="Thành viên">👤</a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="main-content">
+      <!-- HERO -->
+      <div class="hero-card">
+        <div class="hero-greeting" id="heroGreeting">Xin chào, hôm nay là thứ Sáu, 30/10/2026</div>
+        <h1 class="hero-title">Chào mừng, <span id="heroName">Admin</span>! 👋</h1>
+        <p class="hero-desc">Hệ thống đang hoạt động tốt. Bạn có 3 buổi tập sắp diễn ra và 2 thông báo mới cần xem.</p>
+        <div class="hero-actions">
+          <a href="/schedules.html" class="hero-btn hero-btn-primary">📅 Xem lịch tập</a>
+          <a href="/attendance.html" class="hero-btn hero-btn-outline">✅ Điểm danh hôm nay</a>
+          <a href="/notifications.html" class="hero-btn hero-btn-outline">📢 Thông báo</a>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-top">
+            <div>
+              <div class="stat-label">Đội bóng</div>
+              <div class="stat-value">4</div>
+            </div>
+            <div class="stat-icon">🏆</div>
+          </div>
+          <div class="stat-note positive">↑ Thêm 1 đội mới tháng này</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div>
+              <div class="stat-label">Thành viên</div>
+              <div class="stat-value" id="statMembers">20</div>
+            </div>
+            <div class="stat-icon">👥</div>
+          </div>
+          <div class="stat-note positive">↑ 20 cầu thủ chính thức Neon DB</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div>
+              <div class="stat-label">Huấn luyện viên</div>
+              <div class="stat-value" id="statCoaches">4</div>
+            </div>
+            <div class="stat-icon">📋</div>
+          </div>
+          <div class="stat-note">4 HLV chuyên trách các tuyến</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div>
+              <div class="stat-label">Chuyên cần</div>
+              <div class="stat-value">95%</div>
+            </div>
+            <div class="stat-icon">✅</div>
+          </div>
+          <div class="stat-note positive">↑ Tỷ lệ điểm danh tích cực</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div>
+              <div class="stat-label">Lịch tập</div>
+              <div class="stat-value" id="statSchedules">13</div>
+            </div>
+            <div class="stat-icon">📅</div>
+          </div>
+          <div class="stat-note">13 buổi tập & giao hữu đã lên lịch</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div>
+              <div class="stat-label">Quỹ CLB</div>
+              <div class="stat-value">12.4M</div>
+            </div>
+            <div class="stat-icon">💰</div>
+          </div>
+          <div class="stat-note positive">↑ Thu 4.2M tháng này</div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="quick-grid">
+        <a href="/teams.html" class="quick-card">
+          <span class="quick-icon">🏆</span>
+          <div class="quick-label">Thêm đội</div>
+          <div class="quick-sub">Quản lý đội bóng</div>
+        </a>
+        <a href="/members.html" class="quick-card">
+          <span class="quick-icon">👤</span>
+          <div class="quick-label">Thêm thành viên</div>
+          <div class="quick-sub">Quản lý hồ sơ</div>
+        </a>
+        <a href="/schedules.html" class="quick-card">
+          <span class="quick-icon">📅</span>
+          <div class="quick-label">Tạo lịch tập</div>
+          <div class="quick-sub">Lên kế hoạch</div>
+        </a>
+        <a href="/attendance.html" class="quick-card">
+          <span class="quick-icon">✅</span>
+          <div class="quick-label">Điểm danh</div>
+          <div class="quick-sub">Buổi tập hôm nay</div>
+        </a>
+        <a href="/fees.html" class="quick-card">
+          <span class="quick-icon">💰</span>
+          <div class="quick-label">Thu phí</div>
+          <div class="quick-sub">Ghi nhận thu chi</div>
+        </a>
+        <a href="/notifications.html" class="quick-card">
+          <span class="quick-icon">📢</span>
+          <div class="quick-label">Gửi thông báo</div>
+          <div class="quick-sub">Toàn bộ thành viên</div>
+        </a>
+      </div>
+
+      <!-- CONTENT GRID -->
+      <div class="content-grid">
+        <!-- LEFT: SCHEDULE + CHART -->
+        <div>
+          <!-- Upcoming Schedules -->
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+              <div class="card-title">📅 Lịch tập sắp tới</div>
+              <a href="/schedules.html" class="btn btn-sm btn-outline">Xem tất cả →</a>
+            </div>
+            <div class="card-body" style="padding: 0 24px;">
+              <div class="schedule-item">
+                <div class="schedule-date-box">
+                  <div class="sdb-day">01</div>
+                  <div class="sdb-month">Nov</div>
+                </div>
+                <div class="schedule-info">
+                  <div class="s-title">⚽ Tập thể lực – Đội A</div>
+                  <div class="s-meta">
+                    <span>⏰ 06:30 – 08:30</span>
+                    <span>📍 Sân Mỹ Đình</span>
+                    <span class="badge badge-success">Đội A</span>
+                  </div>
+                </div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-date-box">
+                  <div class="sdb-day">02</div>
+                  <div class="sdb-month">Nov</div>
+                </div>
+                <div class="schedule-info">
+                  <div class="s-title">🧠 Chiến thuật – Đội B</div>
+                  <div class="s-meta">
+                    <span>⏰ 15:00 – 17:00</span>
+                    <span>📍 Sân Hàng Đẫy</span>
+                    <span class="badge badge-info">Đội B</span>
+                  </div>
+                </div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-date-box">
+                  <div class="sdb-day">04</div>
+                  <div class="sdb-month">Nov</div>
+                </div>
+                <div class="schedule-info">
+                  <div class="s-title">🏃 Chạy bền & kỹ thuật</div>
+                  <div class="s-meta">
+                    <span>⏰ 05:30 – 07:30</span>
+                    <span>📍 Công viên Thống Nhất</span>
+                    <span class="badge badge-warning">Toàn CLB</span>
+                  </div>
+                </div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-date-box">
+                  <div class="sdb-day">06</div>
+                  <div class="sdb-month">Nov</div>
+                </div>
+                <div class="schedule-info">
+                  <div class="s-title">🥅 Thi đấu nội bộ</div>
+                  <div class="s-meta">
+                    <span>⏰ 14:00 – 18:00</span>
+                    <span>📍 Sân Mỹ Đình</span>
+                    <span class="badge badge-danger">Thi đấu</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attendance Chart -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📊 Chuyên cần 6 tháng gần nhất</div>
+              <span class="badge badge-success">Mục tiêu: ≥90%</span>
+            </div>
+            <div class="card-body">
+              <div class="chart-bars">
+                <div class="chart-bar-wrap">
+                  <div class="chart-pct">86%</div>
+                  <div class="chart-bar" style="height:86%;"></div>
+                  <div class="chart-label">T.05</div>
+                </div>
+                <div class="chart-bar-wrap">
+                  <div class="chart-pct">88%</div>
+                  <div class="chart-bar" style="height:88%;"></div>
+                  <div class="chart-label">T.06</div>
+                </div>
+                <div class="chart-bar-wrap">
+                  <div class="chart-pct">91%</div>
+                  <div class="chart-bar" style="height:91%;"></div>
+                  <div class="chart-label">T.07</div>
+                </div>
+                <div class="chart-bar-wrap">
+                  <div class="chart-pct">89%</div>
+                  <div class="chart-bar" style="height:89%;"></div>
+                  <div class="chart-label">T.08</div>
+                </div>
+                <div class="chart-bar-wrap">
+                  <div class="chart-pct">93%</div>
+                  <div class="chart-bar" style="height:93%;"></div>
+                  <div class="chart-label">T.09</div>
+                </div>
+                <div class="chart-bar-wrap">
+                  <div class="chart-pct" style="color:#16a34a;font-weight:800;">96%</div>
+                  <div class="chart-bar" style="height:96%;"></div>
+                  <div class="chart-label" style="font-weight:700;color:#16a34a;">T.10</div>
+                </div>
+              </div>
+              <div class="chart-footer">
+                <span>Thấp nhất: 86% (T.05)</span>
+                <span class="good">Cao nhất: 96% (T.10) 📈</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: NOTIFICATIONS + ACTIVITY -->
+        <div>
+          <!-- Notifications -->
+          <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+              <div class="card-title">📢 Thông báo mới</div>
+              <a href="/notifications.html" class="btn btn-sm btn-outline">Xem tất cả →</a>
+            </div>
+            <div class="card-body" style="padding: 12px 16px;">
+              <div class="notif-item unread">
+                <div class="notif-badge-dot"></div>
+                <div>
+                  <div class="notif-title">🏆 Lịch tập tuần mới</div>
+                  <div class="notif-body">Lịch tập tuần 01/11 đã được cập nhật. Toàn bộ thành viên xem và xác nhận.</div>
+                  <div class="notif-time">⏱ 2 giờ trước</div>
+                </div>
+              </div>
+              <div class="notif-item unread">
+                <div class="notif-badge-dot"></div>
+                <div>
+                  <div class="notif-title">💰 Nhắc nhở đóng phí tháng 11</div>
+                  <div class="notif-body">Hạn đóng phí sinh hoạt tháng 11 là 05/11/2026. Vui lòng đóng đúng hạn.</div>
+                  <div class="notif-time">⏱ 1 ngày trước</div>
+                </div>
+              </div>
+              <div class="notif-item">
+                <div class="notif-badge-dot" style="background:#e5e7eb;"></div>
+                <div>
+                  <div class="notif-title">📋 HLV mới tham gia đội C</div>
+                  <div class="notif-body">HLV. Trần Minh Khoa chính thức gia nhập đội C từ tháng 11.</div>
+                  <div class="notif-time">⏱ 3 ngày trước</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🕐 Hoạt động gần đây</div>
+            </div>
+            <div class="card-body" style="padding: 12px 24px;">
+              <div class="activity-item">
+                <div class="activity-dot dot-green">✅</div>
+                <div class="activity-info">
+                  <div class="a-text"><strong>Điểm danh</strong> buổi tập sáng hoàn thành – 22/25 thành viên tham dự</div>
+                  <div class="a-time">⏱ Hôm nay, 08:45</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot dot-blue">👤</div>
+                <div class="activity-info">
+                  <div class="a-text">Thêm thành viên mới: <strong>Phạm Tuấn Anh (#32)</strong> vào đội B</div>
+                  <div class="a-time">⏱ Hôm qua, 14:20</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot dot-orange">💰</div>
+                <div class="activity-info">
+                  <div class="a-text">Thu phí sinh hoạt tháng 11 – <strong>15 thành viên</strong> đã đóng</div>
+                  <div class="a-time">⏱ 2 ngày trước</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot dot-green">📅</div>
+                <div class="activity-info">
+                  <div class="a-text">Cập nhật lịch tập: Đội A thêm buổi tập <strong>04/11</strong> lúc 05:30</div>
+                  <div class="a-time">⏱ 2 ngày trước</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot dot-red">📋</div>
+                <div class="activity-info">
+                  <div class="a-text">HLV. Nguyễn Văn Huấn cập nhật kế hoạch chiến thuật tháng 11</div>
+                  <div class="a-time">⏱ 3 ngày trước</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  // Require login
+  if (!requireLogin()) { /* redirect handled */ }
+  
+  // Render sidebar
+  document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar('dashboard');
+
+    // Update greeting
+    const user = getAuthUser();
+    if (user) {
+      document.getElementById('heroName').textContent = user.name || 'Thành viên';
+    }
+
+    const now = new Date();
+    const days = ['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+    document.getElementById('heroGreeting').textContent =
+      `Xin chào, hôm nay là ${days[now.getDay()]}, ${now.toLocaleDateString('vi-VN')}`;
+
+    // Auto-fetch real stats from Neon DB backend
+    fetch('http://localhost:5000/api/players').then(r=>r.json()).then(d=>{
+      const list = d.data || d;
+      if (Array.isArray(list) && list.length > 0) document.getElementById('statMembers').textContent = list.length;
+    }).catch(()=>{});
+
+    fetch('http://localhost:5000/api/users').then(r=>r.json()).then(d=>{
+      const list = d.data || d;
+      if (Array.isArray(list)) {
+        const coaches = list.filter(u => u.role === 'coach');
+        if (coaches.length > 0) document.getElementById('statCoaches').textContent = coaches.length;
+      }
+    }).catch(()=>{});
+
+    fetch('http://localhost:5000/api/schedules').then(r=>r.json()).then(d=>{
+      const list = d.data || d;
+      if (Array.isArray(list) && list.length > 0) document.getElementById('statSchedules').textContent = list.length;
+    }).catch(()=>{});
+  });
+</script>
+</body>
+</html>

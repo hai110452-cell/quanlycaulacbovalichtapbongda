@@ -1,26 +1,157 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-main: #f0fdf4;
+    --bg-surface: #ffffff;
+    --color-forest: #064e3b;
+    --color-emerald-deep: #065f46;
+    --color-emerald-primary: #047857;
+    --color-emerald-light: #10b981;
+    --color-mint: #d1fae5;
+    --color-mint-subtle: #ecfdf5;
+    --border-green: #a7f3d0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #f0fdf4;
+    color: #064e3b;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 90% 90%, rgba(5, 150, 105, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(220, 252, 231, 0.5) 0%, transparent 70%);
+    background-attachment: fixed;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Green Predominant Component Styles */
+.green-card,
+.white-card {
+  background-color: #ffffff !important;
+  border: 2px solid #34d399 !important; /* Viền xanh ngọc emerald dày dặn, rõ nét */
+  border-radius: 1.25rem !important;
+  box-shadow: 0 10px 25px -4px rgba(6, 78, 59, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.green-card:hover,
+.white-card:hover {
+  border-color: #059669 !important; /* Đổi màu viền xanh đậm hơn khi rê chuột */
+  box-shadow: 0 18px 32px -4px rgba(6, 78, 59, 0.18), 0 8px 12px -3px rgba(0, 0, 0, 0.06) !important;
+  transform: translateY(-3px);
+}
+
+.green-card-hero {
+  background: linear-gradient(135deg, #022c22 0%, #064e3b 40%, #047857 80%, #059669 100%);
+  color: #ffffff;
+  border: 2px solid rgba(52, 211, 153, 0.4);
+  box-shadow: 0 15px 35px -5px rgba(4, 120, 87, 0.45);
+}
+
+.green-table-header {
+  background: linear-gradient(90deg, #064e3b 0%, #047857 100%);
+  color: #ffffff;
+}
+
+.green-badge {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.green-button-primary {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px 0 rgba(5, 150, 105, 0.35);
+  transition: all 0.2s ease-in-out;
+}
+
+.green-button-primary:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 6px 20px 0 rgba(5, 150, 105, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Custom Soccer Pitch */
+.soccer-pitch-green {
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      #047857 0px,
+      #047857 35px,
+      #059669 35px,
+      #059669 70px
+    );
+  border: 3px solid #ffffff;
+  border-radius: 16px;
+  position: relative;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.3), 0 12px 30px rgba(4, 120, 87, 0.3);
+}
+
+.soccer-pitch-green::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.pitch-center-circle-white {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+}
+
+.pitch-penalty-top-white {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 60px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-top: none;
+}
+
+.pitch-penalty-bottom-white {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 60px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-bottom: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #d1fae5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #10b981;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #047857;
 }

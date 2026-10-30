@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Ký Thành Viên - Quản Lý CLB & Lịch Tập Bóng Đá</title>
+  <!-- CSS tách biệt hoàn toàn -->
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Navbar -->
+    <header class="app-navbar">
+      <div class="navbar-container">
+        <a href="/index.html" class="brand-logo">
+          <div class="brand-icon">⚽</div>
+          <div class="brand-text">
+            <span class="brand-title">SAO VÀNG FC <span class="brand-tag">Club Hub</span></span>
+            <span class="brand-subtitle">Quản lý câu lạc bộ bóng đá</span>
+          </div>
+        </a>
+        <div class="nav-auth">
+          <a href="/login.html" class="btn btn-secondary">Đã có tài khoản? Đăng nhập</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content: Form đăng ký -->
+    <main class="auth-wrapper">
+      <div class="auth-card" style="max-width: 480px;">
+        <div class="auth-header">
+          <div class="auth-logo">📝</div>
+          <h1 class="auth-title">Đăng Ký Thành Viên</h1>
+          <p class="auth-subtitle">Tạo tài khoản tham gia hệ thống quản lý câu lạc bộ</p>
+        </div>
+
+        <div id="errorAlert" class="alert alert-danger" style="display: none;"></div>
+        <div id="successAlert" class="alert alert-success" style="display: none;"></div>
+
+        <form id="registerForm" class="auth-form">
+          <div class="form-group">
+            <label for="regName" class="form-label">Họ và Tên:</label>
+            <input type="text" id="regName" class="form-control" placeholder="Ví dụ: Nguyễn Văn Hải" required>
+          </div>
+
+          <div class="form-group">
+            <label for="regEmail" class="form-label">Tài khoản / Email:</label>
+            <input type="text" id="regEmail" class="form-control" placeholder="Nhập tài khoản từ 6-15 ký tự..." required>
+          </div>
+
+          <div class="form-group">
+            <label for="regRole" class="form-label">Vai trò trong CLB:</label>
+            <select id="regRole" class="form-control">
+              <option value="admin">🛡️ Quản trị viên (Admin) - Toàn quyền quản lý CLB</option>
+              <option value="coach">📋 Huấn luyện viên (HLV) - Quản lý lịch tập & điểm danh</option>
+              <option value="player">🏃 Thành viên / Cầu thủ - Xem lịch tập & tham gia sinh hoạt</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="regPass" class="form-label">Mật khẩu:</label>
+            <input type="password" id="regPass" class="form-control" placeholder="Tối thiểu 6 ký tự..." required>
+          </div>
+
+          <div class="form-group">
+            <label for="regPassConfirm" class="form-label">Xác nhận mật khẩu:</label>
+            <input type="password" id="regPassConfirm" class="form-control" placeholder="Nhập lại mật khẩu..." required>
+          </div>
+
+          <button type="submit" id="btnRegister" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Hoàn Tất Đăng Ký
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          Đã có tài khoản? <a href="/login.html">Đăng nhập ngay</a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>© 2026 Quản Lý Câu Lạc Bộ & Lịch Tập Bóng Đá.</p>
+    </footer>
+  </div>
+
+  <!-- Scripts tách biệt -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/register.js"></script>
+</body>
+</html>

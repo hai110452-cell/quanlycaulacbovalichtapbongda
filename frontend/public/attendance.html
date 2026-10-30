@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Điểm danh - Sao Vàng FC</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    .session-select-bar {
+      background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+      padding:20px 24px; margin-bottom:24px;
+      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+      box-shadow:0 1px 3px rgba(0,0,0,0.05);
+    }
+    .session-label { font-size:14px; font-weight:600; color:#374151; white-space:nowrap; }
+
+    .attendance-grid {
+      display:grid; grid-template-columns:1fr 320px; gap:24px;
+    }
+    @media(max-width:1024px){ .attendance-grid{grid-template-columns:1fr;} }
+
+    .member-att-row {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 0; border-bottom:1px solid #f3f4f6;
+    }
+    .member-att-row:last-child { border-bottom:none; }
+    .att-avatar {
+      width:38px; height:38px; border-radius:50%;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      display:flex; align-items:center; justify-content:center;
+      font-size:13px; font-weight:800; color:#fff; flex-shrink:0;
+    }
+    .att-name { flex:1; font-size:14px; font-weight:600; color:#0a1a0e; }
+    .att-team { font-size:12px; color:#9ca3af; }
+
+    .att-toggle {
+      display:flex; gap:6px;
+    }
+    .att-btn {
+      padding:6px 14px; border-radius:8px; font-size:13px; font-weight:600;
+      border:1.5px solid; cursor:pointer; transition:all 0.2s ease;
+    }
+    .att-btn.present {
+      background:#f0fdf4; border-color:#22c55e; color:#16a34a;
+    }
+    .att-btn.present.active {
+      background:#22c55e; border-color:#16a34a; color:#fff;
+    }
+    .att-btn.absent {
+      background:#fef2f2; border-color:#fca5a5; color:#dc2626;
+    }
+    .att-btn.absent.active {
+      background:#ef4444; border-color:#dc2626; color:#fff;
+    }
+    .att-btn.late {
+      background:#fffbeb; border-color:#fcd34d; color:#b45309;
+    }
+    .att-btn.late.active {
+      background:#f59e0b; border-color:#d97706; color:#fff;
+    }
+
+    /* Summary sidebar */
+    .summary-circle {
+      width:120px; height:120px; border-radius:50%;
+      background:conic-gradient(#22c55e 0% var(--pct), #f0fdf4 var(--pct) 100%);
+      display:flex; align-items:center; justify-content:center;
+      margin:0 auto 16px;
+      box-shadow:0 0 0 8px #f0fdf4;
+    }
+    .summary-inner {
+      width:90px; height:90px; background:#fff; border-radius:50%;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+    .summary-pct { font-family:'Outfit',sans-serif; font-size:22px; font-weight:900; color:#16a34a; }
+    .summary-sub { font-size:10px; color:#9ca3af; font-weight:600; }
+
+    .summary-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f3f4f6; }
+    .summary-row:last-child { border-bottom:none; }
+    .sum-label { font-size:13px; color:#374151; display:flex; align-items:center; gap:6px; }
+    .sum-val { font-family:'Outfit',sans-serif; font-size:18px; font-weight:800; }
+
+    .history-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 0; border-bottom:1px solid #f3f4f6; font-size:13px;
+    }
+    .history-row:last-child { border-bottom:none; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="appSidebar"></aside>
+  <div class="main-area">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div class="header-page-title">✅ Điểm danh</div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-primary admin-only" onclick="saveAttendance()">💾 Lưu điểm danh</button>
+      </div>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">✅ Quản lý điểm danh</h1>
+          <div class="page-subtitle">Theo dõi và ghi nhận sự có mặt của thành viên trong các buổi tập</div>
+        </div>
+      </div>
+
+      <!-- Session Selector -->
+      <div class="session-select-bar">
+        <span class="session-label">📅 Chọn buổi tập:</span>
+        <select class="form-control" id="sessionSelect" onchange="loadSession()" style="max-width:300px;">
+          <option value="1">01/11 – Tập thể lực sáng (Đội A)</option>
+          <option value="2">02/11 – Chiến thuật phòng thủ (Đội B)</option>
+          <option value="3">04/11 – Chạy bền & kỹ thuật (Toàn CLB)</option>
+          <option value="4">06/11 – Thi đấu nội bộ A vs B</option>
+        </select>
+        <select class="form-control" id="filterTeamAtt" onchange="filterAtt()" style="width:auto;">
+          <option value="">Tất cả đội</option>
+          <option value="Đội A">Đội A</option>
+          <option value="Đội B">Đội B</option>
+          <option value="Đội C">Đội C</option>
+        </select>
+        <div class="search-box" style="flex:1;min-width:160px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="form-control" id="searchAtt" placeholder="Tìm thành viên..." oninput="filterAtt()">
+        </div>
+      </div>
+
+      <div class="attendance-grid">
+        <!-- LEFT: Member List -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👥 Danh sách thành viên</div>
+            <div class="admin-only" style="display:flex;gap:6px;">
+              <button class="btn btn-sm btn-outline" onclick="markAll('present')">✅ Tất cả có mặt</button>
+              <button class="btn btn-sm btn-secondary" onclick="markAll('absent')">❌ Tất cả vắng</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0 24px 16px;">
+            <div id="attList"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Summary -->
+        <div>
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+              <div class="card-title">📊 Tổng kết buổi tập</div>
+            </div>
+            <div class="card-body" style="text-align:center;">
+              <div class="summary-circle" id="summaryCircle" style="--pct:0%;">
+                <div class="summary-inner">
+                  <div class="summary-pct" id="summaryPct">0%</div>
+                  <div class="summary-sub">Chuyên cần</div>
+                </div>
+              </div>
+              <div>
+                <div class="summary-row">
+                  <div class="sum-label">✅ Có mặt</div>
+                  <div class="sum-val" id="sumPresent" style="color:#16a34a;">0</div>
+                </div>
+                <div class="summary-row">
+                  <div class="sum-label">⏰ Đi trễ</div>
+                  <div class="sum-val" id="sumLate" style="color:#b45309;">0</div>
+                </div>
+                <div class="summary-row">
+                  <div class="sum-label">❌ Vắng mặt</div>
+                  <div class="sum-val" id="sumAbsent" style="color:#dc2626;">0</div>
+                </div>
+                <div class="summary-row">
+                  <div class="sum-label">❓ Chưa điểm danh</div>
+                  <div class="sum-val" id="sumPending" style="color:#6b7280;">0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📅 Lịch sử điểm danh</div>
+            </div>
+            <div class="card-body" style="padding:0 16px 16px;">
+              <div class="history-row">
+                <span>Buổi 30/10</span>
+                <span class="badge badge-success">22/25 (88%)</span>
+              </div>
+              <div class="history-row">
+                <span>Buổi 27/10</span>
+                <span class="badge badge-success">24/25 (96%)</span>
+              </div>
+              <div class="history-row">
+                <span>Buổi 25/10</span>
+                <span class="badge badge-warning">20/25 (80%)</span>
+              </div>
+              <div class="history-row">
+                <span>Buổi 23/10</span>
+                <span class="badge badge-success">23/25 (92%)</span>
+              </div>
+              <div class="history-row">
+                <span>Buổi 20/10</span>
+                <span class="badge badge-success">25/25 (100%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  if (!requireLogin()) {}
+
+  let members = [
+    { id: 'player-001', name: 'Nguyễn Văn Khải', team: 'Đội A', number: 1 },
+    { id: 'player-004', name: 'Phạm Thanh Tùng', team: 'Đội B', number: 3 },
+    { id: 'player-2', name: 'Đỗ Duy Mạnh', team: 'Đội A', number: 4 },
+    { id: 'player-003', name: 'Lê Quốc Bảo', team: 'Đội B', number: 4 },
+    { id: 'player-3', name: 'Đoàn Văn Hậu', team: 'Đội A', number: 5 },
+    { id: 'player-002', name: 'Trần Minh Tuấn', team: 'Đội C', number: 5 },
+    { id: 'player-005', name: 'Võ Hoàng Nam', team: 'Đội B', number: 6 },
+    { id: 'player-008', name: 'Nguyễn Đức Thắng', team: 'Đội A', number: 7 },
+    { id: 'player-006', name: 'Đặng Văn Long', team: 'Đội B', number: 8 },
+    { id: 'player-009', name: 'Bùi Văn Kiên', team: 'Đội A', number: 9 },
+    { id: 'player-007', name: 'Hoàng Minh Huy', team: 'Đội A', number: 10 },
+    { id: 'player-010', name: 'Trịnh Quang Hải', team: 'Đội C', number: 11 },
+    { id: 'player-011', name: 'Mai Xuân Trường', team: 'Đội B', number: 13 },
+    { id: 'player-5', name: 'Nguyễn Hoàng Đức', team: 'Đội A', number: 14 },
+    { id: 'player-012', name: 'Lý Công Hoàng', team: 'Đội C', number: 14 },
+    { id: 'player-4', name: 'Nguyễn Quang Hải', team: 'Đội A', number: 19 },
+    { id: 'player-6', name: 'Nguyễn Tiến Linh', team: 'Đội A', number: 22 },
+    { id: 'player-1793350671460', name: 'Trương Gia Bảo', team: 'Đội A', number: 23 },
+  ];
+
+  const attendance = {};
+  members.forEach(m => { attendance[m.id] = 'present'; });
+
+  function initials(name) { return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+  function setAtt(id, val) {
+    attendance[id] = attendance[id] === val ? null : val;
+    renderList(getFiltered());
+    updateSummary();
+  }
+
+  function markAll(val) {
+    members.forEach(m => { attendance[m.id] = val; });
+    renderList(getFiltered());
+    updateSummary();
+  }
+
+  function getFiltered() {
+    const q = document.getElementById('searchAtt').value.toLowerCase();
+    const t = document.getElementById('filterTeamAtt').value;
+    return members.filter(m =>
+      m.name.toLowerCase().includes(q) && (!t || m.team === t)
+    );
+  }
+
+  function renderList(list) {
+    const el = document.getElementById('attList');
+    el.innerHTML = list.map(m => {
+      const val = attendance[m.id];
+      return `
+        <div class="member-att-row">
+          <div class="att-avatar">${initials(m.name)}</div>
+          <div>
+            <div class="att-name">${m.name} <span style="font-size:12px;color:#9ca3af;">#${m.number}</span></div>
+            <div class="att-team">${m.team}</div>
+          </div>
+          <div class="att-toggle">
+            <button class="att-btn present${val==='present'?' active':''}" onclick="setAtt(${m.id},'present')">✅</button>
+            <button class="att-btn late${val==='late'?' active':''}" onclick="setAtt(${m.id},'late')">⏰</button>
+            <button class="att-btn absent${val==='absent'?' active':''}" onclick="setAtt(${m.id},'absent')">❌</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function updateSummary() {
+    const present = members.filter(m=>attendance[m.id]==='present').length;
+    const late    = members.filter(m=>attendance[m.id]==='late').length;
+    const absent  = members.filter(m=>attendance[m.id]==='absent').length;
+    const pending = members.filter(m=>attendance[m.id]===null).length;
+    const total   = members.length;
+    const pct     = total > 0 ? Math.round((present + late) / total * 100) : 0;
+
+    document.getElementById('sumPresent').textContent = present;
+    document.getElementById('sumLate').textContent    = late;
+    document.getElementById('sumAbsent').textContent  = absent;
+    document.getElementById('sumPending').textContent = pending;
+    document.getElementById('summaryPct').textContent = pct + '%';
+    document.getElementById('summaryCircle').style.setProperty('--pct', pct + '%');
+  }
+
+  function filterAtt() {
+    renderList(getFiltered());
+  }
+
+  function loadSession() { /* reload attendance for selected session */ }
+
+  function saveAttendance() {
+    const pending = members.filter(m=>attendance[m.id]===null).length;
+    if (pending > 0) {
+      showToast(`Còn ${pending} thành viên chưa điểm danh`, 'warning');
+    } else {
+      showToast('Lưu điểm danh thành công! 🎉');
+    }
+  }
+
+  async function loadDbAttendanceMembers() {
+    try {
+      const res = await fetch('http://localhost:5000/api/players');
+      if (res.ok) {
+        const json = await res.json();
+        const players = json.data || json;
+        if (Array.isArray(players) && players.length > 0) {
+          const defaultTeams = ['Đội A', 'Đội B', 'Đội C', 'Đội A'];
+          members = players.map((p, idx) => ({
+            id: p.id,
+            name: p.name,
+            number: p.jerseyNumber || (idx + 1),
+            team: defaultTeams[idx % defaultTeams.length]
+          }));
+          members.forEach(m => {
+            if (!attendance[m.id]) attendance[m.id] = 'present';
+          });
+          renderList(getFiltered());
+          updateSummary();
+        }
+      }
+    } catch (e) {
+      console.warn('Backend sync fallback for attendance players', e);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar('attendance');
+    renderList(members);
+    updateSummary();
+    loadDbAttendanceMembers();
+  });
+</script>
+</body>
+</html>

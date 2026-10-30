@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch tập - Sao Vàng FC</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    .schedule-list { display:flex; flex-direction:column; gap:14px; }
+    .schedule-row {
+      background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+      padding:18px 20px; display:flex; align-items:flex-start; gap:16px;
+      box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:all 0.2s ease;
+      position:relative; overflow:hidden;
+    }
+    .schedule-row::before {
+      content:''; position:absolute; left:0; top:0; bottom:0;
+      width:4px; border-radius:4px 0 0 4px;
+    }
+    .schedule-row:hover { transform:translateX(3px); box-shadow:0 6px 20px rgba(34,197,94,0.1); }
+    .schedule-row.type-training::before  { background:#22c55e; }
+    .schedule-row.type-tactical::before  { background:#3b82f6; }
+    .schedule-row.type-match::before     { background:#ef4444; }
+    .schedule-row.type-fitness::before   { background:#f59e0b; }
+
+    .sched-date {
+      min-width:56px; text-align:center;
+      background:#f0fdf4; border:1px solid rgba(34,197,94,0.2);
+      border-radius:10px; padding:8px 6px; flex-shrink:0;
+    }
+    .sched-date .day { font-family:'Outfit',sans-serif; font-size:24px; font-weight:900; color:#16a34a; line-height:1; }
+    .sched-date .month { font-size:11px; font-weight:700; color:#9ca3af; text-transform:uppercase; margin-top:2px; }
+
+    .sched-info { flex:1; }
+    .sched-title { font-size:16px; font-weight:700; color:#0a1a0e; margin-bottom:6px; }
+    .sched-meta { display:flex; flex-wrap:wrap; gap:14px; font-size:13px; color:#6b7280; margin-bottom:8px; }
+    .sched-meta span { display:flex; align-items:center; gap:4px; }
+    .sched-desc { font-size:13px; color:#9ca3af; }
+
+    .sched-actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="appSidebar"></aside>
+  <div class="main-area">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div class="header-page-title">📅 Lịch tập</div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-primary admin-only" onclick="openModal()">+ Thêm lịch tập</button>
+      </div>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">📅 Quản lý lịch tập</h1>
+          <div class="page-subtitle">Lên lịch, cập nhật thời gian, địa điểm và nội dung các buổi tập</div>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Tổng lịch tập</div><div class="stat-value" id="statTotal">0</div></div><div class="stat-icon">📅</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Tuần này</div><div class="stat-value" id="statWeek">0</div></div><div class="stat-icon">📆</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Tập thể lực</div><div class="stat-value" id="statFitness">0</div></div><div class="stat-icon">🏃</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Chiến thuật</div><div class="stat-value" id="statTactical">0</div></div><div class="stat-icon">🧠</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Thi đấu</div><div class="stat-value" id="statMatch">0</div></div><div class="stat-icon">⚽</div></div></div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="form-control" id="searchInput" placeholder="Tìm lịch tập..." oninput="filterSchedules()">
+        </div>
+        <select class="form-control" id="filterType" onchange="filterSchedules()" style="width:auto;">
+          <option value="">Tất cả loại</option>
+          <option value="training">Tập kỹ thuật</option>
+          <option value="tactical">Chiến thuật</option>
+          <option value="fitness">Thể lực</option>
+          <option value="match">Thi đấu</option>
+        </select>
+        <select class="form-control" id="filterTeam" onchange="filterSchedules()" style="width:auto;">
+          <option value="">Tất cả đội</option>
+          <option value="Đội A">Đội A</option>
+          <option value="Đội B">Đội B</option>
+          <option value="Đội C">Đội C</option>
+          <option value="Toàn CLB">Toàn CLB</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Danh sách lịch tập</div>
+          <span id="schedCount" class="badge badge-green">0 buổi</span>
+        </div>
+        <div class="card-body">
+          <div class="schedule-list" id="scheduleList"></div>
+          <div id="emptyState" class="empty-state" style="display:none;">
+            <div class="empty-icon">📅</div>
+            <div class="empty-title">Chưa có lịch tập</div>
+            <div class="empty-desc">Nhấn "Thêm lịch tập" để tạo buổi tập mới</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <h3 id="modalTitle">➕ Thêm lịch tập</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group"><label class="form-label">Tiêu đề buổi tập *</label><input type="text" class="form-control" id="fTitle" placeholder="VD: Tập thể lực – Đội A"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Loại buổi tập</label>
+          <select class="form-control" id="fType">
+            <option value="training">⚽ Tập kỹ thuật</option>
+            <option value="tactical">🧠 Chiến thuật</option>
+            <option value="fitness">🏃 Thể lực</option>
+            <option value="match">🥅 Thi đấu</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Đội tham gia</label>
+          <select class="form-control" id="fTeam">
+            <option value="Đội A">Đội A</option>
+            <option value="Đội B">Đội B</option>
+            <option value="Đội C">Đội C</option>
+            <option value="Đội D">Đội D</option>
+            <option value="Toàn CLB">Toàn CLB</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Ngày *</label><input type="date" class="form-control" id="fDate"></div>
+        <div class="form-group"><label class="form-label">Giờ bắt đầu</label><input type="time" class="form-control" id="fTimeStart" value="06:00"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Giờ kết thúc</label><input type="time" class="form-control" id="fTimeEnd" value="08:00"></div>
+        <div class="form-group"><label class="form-label">Địa điểm</label><input type="text" class="form-control" id="fLocation" placeholder="Sân Mỹ Đình, Hàng Đẫy..."></div>
+      </div>
+      <div class="form-group"><label class="form-label">Nội dung / Ghi chú</label><textarea class="form-control" id="fDesc" rows="3" placeholder="Nội dung chi tiết buổi tập, yêu cầu chuẩn bị..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveSchedule()">💾 Lưu lịch tập</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
+      <h3>🗑️ Xóa lịch tập</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 24px;">
+      <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+      <p style="font-size:15px;color:#374151;font-weight:600;">Xóa buổi tập <strong id="deleteTitle"></strong>?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Hủy</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">🗑️ Xóa</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  if (!requireLogin()) {}
+
+  const TYPE_LABEL = { training:'⚽ Kỹ thuật', tactical:'🧠 Chiến thuật', fitness:'🏃 Thể lực', match:'🥅 Thi đấu' };
+  const TYPE_BADGE = { training:'badge-success', tactical:'badge-info', fitness:'badge-warning', match:'badge-danger' };
+
+  let schedules = [
+    { id: 'sched-1', title: 'Rèn luyện thể lực và sức bền đầu tuần', type: 'fitness', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-27', timeStart: '17:30', timeEnd: '19:30', location: 'Sân bóng Sao Vàng A (Sân 7)', desc: 'Khởi động kỹ, mang giày đinh dăm AG, tập chạy biến tốc.' },
+    { id: 'sched-001', title: 'Tập thể lực đầu tuần', type: 'fitness', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-10-28', timeStart: '18:00', timeEnd: '20:00', location: 'Sân Sao Vàng A', desc: 'Chú trọng cardio và tốc độ' },
+    { id: 'sched-002', title: 'Tập chiến thuật 4-3-3', type: 'tactical', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-29', timeStart: '17:30', timeEnd: '19:30', location: 'Sân Sao Vàng A', desc: 'Luyện sơ đồ chiến thuật mới' },
+    { id: 'sched-2', title: 'Tập phối hợp bóng ngắn và sút phạt góc', type: 'tactical', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-29', timeStart: '18:00', timeEnd: '20:00', location: 'Sân bóng Sao Vàng A (Sân 7)', desc: 'Chia đội 7v7 tập phản công nhanh.' },
+    { id: 'sched-003', title: 'Đấu tập nội bộ thứ 4', type: 'match', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-30', timeStart: '18:00', timeEnd: '20:30', location: 'Sân Sao Vàng B', desc: 'Chia 2 đội: Đỏ vs Xanh' },
+    { id: 'sched-3', title: 'Giao hữu thử nghiệm đội hình với Hà Nội Star FC', type: 'match', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-31', timeStart: '16:00', timeEnd: '18:30', location: 'Sân bóng Sao Vàng B (Sân 11)', desc: 'Mặc đồng phục thi đấu màu Đỏ, có mặt trước 45 phút.' },
+    { id: 'sched-004', title: 'Tập thể lực cuối tuần', type: 'fitness', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-11-01', timeStart: '07:00', timeEnd: '09:00', location: 'Sân Sao Vàng A', desc: 'Buổi tập sáng sớm, mang giày đinh' },
+    { id: 'sched-005', title: 'Tập kỹ thuật cá nhân', type: 'tactical', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-11-02', timeStart: '18:00', timeEnd: '20:00', location: 'Sân Mini Star', desc: 'Tập rê bóng và dứt điểm' },
+    { id: 'sched-006', title: 'Giao hữu vs FC Rồng Xanh', type: 'match', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-11-05', timeStart: '16:00', timeEnd: '18:00', location: 'Sân Thống Nhất', desc: 'Trận giao hữu hàng tháng, toàn đội tham gia' },
+    { id: 'sched-007', title: 'Đấu tập nội bộ chủ nhật', type: 'match', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-11-08', timeStart: '07:30', timeEnd: '10:00', location: 'Sân Sao Vàng B', desc: 'Luyện set-piece và phạt góc' },
+    { id: 'sched-008', title: 'Tập thể lực - Bài tập sức mạnh', type: 'fitness', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-11-10', timeStart: '18:00', timeEnd: '20:00', location: 'Sân Sao Vàng A', desc: 'Gym + field training' },
+    { id: 'sched-009', title: 'Tập phòng thủ', type: 'tactical', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-11-12', timeStart: '17:00', timeEnd: '19:00', location: 'Sân Rạch Miễu', desc: 'Tập pressing cao và chuyển trạng thái' },
+    { id: 'sched-010', title: 'Giao hữu vs Hoàng Long FC', type: 'match', team: 'Sao Vàng FC - Futsal Team', date: '2026-11-15', timeStart: '15:30', timeEnd: '17:30', location: 'Sân Đại học Thể dục', desc: 'Trận quan trọng chuẩn bị cho giải cuối năm' },
+  ];
+  let nextId = 14;
+  let deleteId = null;
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent = schedules.length;
+    document.getElementById('statWeek').textContent = schedules.length;
+    document.getElementById('statFitness').textContent = schedules.filter(s=>s.type==='fitness').length;
+    document.getElementById('statTactical').textContent = schedules.filter(s=>s.type==='tactical').length;
+    document.getElementById('statMatch').textContent = schedules.filter(s=>s.type==='match').length;
+  }
+
+  function parseDate(ds) {
+    if (!ds) return { day:'--', month:'---' };
+    const d = new Date(ds);
+    return { day:d.getDate(), month:d.toLocaleString('vi-VN',{month:'short'}).replace('thg ','T.') };
+  }
+
+  function renderSchedules(list) {
+    const el = document.getElementById('scheduleList');
+    const empty = document.getElementById('emptyState');
+    document.getElementById('schedCount').textContent = list.length + ' buổi';
+    if (!list.length) { el.innerHTML=''; empty.style.display='flex'; return; }
+    empty.style.display='none';
+    const sorted = [...list].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    el.innerHTML = sorted.map(s => {
+      const pd = parseDate(s.date);
+      return `
+        <div class="schedule-row type-${s.type}">
+          <div class="sched-date">
+            <div class="day">${pd.day}</div>
+            <div class="month">${pd.month}</div>
+          </div>
+          <div class="sched-info">
+            <div class="sched-title">${s.title}</div>
+            <div class="sched-meta">
+              <span>⏰ ${s.timeStart||'--:--'} – ${s.timeEnd||'--:--'}</span>
+              <span>📍 ${s.location||'—'}</span>
+              <span><span class="badge ${TYPE_BADGE[s.type]||'badge-neutral'}">${TYPE_LABEL[s.type]||s.type}</span></span>
+              <span class="badge badge-neutral">${s.team}</span>
+            </div>
+            ${s.desc?`<div class="sched-desc">${s.desc}</div>`:''}
+          </div>
+          <div class="sched-actions admin-only">
+            <button class="btn btn-sm btn-outline" onclick="editSchedule(${s.id})">✏️ Sửa</button>
+            <button class="btn btn-sm btn-danger" onclick="askDelete(${s.id})">🗑️</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterSchedules() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const t = document.getElementById('filterType').value;
+    const team = document.getElementById('filterTeam').value;
+    renderSchedules(schedules.filter(s =>
+      (s.title.toLowerCase().includes(q)||(s.location||'').toLowerCase().includes(q)) &&
+      (!t||s.type===t) && (!team||s.team===team)
+    ));
+  }
+
+  function openModal(id=null) {
+    document.getElementById('editId').value=id||'';
+    document.getElementById('modalTitle').textContent=id?'✏️ Chỉnh sửa lịch tập':'➕ Thêm lịch tập';
+    ['fTitle','fLocation','fDesc'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('fType').value='training';
+    document.getElementById('fTeam').value='Đội A';
+    document.getElementById('fDate').value='';
+    document.getElementById('fTimeStart').value='06:00';
+    document.getElementById('fTimeEnd').value='08:00';
+    if (id) {
+      const s = schedules.find(x=>x.id===id);
+      if (s) {
+        document.getElementById('fTitle').value=s.title;
+        document.getElementById('fType').value=s.type;
+        document.getElementById('fTeam').value=s.team;
+        document.getElementById('fDate').value=s.date||'';
+        document.getElementById('fTimeStart').value=s.timeStart||'06:00';
+        document.getElementById('fTimeEnd').value=s.timeEnd||'08:00';
+        document.getElementById('fLocation').value=s.location||'';
+        document.getElementById('fDesc').value=s.desc||'';
+      }
+    }
+    document.getElementById('scheduleModal').classList.add('active');
+  }
+
+  function editSchedule(id){ openModal(id); }
+  function closeModal(){ document.getElementById('scheduleModal').classList.remove('active'); }
+
+  function saveSchedule() {
+    const id=document.getElementById('editId').value;
+    const title=document.getElementById('fTitle').value.trim();
+    if(!title){ showToast('Vui lòng nhập tiêu đề','error'); return; }
+    const data={
+      title,
+      type:document.getElementById('fType').value,
+      team:document.getElementById('fTeam').value,
+      date:document.getElementById('fDate').value,
+      timeStart:document.getElementById('fTimeStart').value,
+      timeEnd:document.getElementById('fTimeEnd').value,
+      location:document.getElementById('fLocation').value.trim(),
+      desc:document.getElementById('fDesc').value.trim(),
+    };
+    if(id){ const i=schedules.findIndex(s=>s.id===parseInt(id)); if(i>=0) schedules[i]={...schedules[i],...data}; showToast('Cập nhật lịch tập thành công!'); }
+    else{ schedules.push({id:nextId++,...data}); showToast('Thêm lịch tập thành công!'); }
+    closeModal(); updateStats(); filterSchedules();
+  }
+
+  function askDelete(id){ deleteId=id; const s=schedules.find(x=>x.id===id); document.getElementById('deleteTitle').textContent=s?s.title:''; document.getElementById('deleteModal').classList.add('active'); }
+  function closeDeleteModal(){ deleteId=null; document.getElementById('deleteModal').classList.remove('active'); }
+  function confirmDelete(){ schedules=schedules.filter(s=>s.id!==deleteId); closeDeleteModal(); updateStats(); filterSchedules(); showToast('Đã xóa lịch tập','warning'); }
+
+  async function loadDbSchedules() {
+    try {
+      const res = await fetch('http://localhost:5000/api/schedules');
+      if (res.ok) {
+        const json = await res.json();
+        const list = json.data || json;
+        if (Array.isArray(list) && list.length > 0) {
+          schedules = list.map((s, idx) => ({
+            id: s.id || (idx + 1),
+            title: s.title,
+            type: s.type === 'Tập thể lực' ? 'fitness' : (s.type === 'Thi đấu giao hữu' || s.type === 'Đấu tập nội bộ' ? 'match' : 'tactical'),
+            team: s.teamName || 'Sao Vàng FC',
+            date: s.date,
+            timeStart: s.startTime,
+            timeEnd: s.endTime,
+            location: s.fieldName || 'Sân Sao Vàng A',
+            desc: s.notes || ''
+          }));
+          updateStats();
+          filterSchedules();
+        }
+      }
+    } catch (e) {
+      console.warn('Backend offline fallback to Neon DB preset schedules', e);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar('schedules');
+    updateStats();
+    renderSchedules(schedules);
+    loadDbSchedules();
+  });
+</script>
+</body>
+</html>

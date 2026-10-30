@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phí sinh hoạt - Sao Vàng FC</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    .fee-grid { display:grid; grid-template-columns:1fr 300px; gap:24px; }
+    @media(max-width:1024px){.fee-grid{grid-template-columns:1fr;}}
+
+    .fee-status-paid    { background:rgba(34,197,94,0.1);  color:#15803d; border:1px solid rgba(34,197,94,0.25); }
+    .fee-status-unpaid  { background:rgba(239,68,68,0.08); color:#dc2626; border:1px solid rgba(239,68,68,0.2); }
+    .fee-status-partial { background:rgba(245,158,11,0.1); color:#b45309; border:1px solid rgba(245,158,11,0.25); }
+
+    .tx-type-income  { color:#16a34a; font-weight:700; }
+    .tx-type-expense { color:#dc2626; font-weight:700; }
+
+    .tab-bar { display:flex; border-bottom:2px solid #e5e7eb; margin-bottom:20px; gap:0; }
+    .tab-btn {
+      padding:10px 20px; font-size:14px; font-weight:600; color:#6b7280;
+      border:none; background:none; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px;
+      transition:all 0.2s ease;
+    }
+    .tab-btn.active { color:#16a34a; border-bottom-color:#22c55e; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+
+    .fund-progress {
+      height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin-top:6px;
+    }
+    .fund-bar {
+      height:100%; background:linear-gradient(90deg,#22c55e,#16a34a);
+      border-radius:999px; transition:width 0.6s ease;
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="appSidebar"></aside>
+  <div class="main-area">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div class="header-page-title">💰 Phí sinh hoạt</div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-primary admin-only" onclick="openModal()">+ Ghi nhận thu chi</button>
+      </div>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">💰 Quản lý phí sinh hoạt</h1>
+          <div class="page-subtitle">Quản lý thu chi, đóng góp quỹ và phí sinh hoạt của CLB</div>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:24px;">
+        <div class="stat-card">
+          <div class="stat-top"><div><div class="stat-label">Quỹ CLB hiện tại</div><div class="stat-value" style="font-size:24px;" id="statBalance">12.4M</div></div><div class="stat-icon">💰</div></div>
+          <div class="stat-note positive">↑ Tháng này thu 4.2M</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div><div class="stat-label">Đã đóng phí (T.11)</div><div class="stat-value" id="statPaid">15</div></div><div class="stat-icon">✅</div></div>
+          <div class="stat-note">/ 68 thành viên</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div><div class="stat-label">Chưa đóng (T.11)</div><div class="stat-value" id="statUnpaid">53</div></div><div class="stat-icon">❌</div></div>
+          <div class="stat-note negative">Hạn 05/11/2026</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div><div class="stat-label">Tổng thu tháng 11</div><div class="stat-value" style="font-size:22px;">3.0M</div></div><div class="stat-icon">📈</div></div>
+          <div class="stat-note">200k/người × 15</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('fee')">💳 Phí thành viên</button>
+        <button class="tab-btn" onclick="switchTab('tx')">📋 Sổ thu chi</button>
+      </div>
+
+      <!-- TAB: Fee Status -->
+      <div class="tab-content active" id="tab-fee">
+        <div class="fee-grid">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">💳 Tình trạng đóng phí – Tháng 11/2026</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select class="form-control" id="feeMonth" style="width:auto;font-size:13px;">
+                  <option>Tháng 11/2026</option>
+                  <option>Tháng 10/2026</option>
+                  <option>Tháng 09/2026</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-body" style="padding:0;">
+              <div class="table-container">
+                <table class="table" id="feeTable">
+                  <thead>
+                    <tr>
+                      <th>Thành viên</th>
+                      <th>Đội</th>
+                      <th>Số tiền</th>
+                      <th>Ngày đóng</th>
+                      <th>Trạng thái</th>
+                      <th style="text-align:center;">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="feeTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📊 Tỉ lệ thu phí</div>
+            </div>
+            <div class="card-body">
+              <div style="text-align:center;margin-bottom:16px;">
+                <div style="font-family:'Outfit',sans-serif;font-size:36px;font-weight:900;color:#16a34a;">22%</div>
+                <div style="font-size:13px;color:#9ca3af;">15 / 68 thành viên đã đóng</div>
+                <div class="fund-progress" style="margin-top:10px;"><div class="fund-bar" style="width:22%;"></div></div>
+              </div>
+              <div style="font-size:13px;color:#374151;line-height:2;">
+                <div style="display:flex;justify-content:space-between;"><span>💰 Mức phí/người:</span><strong>200.000 đ</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>✅ Đã thu:</span><strong style="color:#16a34a;">3.000.000 đ</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>⏳ Còn lại:</span><strong style="color:#dc2626;">10.600.000 đ</strong></div>
+                <div style="display:flex;justify-content:space-between;"><span>📅 Hạn đóng:</span><strong>05/11/2026</strong></div>
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="showToast('Đã gửi nhắc nhở đến 53 thành viên! 📢')">📢 Gửi nhắc nhở</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Transactions -->
+      <div class="tab-content" id="tab-tx">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Sổ thu chi CLB</div>
+            <div style="display:flex;gap:8px;">
+              <span style="font-size:13px;color:#16a34a;font-weight:700;">Thu: 16.4M</span>
+              <span style="font-size:13px;color:#dc2626;font-weight:700;">Chi: 4.0M</span>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;">
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Ngày</th>
+                    <th>Loại</th>
+                    <th>Mô tả</th>
+                    <th>Danh mục</th>
+                    <th>Số tiền</th>
+                    <th>Người thực hiện</th>
+                  </tr>
+                </thead>
+                <tbody id="txTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL Thu chi -->
+<div class="modal-overlay" id="txModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">+ Ghi nhận thu chi</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Loại *</label>
+          <select class="form-control" id="fType">
+            <option value="income">💚 Thu tiền</option>
+            <option value="expense">🔴 Chi tiền</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ngày *</label>
+          <input type="date" class="form-control" id="fDate">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Mô tả *</label><input type="text" class="form-control" id="fDesc" placeholder="VD: Thu phí tháng 11 – Nguyễn Quang Hải"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Danh mục</label>
+          <select class="form-control" id="fCategory">
+            <option value="Phí thành viên">Phí thành viên</option>
+            <option value="Thuê sân">Thuê sân</option>
+            <option value="Trang thiết bị">Trang thiết bị</option>
+            <option value="Giải thưởng">Giải thưởng</option>
+            <option value="Khác">Khác</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số tiền (VNĐ) *</label>
+          <input type="number" class="form-control" id="fAmount" placeholder="200000" min="0">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Người thực hiện</label><input type="text" class="form-control" id="fBy" placeholder="Tên người thu/chi"></div>
+      <div class="form-group"><label class="form-label">Ghi chú</label><textarea class="form-control" id="fNote" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveTransaction()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  if (!requireLogin()) {}
+
+  const feeData = [
+    { id:1, name:'Nguyễn Quang Hải', team:'Đội A', amount:200000, date:'2026-10-30', status:'paid' },
+    { id:2, name:'Phạm Văn Đức',     team:'Đội A', amount:200000, date:'2026-10-31', status:'paid' },
+    { id:3, name:'Hoàng Đức Minh',   team:'Đội A', amount:200000, date:null,         status:'unpaid' },
+    { id:4, name:'Bùi Tiến Dũng',    team:'Đội B', amount:100000, date:'2026-10-29', status:'partial' },
+    { id:5, name:'Nguyễn Công Phượng',team:'Đội B', amount:200000, date:'2026-11-01', status:'paid' },
+    { id:6, name:'Trần Văn Nam',     team:'Đội C', amount:200000, date:null,         status:'unpaid' },
+    { id:7, name:'Lê Quang Tuấn',    team:'Đội C', amount:200000, date:'2026-10-30', status:'paid' },
+    { id:8, name:'Phạm Tuấn Anh',    team:'Đội A', amount:200000, date:null,         status:'unpaid' },
+  ];
+
+  let transactions = [
+    { id:1, date:'2026-11-01', type:'income', desc:'Thu phí tháng 11 – Nguyễn Quang Hải', category:'Phí thành viên', amount:200000, by:'Admin' },
+    { id:2, date:'2026-11-01', type:'income', desc:'Thu phí tháng 11 – Phạm Văn Đức', category:'Phí thành viên', amount:200000, by:'Admin' },
+    { id:3, date:'2026-10-28', type:'expense', desc:'Thuê sân Mỹ Đình – tháng 10', category:'Thuê sân', amount:2000000, by:'Ban quản lý' },
+    { id:4, date:'2026-10-25', type:'income', desc:'Thu phí tháng 10 – Batch 1', category:'Phí thành viên', amount:3000000, by:'Admin' },
+    { id:5, date:'2026-10-20', type:'expense', desc:'Mua bóng + bình nước', category:'Trang thiết bị', amount:800000, by:'HLV Huấn' },
+    { id:6, date:'2026-10-15', type:'income', desc:'Tiền thưởng giải giao hữu', category:'Giải thưởng', amount:1500000, by:'Đội A' },
+    { id:7, date:'2026-10-10', type:'expense', desc:'Thưởng cầu thủ xuất sắc', category:'Giải thưởng', amount:500000, by:'Admin' },
+    { id:8, date:'2026-10-05', type:'expense', desc:'In áo thi đấu 25 bộ', category:'Trang thiết bị', amount:3750000, by:'Ban quản lý' },
+  ];
+  let nextTxId = 9;
+
+  const STATUS_LABEL = { paid:'Đã đóng', unpaid:'Chưa đóng', partial:'Đóng một phần' };
+  const STATUS_CLASS = { paid:'fee-status-paid', unpaid:'fee-status-unpaid', partial:'fee-status-partial' };
+
+  function renderFeeTable() {
+    document.getElementById('feeTbody').innerHTML = feeData.map(f=>`
+      <tr>
+        <td><strong>${f.name}</strong></td>
+        <td>${f.team}</td>
+        <td>${f.amount.toLocaleString('vi-VN')}đ</td>
+        <td>${f.date ? formatDate(f.date) : '—'}</td>
+        <td><span class="badge ${STATUS_CLASS[f.status]}">${STATUS_LABEL[f.status]}</span></td>
+        <td style="text-align:center;">
+          ${f.status!=='paid'?`<button class="btn btn-sm btn-primary admin-only" onclick="markPaid(${f.id})">✅ Đánh dấu đã đóng</button><span class="customer-only" style="color:#16a34a;font-size:12px;">Chờ thanh toán</span>`:'<span style="color:#9ca3af;font-size:12px;">Đã hoàn thành</span>'}
+        </td>
+      </tr>`).join('');
+  }
+
+  function markPaid(id) {
+    const f = feeData.find(x=>x.id===id);
+    if(f){ f.status='paid'; f.date=new Date().toISOString().split('T')[0]; }
+    renderFeeTable(); showToast('Đã cập nhật trạng thái đóng phí!');
+  }
+
+  function renderTxTable() {
+    const sorted = [...transactions].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    document.getElementById('txTbody').innerHTML = sorted.map(t=>`
+      <tr>
+        <td>${formatDate(t.date)}</td>
+        <td><span class="badge ${t.type==='income'?'badge-success':'badge-danger'}">${t.type==='income'?'Thu':'Chi'}</span></td>
+        <td>${t.desc}</td>
+        <td><span class="badge badge-neutral">${t.category}</span></td>
+        <td class="${t.type==='income'?'tx-type-income':'tx-type-expense'}">${t.type==='income'?'+':'−'}${t.amount.toLocaleString('vi-VN')}đ</td>
+        <td style="color:#6b7280;font-size:13px;">${t.by||'—'}</td>
+      </tr>`).join('');
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach((b,i)=>{ b.classList.toggle('active', ['fee','tx'][i]===name); });
+    document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+  }
+
+  function openModal(){ document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('txModal').classList.add('active'); }
+  function closeModal(){ document.getElementById('txModal').classList.remove('active'); }
+
+  function saveTransaction() {
+    const desc = document.getElementById('fDesc').value.trim();
+    const amount = parseInt(document.getElementById('fAmount').value)||0;
+    if(!desc||!amount){ showToast('Vui lòng điền đủ thông tin','error'); return; }
+    transactions.push({
+      id:nextTxId++,
+      date:document.getElementById('fDate').value,
+      type:document.getElementById('fType').value,
+      desc,
+      category:document.getElementById('fCategory').value,
+      amount,
+      by:document.getElementById('fBy').value.trim()||'Admin',
+    });
+    closeModal(); renderTxTable(); showToast('Ghi nhận thu chi thành công!');
+    switchTab('tx');
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{ renderSidebar('fees'); renderFeeTable(); renderTxTable(); });
+</script>
+</body>
+</html>

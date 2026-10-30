@@ -1,0 +1,199 @@
+/* ==========================================================================
+   MATCHES CSS - QUẢN LÝ KẾT QUẢ TRẬN ĐẤU & LỊCH SỬ THI ĐẤU
+   ========================================================================== */
+
+.match-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.match-kpi-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.match-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary);
+}
+
+.match-kpi-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.match-kpi-num {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.match-kpi-desc {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+/* Match Cards Grid */
+.matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.match-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  transition: var(--transition);
+}
+
+.match-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.match-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.match-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Scoreboard */
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  text-align: center;
+}
+
+.team-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.team-box.home {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.team-box.away {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.team-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.team-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+}
+
+.score-number {
+  font-size: 32px;
+  font-weight: 800;
+  color: #ffffff;
+  min-width: 32px;
+}
+
+.score-divider {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+/* Match Details & Scorers */
+.match-footer-details {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.goal-scorers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.scorer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.match-info-pill {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .scoreboard {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .team-box.home, .team-box.away {
+    justify-content: center;
+    text-align: center;
+  }
+}

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông báo - Sao Vàng FC</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    .notif-layout { display:grid; grid-template-columns:1fr 320px; gap:24px; }
+    @media(max-width:1024px){ .notif-layout{grid-template-columns:1fr;} }
+
+    .notif-card {
+      background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+      padding:18px 20px; margin-bottom:12px;
+      box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:all 0.2s ease;
+      position:relative; cursor:pointer;
+    }
+    .notif-card:hover { box-shadow:0 4px 14px rgba(34,197,94,0.12); border-color:#22c55e; }
+    .notif-card.unread { border-left:4px solid #22c55e; }
+    .notif-card.read   { border-left:4px solid #e5e7eb; }
+
+    .notif-top { display:flex; align-items:flex-start; gap:12px; margin-bottom:8px; }
+    .notif-icon-wrap {
+      width:40px; height:40px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; flex-shrink:0;
+    }
+    .notif-type-general  { background:rgba(34,197,94,0.12); }
+    .notif-type-schedule { background:rgba(59,130,246,0.1); }
+    .notif-type-fee      { background:rgba(245,158,11,0.1); }
+    .notif-type-result   { background:rgba(139,92,246,0.1); }
+    .notif-type-warning  { background:rgba(239,68,68,0.1); }
+
+    .notif-meta { flex:1; }
+    .notif-meta .n-title { font-size:15px; font-weight:700; color:#0a1a0e; margin-bottom:2px; }
+    .notif-meta .n-tags  { display:flex; gap:6px; align-items:center; }
+    .notif-body { font-size:14px; color:#374151; line-height:1.6; margin-bottom:8px; }
+    .notif-footer { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#9ca3af; }
+
+    .unread-dot {
+      width:8px; height:8px; background:#22c55e; border-radius:50%; flex-shrink:0; margin-top:5px;
+    }
+
+    /* Compose panel */
+    .compose-area { background:#fff; border:1px solid #e5e7eb; border-radius:14px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+    .compose-title { font-family:'Outfit',sans-serif; font-size:16px; font-weight:700; color:#0a1a0e; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+    .recipient-chip-wrap { display:flex; flex-wrap:wrap; gap:6px; padding:8px 10px; border:1.5px solid #e5e7eb; border-radius:8px; min-height:42px; cursor:text; }
+    .recipient-chip {
+      background:#f0fdf4; border:1px solid rgba(34,197,94,0.25); color:#15803d;
+      padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600;
+      display:flex; align-items:center; gap:4px;
+    }
+    .recipient-chip button { background:none; border:none; cursor:pointer; color:#9ca3af; font-size:12px; padding:0; }
+    .recipient-chip button:hover { color:#dc2626; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="appSidebar"></aside>
+  <div class="main-area">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div class="header-page-title">📢 Thông báo</div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-outline" onclick="markAllRead()">✅ Đánh dấu đã đọc</button>
+        <button class="btn btn-primary admin-only" onclick="sendNotification()">📢 Gửi thông báo</button>
+      </div>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">📢 Quản lý thông báo</h1>
+          <div class="page-subtitle">Đăng tải và quản lý các thông báo quan trọng trong CLB</div>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Tổng thông báo</div><div class="stat-value" id="statTotal">0</div></div><div class="stat-icon">📢</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Chưa đọc</div><div class="stat-value" id="statUnread">0</div></div><div class="stat-icon">🔔</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Hôm nay</div><div class="stat-value" id="statToday">0</div></div><div class="stat-icon">📅</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Tuần này</div><div class="stat-value" id="statWeek">0</div></div><div class="stat-icon">📆</div></div></div>
+      </div>
+
+      <div class="notif-layout">
+        <!-- LEFT: Notification List -->
+        <div>
+          <div class="filter-bar" style="margin-bottom:16px;">
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="form-control" id="searchInput" placeholder="Tìm thông báo..." oninput="filterNotifs()">
+            </div>
+            <select class="form-control" id="filterType" onchange="filterNotifs()" style="width:auto;">
+              <option value="">Tất cả loại</option>
+              <option value="general">📢 Thông báo chung</option>
+              <option value="schedule">📅 Lịch tập</option>
+              <option value="fee">💰 Phí sinh hoạt</option>
+              <option value="result">🏆 Kết quả</option>
+              <option value="warning">⚠️ Cảnh báo</option>
+            </select>
+            <select class="form-control" id="filterStatus" onchange="filterNotifs()" style="width:auto;">
+              <option value="">Tất cả</option>
+              <option value="unread">Chưa đọc</option>
+              <option value="read">Đã đọc</option>
+            </select>
+          </div>
+
+          <div id="notifList"></div>
+          <div id="emptyState" class="empty-state" style="display:none;">
+            <div class="empty-icon">📢</div>
+            <div class="empty-title">Không có thông báo</div>
+            <div class="empty-desc">Chưa có thông báo nào phù hợp</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Compose -->
+        <div class="admin-only">
+          <div class="compose-area">
+            <div class="compose-title">✍️ Soạn thông báo mới</div>
+
+            <div class="form-group">
+              <label class="form-label">Tiêu đề *</label>
+              <input type="text" class="form-control" id="cTitle" placeholder="Tiêu đề thông báo...">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Loại thông báo</label>
+              <select class="form-control" id="cType">
+                <option value="general">📢 Thông báo chung</option>
+                <option value="schedule">📅 Lịch tập</option>
+                <option value="fee">💰 Phí sinh hoạt</option>
+                <option value="result">🏆 Kết quả</option>
+                <option value="warning">⚠️ Cảnh báo</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Gửi tới</label>
+              <select class="form-control" id="cTarget">
+                <option value="all">👥 Toàn bộ thành viên</option>
+                <option value="Đội A">🟢 Đội A</option>
+                <option value="Đội B">🔵 Đội B</option>
+                <option value="Đội C">🟠 Đội C</option>
+                <option value="Đội D">🟣 Đội D</option>
+                <option value="coaches">📋 Chỉ HLV</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nội dung *</label>
+              <textarea class="form-control" id="cBody" rows="5" placeholder="Nội dung chi tiết của thông báo..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Mức độ ưu tiên</label>
+              <select class="form-control" id="cPriority">
+                <option value="normal">🟢 Bình thường</option>
+                <option value="important">🟡 Quan trọng</option>
+                <option value="urgent">🔴 Khẩn cấp</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;" onclick="sendNotification()">📢 Gửi thông báo</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  if (!requireLogin()) {}
+
+  const TYPE_INFO = {
+    general:  { icon:'📢', cls:'notif-type-general',  label:'Chung' },
+    schedule: { icon:'📅', cls:'notif-type-schedule', label:'Lịch tập' },
+    fee:      { icon:'💰', cls:'notif-type-fee',      label:'Phí' },
+    result:   { icon:'🏆', cls:'notif-type-result',   label:'Kết quả' },
+    warning:  { icon:'⚠️', cls:'notif-type-warning',  label:'Cảnh báo' },
+  };
+
+  const PRIORITY_BADGE = { normal:'badge-success', important:'badge-warning', urgent:'badge-danger' };
+  const PRIORITY_LABEL = { normal:'Thường', important:'Quan trọng', urgent:'Khẩn cấp' };
+
+  let notifications = [
+    { id:1, title:'📅 Lịch tập tuần mới đã cập nhật', type:'schedule', target:'all', body:'Lịch tập tuần 01-07/11 đã được cập nhật. Toàn bộ thành viên xem lịch chi tiết tại mục Lịch tập và xác nhận tham gia.', priority:'important', date:'2026-11-01', read:false, author:'Admin' },
+    { id:2, title:'💰 Nhắc nhở đóng phí sinh hoạt tháng 11', type:'fee', target:'all', body:'Hạn đóng phí sinh hoạt tháng 11/2026 là ngày 05/11. Mức phí: 200.000đ/người. Vui lòng đóng đúng hạn để CLB duy trì hoạt động.', priority:'urgent', date:'2026-10-30', read:false, author:'Admin' },
+    { id:3, title:'📋 HLV mới gia nhập đội C', type:'general', target:'all', body:'CLB trân trọng giới thiệu HLV. Trần Minh Khoa chính thức gia nhập đội C từ tháng 11/2026. HLV có chuyên môn chiến thuật tấn công với 6 năm kinh nghiệm.', priority:'normal', date:'2026-10-28', read:true, author:'Admin' },
+    { id:4, title:'🏆 Kết quả giao hữu tháng 10: Thắng 3-1', type:'result', target:'all', body:'Đội Sao Vàng FC vừa giành chiến thắng 3-1 trong trận giao hữu với CLB Phong Trào Hà Nội. Các bàn thắng: Công Phượng (2), Quang Hải (1).', priority:'normal', date:'2026-10-25', read:true, author:'HLV Huấn' },
+    { id:5, title:'⚠️ Sân Mỹ Đình bảo trì – Đổi địa điểm', type:'warning', target:'Đội A', body:'Sân Mỹ Đình bảo trì từ 01-03/11. Các buổi tập Đội A trong thời gian này chuyển sang Sân Hàng Đẫy. Giờ tập giữ nguyên.', priority:'urgent', date:'2026-10-29', read:false, author:'Admin' },
+    { id:6, title:'📅 Hủy buổi tập chiều 31/10', type:'schedule', target:'Đội B', body:'Buổi tập chiều thứ Sáu 31/10 của Đội B bị hủy do điều kiện thời tiết. Lịch bù sẽ được thông báo sau.', priority:'important', date:'2026-10-31', read:true, author:'HLV Minh' },
+  ];
+  let nextId = 7;
+
+  function updateStats() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('statTotal').textContent  = notifications.length;
+    document.getElementById('statUnread').textContent = notifications.filter(n=>!n.read).length;
+    document.getElementById('statToday').textContent  = notifications.filter(n=>n.date===today).length;
+    document.getElementById('statWeek').textContent   = notifications.length;
+  }
+
+  function renderNotifs(list) {
+    const el = document.getElementById('notifList');
+    const empty = document.getElementById('emptyState');
+    if (!list.length) { el.innerHTML=''; empty.style.display='flex'; return; }
+    empty.style.display='none';
+    const sorted=[...list].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    el.innerHTML = sorted.map(n => {
+      const t = TYPE_INFO[n.type]||TYPE_INFO.general;
+      return `
+        <div class="notif-card ${n.read?'read':'unread'}" onclick="markRead(${n.id})">
+          <div class="notif-top">
+            <div class="notif-icon-wrap ${t.cls}">${t.icon}</div>
+            <div class="notif-meta">
+              <div class="n-title">${n.title}</div>
+              <div class="n-tags">
+                <span class="badge badge-neutral" style="font-size:11px;">${t.label}</span>
+                <span class="badge ${PRIORITY_BADGE[n.priority]}" style="font-size:11px;">${PRIORITY_LABEL[n.priority]}</span>
+                ${n.target!=='all'?`<span class="badge badge-info" style="font-size:11px;">${n.target}</span>`:''}
+              </div>
+            </div>
+            ${!n.read?'<div class="unread-dot"></div>':''}
+          </div>
+          <div class="notif-body">${n.body}</div>
+          <div class="notif-footer">
+            <span>📅 ${formatDate(n.date)} &nbsp;|&nbsp; ✍️ ${n.author||'Admin'}</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();deleteNotif(${n.id})">🗑️</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterNotifs() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const t = document.getElementById('filterType').value;
+    const s = document.getElementById('filterStatus').value;
+    renderNotifs(notifications.filter(n=>
+      (n.title.toLowerCase().includes(q)||(n.body||'').toLowerCase().includes(q)) &&
+      (!t||n.type===t) &&
+      (!s||(s==='unread'?!n.read:n.read))
+    ));
+  }
+
+  function markRead(id) {
+    const n = notifications.find(x=>x.id===id);
+    if(n) n.read=true;
+    filterNotifs(); updateStats();
+  }
+
+  function markAllRead() {
+    notifications.forEach(n=>n.read=true);
+    filterNotifs(); updateStats();
+    showToast('Đã đánh dấu tất cả đã đọc');
+  }
+
+  function deleteNotif(id) {
+    notifications = notifications.filter(n=>n.id!==id);
+    filterNotifs(); updateStats();
+    showToast('Đã xóa thông báo','warning');
+  }
+
+  function sendNotification() {
+    const title = document.getElementById('cTitle').value.trim();
+    const body  = document.getElementById('cBody').value.trim();
+    if(!title||!body){ showToast('Vui lòng nhập tiêu đề và nội dung','error'); return; }
+    const user = getAuthUser();
+    notifications.unshift({
+      id: nextId++,
+      title, type: document.getElementById('cType').value,
+      target: document.getElementById('cTarget').value,
+      body, priority: document.getElementById('cPriority').value,
+      date: new Date().toISOString().split('T')[0],
+      read: false,
+      author: user?.name || 'Admin',
+    });
+    document.getElementById('cTitle').value='';
+    document.getElementById('cBody').value='';
+    filterNotifs(); updateStats();
+    showToast('Gửi thông báo thành công! 📢');
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{ renderSidebar('notifications'); updateStats(); renderNotifs(notifications); });
+</script>
+</body>
+</html>

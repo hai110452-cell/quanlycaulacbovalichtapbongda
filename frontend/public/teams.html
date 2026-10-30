@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý đội - Sao Vàng FC</title>
+  <meta name="description" content="Quản lý các đội bóng trong câu lạc bộ Sao Vàng FC">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .team-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      transition: all 0.25s ease;
+    }
+    .team-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(34,197,94,0.15);
+      border-color: #22c55e;
+    }
+    .team-banner {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      position: relative;
+    }
+    .team-body { padding: 16px 20px 20px; }
+    .team-name { font-family:'Outfit',sans-serif; font-size:18px; font-weight:800; color:#0a1a0e; margin-bottom:4px; }
+    .team-desc { font-size:13px; color:#6b7280; margin-bottom:12px; }
+    .team-stats { display:flex; gap:16px; margin-bottom:14px; }
+    .ts-item { text-align:center; }
+    .ts-val { font-family:'Outfit',sans-serif; font-size:20px; font-weight:800; color:#0a1a0e; }
+    .ts-key { font-size:11px; color:#9ca3af; }
+    .team-actions { display:flex; gap:8px; }
+
+    .modal-body .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    @media(max-width:600px){ .modal-body .form-row{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="appSidebar"></aside>
+  <div class="main-area">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div>
+          <div class="header-page-title">🏆 Quản lý đội</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-primary admin-only" onclick="openModal()">+ Thêm đội mới</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">🏆 Quản lý đội bóng</h1>
+          <div class="page-subtitle">Thêm, sửa, xóa và quản lý thông tin các đội bóng trong CLB</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:24px;">
+        <div class="stat-card">
+          <div class="stat-top">
+            <div><div class="stat-label">Tổng đội</div><div class="stat-value">4</div></div>
+            <div class="stat-icon">🏆</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div><div class="stat-label">Đang hoạt động</div><div class="stat-value">4</div></div>
+            <div class="stat-icon">✅</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div><div class="stat-label">Tổng thành viên</div><div class="stat-value">68</div></div>
+            <div class="stat-icon">👥</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top">
+            <div><div class="stat-label">Có HLV chính thức</div><div class="stat-value">3</div></div>
+            <div class="stat-icon">📋</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm đội bóng..." oninput="filterTeams()">
+        </div>
+        <select class="form-control" id="filterStatus" onchange="filterTeams()" style="width:auto;">
+          <option value="">Tất cả trạng thái</option>
+          <option value="Đang hoạt động">Đang hoạt động</option>
+          <option value="Tạm dừng">Tạm dừng</option>
+        </select>
+      </div>
+
+      <!-- Team Grid -->
+      <div class="team-grid" id="teamGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <div class="empty-icon">🏆</div>
+        <div class="empty-title">Chưa có đội nào</div>
+        <div class="empty-desc">Nhấn "Thêm đội mới" để tạo đội bóng đầu tiên</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL ADD/EDIT -->
+<div class="modal-overlay" id="teamModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">➕ Thêm đội mới</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tên đội *</label>
+          <input type="text" class="form-control" id="fName" placeholder="VD: Đội A – Sao Vàng">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Màu đại diện</label>
+          <select class="form-control" id="fColor">
+            <option value="green">🟢 Xanh lá</option>
+            <option value="blue">🔵 Xanh dương</option>
+            <option value="red">🔴 Đỏ</option>
+            <option value="orange">🟠 Cam</option>
+            <option value="purple">🟣 Tím</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mô tả</label>
+        <textarea class="form-control" id="fDesc" rows="2" placeholder="Mô tả ngắn về đội bóng"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Huấn luyện viên</label>
+          <input type="text" class="form-control" id="fCoach" placeholder="Tên HLV chính">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sân tập</label>
+          <input type="text" class="form-control" id="fField" placeholder="Sân tập chính">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Trạng thái</label>
+        <select class="form-control" id="fStatus">
+          <option value="Đang hoạt động">Đang hoạt động</option>
+          <option value="Tạm dừng">Tạm dừng</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveTeam()">💾 Lưu đội</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRM DELETE -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
+      <h3>🗑️ Xác nhận xóa</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 24px;">
+      <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+      <p style="font-size:15px;color:#374151;font-weight:600;">Bạn có chắc muốn xóa đội <strong id="deleteTeamName"></strong>?</p>
+      <p style="font-size:13px;color:#6b7280;margin-top:6px;">Thao tác này không thể hoàn tác.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Hủy</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">🗑️ Xóa đội</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  if (!requireLogin()) {}
+
+  const COLOR_MAP = {
+    green:  { bg:'linear-gradient(135deg,#0d2810,#15803d)', text:'#4ade80', emoji:'🟢' },
+    blue:   { bg:'linear-gradient(135deg,#1e3a5f,#1d4ed8)', text:'#60a5fa', emoji:'🔵' },
+    red:    { bg:'linear-gradient(135deg,#450a0a,#dc2626)', text:'#f87171', emoji:'🔴' },
+    orange: { bg:'linear-gradient(135deg,#451a03,#d97706)', text:'#fb923c', emoji:'🟠' },
+    purple: { bg:'linear-gradient(135deg,#2e1065,#7c3aed)', text:'#c084fc', emoji:'🟣' },
+  };
+
+  let teams = [
+    { id: 'team-1', name: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', desc: 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.', color: 'green', coach: 'HLV. Nguyễn Văn Huấn', field: 'Sân bóng Sao Vàng B (Sân 11)', members: 22, status: 'Đang hoạt động' },
+    { id: 'team-2', name: 'Sao Vàng FC - Tuyến Trẻ U21', desc: 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.', color: 'blue', coach: 'HLV. Trần Đình Trọng', field: 'Sân bóng Sao Vàng A (Sân 7)', members: 18, status: 'Đang hoạt động' },
+    { id: 'team-3', name: 'Sao Vàng FC - Đội Trẻ U17', desc: 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.', color: 'orange', coach: 'HLV. Phạm Đức Huy', field: 'Sân bóng Sao Vàng A (Sân 7)', members: 16, status: 'Đang hoạt động' },
+    { id: 'team-4', name: 'Sao Vàng FC - Futsal Team', desc: 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.', color: 'purple', coach: 'HLV. Vũ Trọng Khôi', field: 'Sân trong nhà Futsal Arena', members: 12, status: 'Đang hoạt động' },
+  ];
+  let nextId = 5;
+  let deleteId = null;
+
+  function renderTeams(list) {
+    const grid = document.getElementById('teamGrid');
+    const empty = document.getElementById('emptyState');
+    if (!list.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'flex';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = list.map(t => {
+      const c = COLOR_MAP[t.color] || COLOR_MAP.green;
+      return `
+        <div class="team-card">
+          <div class="team-banner" style="background:${c.bg};">
+            <span>${c.emoji}</span>
+          </div>
+          <div class="team-body">
+            <div class="team-name">${t.name}</div>
+            <div class="team-desc">${t.desc || ''}</div>
+            <div class="team-stats">
+              <div class="ts-item"><div class="ts-val">${t.members || 0}</div><div class="ts-key">Thành viên</div></div>
+              <div class="ts-item"><div class="ts-val">—</div><div class="ts-key">HLV</div></div>
+              <div class="ts-item" style="margin-left:auto;"><span class="badge ${t.status==='Đang hoạt động'?'badge-success':'badge-neutral'}">${t.status}</span></div>
+            </div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+              📋 ${t.coach || '—'} &nbsp;|&nbsp; 📍 ${t.field || '—'}
+            </div>
+            <div class="team-actions">
+              <button class="btn btn-sm btn-outline admin-only" onclick="editTeam(${t.id})">✏️ Sửa</button>
+              <button class="btn btn-sm btn-danger admin-only" onclick="askDelete(${t.id})">🗑️ Xóa</button>
+              <a href="/members.html?team=${t.id}" class="btn btn-sm btn-secondary" style="margin-left:auto;">👥 Thành viên</a>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterTeams() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const s = document.getElementById('filterStatus').value;
+    const filtered = teams.filter(t =>
+      (t.name.toLowerCase().includes(q) || (t.desc||'').toLowerCase().includes(q)) &&
+      (!s || t.status === s)
+    );
+    renderTeams(filtered);
+  }
+
+  function openModal(id = null) {
+    document.getElementById('editId').value = id || '';
+    document.getElementById('modalTitle').textContent = id ? '✏️ Chỉnh sửa đội' : '➕ Thêm đội mới';
+    ['fName','fDesc','fCoach','fField'].forEach(f => document.getElementById(f).value = '');
+    document.getElementById('fColor').value = 'green';
+    document.getElementById('fStatus').value = 'Đang hoạt động';
+
+    if (id) {
+      const t = teams.find(x => x.id === id);
+      if (t) {
+        document.getElementById('fName').value  = t.name;
+        document.getElementById('fDesc').value  = t.desc || '';
+        document.getElementById('fCoach').value = t.coach || '';
+        document.getElementById('fField').value = t.field || '';
+        document.getElementById('fColor').value = t.color;
+        document.getElementById('fStatus').value = t.status;
+      }
+    }
+    document.getElementById('teamModal').classList.add('active');
+  }
+
+  function editTeam(id) { openModal(id); }
+  function closeModal() { document.getElementById('teamModal').classList.remove('active'); }
+
+  async function loadDbTeams() {
+    try {
+      const res = await fetch('http://localhost:5000/api/teams');
+      if (res.ok) {
+        const json = await res.json();
+        const list = json.data || json;
+        if (Array.isArray(list) && list.length > 0) {
+          const colorList = ['green', 'blue', 'orange', 'purple'];
+          teams = list.map((t, idx) => ({
+            id: t.id,
+            name: t.name,
+            desc: t.description || '',
+            coach: t.headCoach || t.head_coach || '—',
+            field: t.homePitch || t.home_pitch || '—',
+            members: Number(t.memberCount || t.member_count) || 0,
+            status: t.status === 'Tạm nghỉ' ? 'Tạm nghỉ' : 'Đang hoạt động',
+            color: colorList[idx % colorList.length],
+          }));
+          filterTeams();
+        }
+      }
+    } catch (e) {
+      console.warn('Backend sync fallback for teams', e);
+    }
+  }
+
+  async function saveTeam() {
+    const id   = document.getElementById('editId').value;
+    const name = document.getElementById('fName').value.trim();
+    if (!name) { showToast('Vui lòng nhập tên đội', 'error'); return; }
+
+    const data = {
+      name,
+      description: document.getElementById('fDesc').value.trim(),
+      desc:        document.getElementById('fDesc').value.trim(),
+      headCoach:   document.getElementById('fCoach').value.trim(),
+      coach:       document.getElementById('fCoach').value.trim(),
+      homePitch:   document.getElementById('fField').value.trim(),
+      field:       document.getElementById('fField').value.trim(),
+      color:       document.getElementById('fColor').value,
+      status:      document.getElementById('fStatus').value,
+    };
+
+    if (id) {
+      const i = teams.findIndex(t => String(t.id) === String(id));
+      if (i >= 0) teams[i] = { ...teams[i], ...data };
+      showToast('Cập nhật đội thành công!');
+      try {
+        await fetch(`http://localhost:5000/api/teams/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+      } catch (e) {}
+    } else {
+      const newId = `team-${Date.now()}`;
+      teams.push({ id: newId, members: 0, ...data });
+      showToast('Thêm đội mới thành công!');
+      try {
+        await fetch('http://localhost:5000/api/teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: newId, memberCount: 0, ...data }),
+        });
+      } catch (e) {}
+    }
+
+    closeModal();
+    filterTeams();
+  }
+
+  function askDelete(id) {
+    deleteId = id;
+    const t = teams.find(x => String(x.id) === String(id));
+    document.getElementById('deleteTeamName').textContent = t ? t.name : '';
+    document.getElementById('deleteModal').classList.add('active');
+  }
+
+  function closeDeleteModal() {
+    deleteId = null;
+    document.getElementById('deleteModal').classList.remove('active');
+  }
+
+  async function confirmDelete() {
+    const idToDelete = deleteId;
+    teams = teams.filter(t => String(t.id) !== String(idToDelete));
+    closeDeleteModal();
+    filterTeams();
+    showToast('Đã xóa đội bóng!', 'warning');
+    if (idToDelete) {
+      try {
+        await fetch(`http://localhost:5000/api/teams/${idToDelete}`, {
+          method: 'DELETE',
+        });
+      } catch (e) {}
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar('teams');
+    renderTeams(teams);
+    loadDbTeams();
+  });
+</script>
+</body>
+</html>

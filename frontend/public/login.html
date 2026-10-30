@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập - Sao Vàng FC | Hệ thống quản lý CLB bóng đá</title>
+  <meta name="description" content="Đăng nhập hệ thống quản lý câu lạc bộ và lịch tập bóng đá Sao Vàng FC">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      background: #f0fdf4;
+    }
+
+    /* LEFT PANEL: XANH LÁ CHỦ ĐẠO THỂ THAO ĐẬM CHẤT BÓNG ĐÁ */
+    .login-left {
+      flex: 1.1;
+      background: linear-gradient(160deg, #092c14 0%, #0d3f1d 50%, #166534 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 56px 48px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset -10px 0 30px rgba(0,0,0,0.25);
+    }
+
+    .login-left::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: -120px;
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, rgba(34,197,94,0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-left::after {
+      content: '';
+      position: absolute;
+      bottom: -100px; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(74,222,128,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .pitch-lines {
+      position: absolute;
+      inset: 0;
+      opacity: 0.05;
+      background-image: 
+        linear-gradient(#fff 2px, transparent 2px),
+        linear-gradient(90deg, #fff 2px, transparent 2px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    .left-content {
+      position: relative;
+      z-index: 1;
+      max-width: 440px;
+      text-align: center;
+    }
+
+    .left-logo {
+      width: 86px;
+      height: 86px;
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 24px;
+      box-shadow: 0 12px 36px rgba(34,197,94,0.45), 0 0 0 4px rgba(255,255,255,0.15);
+    }
+
+    .left-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 10px;
+      letter-spacing: -0.03em;
+    }
+
+    .left-title span {
+      background: linear-gradient(135deg, #86efac, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .left-subtitle {
+      font-size: 15px;
+      color: rgba(220, 252, 231, 0.75);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(74,222,128,0.2);
+      border-radius: 14px;
+      color: rgba(255,255,255,0.9);
+      font-size: 14px;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .feature-item:hover {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(74,222,128,0.45);
+      transform: translateX(4px);
+    }
+
+    .feature-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(34,197,94,0.2);
+      border-radius: 10px;
+    }
+
+    .feature-text strong { display: block; font-size: 13.5px; font-weight: 700; color: #fff; }
+    .feature-text span   { font-size: 12px; color: rgba(220, 252, 231, 0.7); }
+
+    /* RIGHT PANEL: KHỐI TRẮNG TINH KHÔI NỔI BẬT VỚI VIỀN XANH LÁ */
+    .login-right {
+      width: 500px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 48px 44px;
+      position: relative;
+      border-left: 2px solid rgba(22, 163, 74, 0.15);
+    }
+
+    .login-form-wrap {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .form-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .form-logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(22,163,74,0.3);
+    }
+
+    .form-logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: #092612;
+    }
+
+    .form-logo-text span {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #16a34a;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .login-heading {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: #092612;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .login-heading-sub {
+      font-size: 14px;
+      color: #52735d;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f3d27;
+      margin-bottom: 7px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: #8fa898;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1.5px solid rgba(22, 163, 74, 0.2);
+      border-radius: 12px;
+      font-size: 14px;
+      color: #092612;
+      background: #f7fcf8;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: #16a34a;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.15);
+    }
+
+    .form-input::placeholder { color: #8fa898; }
+
+    .toggle-pass {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #8fa898;
+      padding: 0;
+    }
+
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: #273e2e;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember input[type="checkbox"] {
+      accent-color: #16a34a;
+      width: 16px;
+      height: 16px;
+    }
+
+    .forgot-link {
+      font-size: 13px;
+      color: #16a34a;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .forgot-link:hover { text-decoration: underline; color: #15803d; }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 16px rgba(22,163,74,0.35);
+      letter-spacing: 0.01em;
+      font-family: 'Outfit', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-login:hover {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      box-shadow: 0 6px 22px rgba(22,163,74,0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-login:active { transform: translateY(0); }
+
+    .login-error {
+      display: none;
+      padding: 11px 14px;
+      background: #fef2f2;
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 10px;
+      color: #dc2626;
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+
+    .login-error.show { display: block; }
+
+    .form-hint {
+      margin-top: 24px;
+      padding: 14px;
+      background: #f0fdf4;
+      border: 1px solid rgba(22, 163, 74, 0.2);
+      border-radius: 12px;
+      font-size: 12.5px;
+      color: #166534;
+      line-height: 1.5;
+    }
+
+    .form-hint strong {
+      color: #15803d;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    @media (max-width: 900px) {
+      .login-left { display: none; }
+      .login-right { width: 100%; border-left: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- LEFT PANEL: XANH LÁ CHỦ ĐẠO -->
+  <div class="login-left">
+    <div class="pitch-lines"></div>
+    <div class="left-content">
+      <div class="left-logo">⚽</div>
+      <h1 class="left-title">Sao Vàng <span>FC</span></h1>
+      <p class="left-subtitle">Hệ thống quản lý câu lạc bộ & lịch tập bóng đá chuyên nghiệp. Nền tảng thể thao hiện đại, tối ưu và toàn diện.</p>
+      
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="feature-icon">🏆</span>
+          <div class="feature-text">
+            <strong>Quản lý đội bóng</strong>
+            <span>Thông tin các đội, sơ đồ lực lượng, hồ sơ chi tiết</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">👥</span>
+          <div class="feature-text">
+            <strong>Quản lý thành viên & HLV</strong>
+            <span>Cầu thủ, ban huấn luyện, chuyên môn & phân công</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📅</span>
+          <div class="feature-text">
+            <strong>Lịch tập & Điểm danh</strong>
+            <span>Lên lịch tập luyện, theo dõi sự có mặt chuyên cần</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">💰</span>
+          <div class="feature-text">
+            <strong>Quản lý phí sinh hoạt</strong>
+            <span>Thu chi minh bạch, đóng góp quỹ và báo cáo CLB</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">📢</span>
+          <div class="feature-text">
+            <strong>Thông báo câu lạc bộ</strong>
+            <span>Đăng tải và truyền tải thông báo quan trọng tức thì</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: TRẮNG XEN KẼ -->
+  <div class="login-right">
+    <div class="login-form-wrap">
+      <div class="form-logo">
+        <div class="form-logo-icon">⚽</div>
+        <div class="form-logo-text">
+          Sao Vàng FC
+          <span>Quản lý CLB Bóng đá</span>
+        </div>
+      </div>
+
+      <h2 class="login-heading">Đăng nhập</h2>
+      <p class="login-heading-sub">Nhập thông tin tài khoản của bạn để truy cập hệ thống</p>
+
+      <div id="loginError" class="login-error">
+        ⚠️ Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Tên đăng nhập / Email</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input id="loginEmail" type="text" class="form-input" placeholder="Tên tài khoản hoặc email..." autocomplete="username" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mật khẩu</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input id="loginPassword" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="toggle-pass" onclick="togglePass()" id="togglePassBtn" title="Hiện mật khẩu">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <label class="remember">
+            <input type="checkbox" id="rememberMe" checked>
+            Ghi nhớ đăng nhập
+          </label>
+          <a href="#" class="forgot-link">Quên mật khẩu?</a>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">
+          <span>🔑</span>
+          <span>Đăng nhập hệ thống</span>
+        </button>
+      </form>
+
+      <div class="form-hint">
+        <strong>💡 Hướng dẫn đăng nhập:</strong>
+        Hệ thống tự động kích hoạt quyền quản trị (Admin) hoặc khách hàng (Customer) sau khi bạn đăng nhập thành công.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleLogin(e) {
+      e.preventDefault();
+      const emailInput = document.getElementById('loginEmail').value.trim();
+      const passInput  = document.getElementById('loginPassword').value;
+      const errorEl    = document.getElementById('loginError');
+      const btn        = document.getElementById('loginBtn');
+
+      if (!emailInput || !passInput) {
+        errorEl.textContent = '⚠️ Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!';
+        errorEl.classList.add('show');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> Đang đăng nhập...';
+
+      setTimeout(() => {
+        // Tự động phân quyền thông minh sau khi đăng nhập:
+        // Nếu tên đăng nhập hoặc email có chữ 'admin' -> Quyền Admin
+        // Ngược lại -> Quyền Khách hàng (Customer)
+        const lowerInput = emailInput.toLowerCase();
+        let userRole = 'customer';
+        let userName = emailInput.split('@')[0];
+
+        if (lowerInput.includes('admin') || lowerInput === 'quantri' || lowerInput === 'saovang') {
+          userRole = 'admin';
+          userName = 'Ban Quản Trị (Admin)';
+        } else {
+          userRole = 'customer';
+          // Định dạng tên đẹp cho khách hàng
+          userName = userName.charAt(0).toUpperCase() + userName.slice(1);
+          if (!userName || userName.length < 2) userName = 'Khách hàng';
+        }
+
+        const userObj = {
+          id: 'u-' + Date.now(),
+          name: userName,
+          email: emailInput.includes('@') ? emailInput : (emailInput + '@saovangfc.vn'),
+          role: userRole
+        };
+
+        localStorage.setItem('user', JSON.stringify(userObj));
+        localStorage.setItem('token', 'token-' + userRole + '-' + Date.now());
+
+        window.location.href = '/index.html';
+      }, 400);
+    }
+
+    function togglePass() {
+      const inp = document.getElementById('loginPassword');
+      const btn = document.getElementById('togglePassBtn');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        inp.type = 'password';
+        btn.textContent = '👁️';
+      }
+    }
+
+    // Nếu đã có phiên đăng nhập hợp lệ, chuyển thẳng tới index
+    if (localStorage.getItem('user') && localStorage.getItem('token')) {
+      window.location.href = '/index.html';
+    }
+  </script>
+</body>
+</html>

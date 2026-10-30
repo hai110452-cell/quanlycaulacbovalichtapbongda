@@ -38,6 +38,23 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  // Đội bóng (Teams)
+  getTeams: () => fetchJson<{ success: boolean; total: number; data: any[] }>('/teams'),
+  addTeam: (data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any }>('/teams', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateTeam: (id: string, data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any }>(`/teams/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteTeam: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/teams/${id}`, {
+      method: 'DELETE',
+    }),
+
   // Cầu thủ
   getPlayers: (position?: string, search?: string) => {
     const params = new URLSearchParams();
@@ -87,4 +104,34 @@ export const api = {
 
   // Sân bóng
   getFields: () => fetchJson<{ success: boolean; data: FootballField[] }>('/fields'),
+
+  // Người dùng & HLV
+  getUsers: () => fetchJson<{ success: boolean; total: number; data: any[] }>('/users'),
+  addUser: (data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any }>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteUser: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/users/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Thông báo
+  getNotifications: () =>
+    fetchJson<{ success: boolean; total: number; data: any[] }>('/notifications'),
+  addNotification: (data: any) =>
+    fetchJson<{ success: boolean; data: any }>('/notifications', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteNotification: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/notifications/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Trận đấu
+  getMatches: () =>
+    fetchJson<{ success: boolean; total: number; data: any[] }>('/matches'),
 };
+

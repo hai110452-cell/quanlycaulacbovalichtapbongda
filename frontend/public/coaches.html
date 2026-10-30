@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huấn luyện viên - Sao Vàng FC</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <style>
+    .coach-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+    .coach-card {
+      background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+      padding:24px 20px; text-align:center;
+      box-shadow:0 1px 3px rgba(0,0,0,0.06);
+      transition:all 0.25s ease;
+    }
+    .coach-card:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(34,197,94,0.15); border-color:#22c55e; }
+    .coach-avatar {
+      width:72px; height:72px; border-radius:50%;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      display:flex; align-items:center; justify-content:center;
+      font-size:28px; font-weight:800; color:#fff;
+      margin:0 auto 14px; border:3px solid rgba(34,197,94,0.2);
+    }
+    .coach-name { font-family:'Outfit',sans-serif; font-size:17px; font-weight:800; color:#0a1a0e; margin-bottom:4px; }
+    .coach-spec { font-size:13px; color:#16a34a; font-weight:600; margin-bottom:10px; }
+    .coach-meta { font-size:12px; color:#6b7280; margin-bottom:4px; }
+    .coach-team { display:inline-block; background:#f0fdf4; border:1px solid rgba(34,197,94,0.2); color:#15803d; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600; margin-bottom:14px; }
+    .coach-actions { display:flex; gap:8px; justify-content:center; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="appSidebar"></aside>
+  <div class="main-area">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        <div class="header-page-title">📋 Huấn luyện viên</div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-primary admin-only" onclick="openModal()">+ Thêm HLV</button>
+      </div>
+    </header>
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">📋 Quản lý huấn luyện viên</h1>
+          <div class="page-subtitle">Thông tin, danh sách và phân công huấn luyện viên</div>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Tổng HLV</div><div class="stat-value" id="statTotal">0</div></div><div class="stat-icon">📋</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Đang phụ trách</div><div class="stat-value" id="statActive">0</div></div><div class="stat-icon">✅</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">HLV trưởng</div><div class="stat-value" id="statHead">0</div></div><div class="stat-icon">🏆</div></div></div>
+        <div class="stat-card"><div class="stat-top"><div><div class="stat-label">Chuyên môn</div><div class="stat-value">4+</div></div><div class="stat-icon">🎯</div></div></div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="form-control" id="searchInput" placeholder="Tìm HLV..." oninput="filterCoaches()">
+        </div>
+        <select class="form-control" id="filterTeam" onchange="filterCoaches()" style="width:auto;">
+          <option value="">Tất cả đội</option>
+          <option value="Đội A">Đội A</option>
+          <option value="Đội B">Đội B</option>
+          <option value="Đội C">Đội C</option>
+          <option value="Đội D">Đội D</option>
+          <option value="Chưa phân công">Chưa phân công</option>
+        </select>
+      </div>
+
+      <div class="coach-grid" id="coachGrid"></div>
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Chưa có huấn luyện viên</div>
+        <div class="empty-desc">Nhấn "Thêm HLV" để thêm mới</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="coachModal">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <h3 id="modalTitle">➕ Thêm huấn luyện viên</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Họ và tên *</label><input type="text" class="form-control" id="fName" placeholder="HLV. Nguyễn Văn A"></div>
+        <div class="form-group"><label class="form-label">Chuyên môn</label><input type="text" class="form-control" id="fSpec" placeholder="Chiến thuật, Thể lực..."></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Điện thoại</label><input type="text" class="form-control" id="fPhone" placeholder="0912345678"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="fEmail" placeholder="hlv@saovangfc.vn"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Chức danh</label>
+          <select class="form-control" id="fRole">
+            <option value="HLV trưởng">HLV trưởng</option>
+            <option value="HLV phó">HLV phó</option>
+            <option value="HLV thể lực">HLV thể lực</option>
+            <option value="HLV thủ môn">HLV thủ môn</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phụ trách đội</label>
+          <select class="form-control" id="fTeam">
+            <option value="Đội A">Đội A</option>
+            <option value="Đội B">Đội B</option>
+            <option value="Đội C">Đội C</option>
+            <option value="Đội D">Đội D</option>
+            <option value="Chưa phân công">Chưa phân công</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Kinh nghiệm (năm)</label><input type="number" class="form-control" id="fExp" min="0" placeholder="5"></div>
+        <div class="form-group"><label class="form-label">Bằng cấp / Chứng chỉ</label><input type="text" class="form-control" id="fCert" placeholder="AFC Level 1, FIFA..."></div>
+      </div>
+      <div class="form-group"><label class="form-label">Ghi chú</label><textarea class="form-control" id="fNote" rows="2" placeholder="Thông tin thêm..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+      <button class="btn btn-primary" onclick="saveCoach()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
+      <h3>🗑️ Xóa huấn luyện viên</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 24px;">
+      <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+      <p style="font-size:15px;color:#374151;font-weight:600;">Xóa <strong id="deleteName"></strong>?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Hủy</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">🗑️ Xóa</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  if (!requireLogin()) {}
+
+  let coaches = [
+    { id: 'coach-001', name: 'HLV. Nguyễn Văn Huấn', spec: 'Chiến thuật tổng lực & phát triển cầu thủ', phone: '0912345678', email: 'huan.nv@saovangfc.vn', role: 'HLV trưởng', team: 'Đội A', exp: 12, cert: 'Bằng AFC Pro / UEFA A', note: 'HLV trưởng đội tuyển chính' },
+    { id: 'coach-002', name: 'HLV. Trần Đình Trọng', spec: 'Phòng ngự khu vực & bọc lót 1v1', phone: '0923456781', email: 'trong.td@saovangfc.vn', role: 'HLV trưởng', team: 'Đội B', exp: 6, cert: 'Bằng AFC B', note: 'Phụ trách tuyến trẻ U21' },
+    { id: 'coach-003', name: 'HLV. Phạm Đức Huy', spec: 'Kỹ thuật nền tảng & thể lực lứa trẻ', phone: '0934567812', email: 'huy.pd@saovangfc.vn', role: 'HLV phó', team: 'Đội C', exp: 5, cert: 'Bằng AFC C', note: 'Phụ trách đào tạo U17' },
+    { id: 'coach-004', name: 'HLV. Vũ Trọng Khôi', spec: 'Kỹ thuật phạm vi hẹp & bóng đá mini', phone: '0945678923', email: 'khoi.futsal@saovangfc.vn', role: 'HLV trưởng', team: 'Đội A', exp: 8, cert: 'Bằng Futsal Level 2', note: 'HLV trưởng Futsal Team' },
+  ];
+  let nextId = 5;
+  let deleteId = null;
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent = coaches.length;
+    document.getElementById('statActive').textContent = coaches.filter(c=>c.team!=='Chưa phân công').length;
+    document.getElementById('statHead').textContent = coaches.filter(c=>c.role==='HLV trưởng').length;
+  }
+
+  function renderCoaches(list) {
+    const grid = document.getElementById('coachGrid');
+    const empty = document.getElementById('emptyState');
+    if (!list.length) { grid.innerHTML=''; empty.style.display='flex'; return; }
+    empty.style.display='none';
+    const initials = n => n.replace(/HLV\.\s*/,'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    grid.innerHTML = list.map(c => `
+      <div class="coach-card">
+        <div class="coach-avatar">${initials(c.name)}</div>
+        <div class="coach-name">${c.name}</div>
+        <div class="coach-spec">${c.spec}</div>
+        <div class="coach-team">${c.team}</div>
+        <div class="coach-meta">📋 ${c.role}</div>
+        <div class="coach-meta">📞 ${c.phone || '—'}</div>
+        <div class="coach-meta">🎓 ${c.cert || '—'} &nbsp;|&nbsp; 🗓️ ${c.exp} năm KN</div>
+        ${c.note ? `<div style="margin:8px 0;font-size:11px;color:#9ca3af;font-style:italic;">${c.note}</div>` : '<div style="margin:8px 0;"></div>'}
+        <div class="coach-actions admin-only">
+          <button class="btn btn-sm btn-outline" onclick="editCoach(${c.id})">✏️ Sửa</button>
+          <button class="btn btn-sm btn-danger" onclick="askDelete(${c.id})">🗑️ Xóa</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function filterCoaches() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const t = document.getElementById('filterTeam').value;
+    renderCoaches(coaches.filter(c =>
+      (c.name.toLowerCase().includes(q)||(c.spec||'').toLowerCase().includes(q)) &&
+      (!t || c.team===t)
+    ));
+  }
+
+  function openModal(id=null) {
+    document.getElementById('editId').value=id||'';
+    document.getElementById('modalTitle').textContent=id?'✏️ Chỉnh sửa HLV':'➕ Thêm huấn luyện viên';
+    ['fName','fSpec','fPhone','fEmail','fExp','fCert','fNote'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('fRole').value='HLV trưởng';
+    document.getElementById('fTeam').value='Đội A';
+    if (id) {
+      const c = coaches.find(x=>x.id===id);
+      if (c) {
+        document.getElementById('fName').value=c.name;
+        document.getElementById('fSpec').value=c.spec||'';
+        document.getElementById('fPhone').value=c.phone||'';
+        document.getElementById('fEmail').value=c.email||'';
+        document.getElementById('fRole').value=c.role;
+        document.getElementById('fTeam').value=c.team;
+        document.getElementById('fExp').value=c.exp||'';
+        document.getElementById('fCert').value=c.cert||'';
+        document.getElementById('fNote').value=c.note||'';
+      }
+    }
+    document.getElementById('coachModal').classList.add('active');
+  }
+
+  function editCoach(id){ openModal(id); }
+  function closeModal(){ document.getElementById('coachModal').classList.remove('active'); }
+
+  function saveCoach() {
+    const id=document.getElementById('editId').value;
+    const name=document.getElementById('fName').value.trim();
+    if(!name){ showToast('Vui lòng nhập họ tên','error'); return; }
+    const data={
+      name, spec:document.getElementById('fSpec').value.trim(),
+      phone:document.getElementById('fPhone').value.trim(),
+      email:document.getElementById('fEmail').value.trim(),
+      role:document.getElementById('fRole').value,
+      team:document.getElementById('fTeam').value,
+      exp:parseInt(document.getElementById('fExp').value)||0,
+      cert:document.getElementById('fCert').value.trim(),
+      note:document.getElementById('fNote').value.trim(),
+    };
+    if(id){ const i=coaches.findIndex(c=>c.id===parseInt(id)); if(i>=0) coaches[i]={...coaches[i],...data}; showToast('Cập nhật HLV thành công!'); }
+    else{ coaches.push({id:nextId++,...data}); showToast('Thêm HLV thành công!'); }
+    closeModal(); updateStats(); filterCoaches();
+  }
+
+  function askDelete(id){ deleteId=id; const c=coaches.find(x=>x.id===id); document.getElementById('deleteName').textContent=c?c.name:''; document.getElementById('deleteModal').classList.add('active'); }
+  function closeDeleteModal(){ deleteId=null; document.getElementById('deleteModal').classList.remove('active'); }
+  function confirmDelete(){ coaches=coaches.filter(c=>c.id!==deleteId); closeDeleteModal(); updateStats(); filterCoaches(); showToast('Đã xóa HLV','warning'); }
+
+  async function loadDbCoaches() {
+    try {
+      const res = await fetch('http://localhost:5000/api/users');
+      if (res.ok) {
+        const json = await res.json();
+        const users = json.data || json;
+        if (Array.isArray(users)) {
+          const coachUsers = users.filter(u => u.role === 'coach');
+          if (coachUsers.length > 0) {
+            const metaMap = {
+              'HLV. Nguyễn Văn Huấn': { spec: 'Chiến thuật tổng lực & phát triển cầu thủ', role: 'HLV trưởng', team: 'Đội A', exp: 12, cert: 'Bằng AFC Pro / UEFA A' },
+              'HLV. Trần Đình Trọng': { spec: 'Phòng ngự khu vực & bọc lót 1v1', role: 'HLV trưởng', team: 'Đội B', exp: 6, cert: 'Bằng AFC B' },
+              'HLV. Phạm Đức Huy': { spec: 'Kỹ thuật nền tảng & thể lực lứa trẻ', role: 'HLV phó', team: 'Đội C', exp: 5, cert: 'Bằng AFC C' },
+              'HLV. Vũ Trọng Khôi': { spec: 'Kỹ thuật phạm vi hẹp & bóng đá mini', role: 'HLV trưởng', team: 'Đội A', exp: 8, cert: 'Bằng Futsal Level 2' },
+            };
+            const seen = new Set();
+            const list = [];
+            coachUsers.forEach(c => {
+              if (!seen.has(c.name)) {
+                seen.add(c.name);
+                const meta = metaMap[c.name] || { spec: 'Huấn luyện kỹ chiến thuật', role: 'HLV', team: 'Đội A', exp: 5, cert: 'Bằng AFC B' };
+                list.push({
+                  id: c.id,
+                  name: c.name,
+                  phone: c.phone || '0912345678',
+                  email: c.email || 'coach@saovangfc.vn',
+                  role: meta.role,
+                  team: meta.team,
+                  exp: meta.exp,
+                  cert: meta.cert,
+                  spec: meta.spec,
+                  note: ''
+                });
+              }
+            });
+            if (list.length > 0) {
+              coaches = list;
+              updateStats();
+              renderCoaches(coaches);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Backend sync fallback for coaches', e);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar('coaches');
+    updateStats();
+    renderCoaches(coaches);
+    loadDbCoaches();
+  });
+</script>
+</body>
+</html>
