@@ -24,8 +24,12 @@ let attendanceList = [];
 let currentPeriod = 'all';
 
 function initAttendance() {
-  const saved = localStorage.getItem('localAttendance');
-  attendanceList = saved ? JSON.parse(saved) : defaultAttendance;
+  try {
+    const saved = localStorage.getItem('localAttendance');
+    attendanceList = (saved && saved !== 'undefined') ? JSON.parse(saved) : defaultAttendance;
+  } catch {
+    attendanceList = defaultAttendance;
+  }
   
   checkRBAC();
   renderAttendanceTable();

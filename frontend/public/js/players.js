@@ -124,12 +124,20 @@ async function initPlayers() {
       playerList = res;
       saveLocalPlayers();
     } else {
-      const saved = localStorage.getItem('localPlayers');
-      playerList = saved ? JSON.parse(saved) : defaultPlayers;
+      try {
+        const saved = localStorage.getItem('localPlayers');
+        playerList = (saved && saved !== 'undefined') ? JSON.parse(saved) : defaultPlayers;
+      } catch {
+        playerList = defaultPlayers;
+      }
     }
   } catch (e) {
-    const saved = localStorage.getItem('localPlayers');
-    playerList = saved ? JSON.parse(saved) : defaultPlayers;
+    try {
+      const saved = localStorage.getItem('localPlayers');
+      playerList = (saved && saved !== 'undefined') ? JSON.parse(saved) : defaultPlayers;
+    } catch {
+      playerList = defaultPlayers;
+    }
   }
   checkRBAC();
   renderPlayers();

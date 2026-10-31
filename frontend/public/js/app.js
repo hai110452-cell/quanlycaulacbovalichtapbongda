@@ -4,7 +4,7 @@
 
 function getAuthUser() {
   const str = localStorage.getItem('user');
-  if (!str) return null;
+  if (!str || str === 'undefined') return null;
   try { return JSON.parse(str); } catch { return null; }
 }
 

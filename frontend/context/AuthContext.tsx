@@ -54,15 +54,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const storedUser = localStorage.getItem('saovang_user');
       const storedToken = localStorage.getItem('saovang_token');
-      if (storedUser && storedToken) {
+      if (storedUser && storedUser !== 'undefined' && storedToken && storedToken !== 'undefined') {
         setUser(JSON.parse(storedUser));
         setToken(storedToken);
       } else {
+        localStorage.removeItem('saovang_user');
+        localStorage.removeItem('saovang_token');
         setUser(null);
         setToken(null);
       }
     } catch (e) {
       console.error('Lỗi đọc auth từ localStorage:', e);
+      localStorage.removeItem('saovang_user');
+      localStorage.removeItem('saovang_token');
       setUser(null);
       setToken(null);
     } finally {

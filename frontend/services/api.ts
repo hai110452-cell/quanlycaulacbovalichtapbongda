@@ -14,7 +14,11 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     throw new Error(`Lỗi kết nối API: ${res.statusText}`);
   }
-  return res.json();
+  const text = await res.text();
+  if (!text || text === 'undefined') {
+    return {} as T;
+  }
+  return JSON.parse(text);
 }
 
 export const api = {

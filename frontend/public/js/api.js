@@ -20,8 +20,14 @@ const apiClient = {
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { credentials: 'omit', headers: this.getHeaders() });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const json = await res.json();
-      return json && json.data !== undefined ? json.data : json;
+      const text = await res.text();
+      if (!text || text === 'undefined') return null;
+      try {
+        const json = JSON.parse(text);
+        return json && json.data !== undefined ? json.data : json;
+      } catch {
+        return null;
+      }
     } catch (err) {
       console.warn(`Lỗi gọi API GET ${endpoint}, chuyển sang sử dụng dữ liệu lưu trữ cục bộ:`, err);
       return null;
@@ -35,8 +41,14 @@ const apiClient = {
         headers: this.getHeaders(),
         body: JSON.stringify(data),
       });
-      const json = await res.json();
-      return json && json.data !== undefined ? json.data : json;
+      const text = await res.text();
+      if (!text || text === 'undefined') return null;
+      try {
+        const json = JSON.parse(text);
+        return json && json.data !== undefined ? json.data : json;
+      } catch {
+        return null;
+      }
     } catch (err) {
       console.warn(`Lỗi gọi API POST ${endpoint}:`, err);
       return null;
@@ -50,8 +62,14 @@ const apiClient = {
         headers: this.getHeaders(),
         body: JSON.stringify(data),
       });
-      const json = await res.json();
-      return json && json.data !== undefined ? json.data : json;
+      const text = await res.text();
+      if (!text || text === 'undefined') return null;
+      try {
+        const json = JSON.parse(text);
+        return json && json.data !== undefined ? json.data : json;
+      } catch {
+        return null;
+      }
     } catch (err) {
       console.warn(`Lỗi gọi API PUT ${endpoint}:`, err);
       return null;
@@ -64,8 +82,14 @@ const apiClient = {
         method: 'DELETE',
         headers: this.getHeaders(),
       });
-      const json = await res.json();
-      return json && json.data !== undefined ? json.data : json;
+      const text = await res.text();
+      if (!text || text === 'undefined') return null;
+      try {
+        const json = JSON.parse(text);
+        return json && json.data !== undefined ? json.data : json;
+      } catch {
+        return null;
+      }
     } catch (err) {
       console.warn(`Lỗi gọi API DELETE ${endpoint}:`, err);
       return null;

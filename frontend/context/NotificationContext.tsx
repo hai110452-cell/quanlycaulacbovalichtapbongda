@@ -62,7 +62,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('saovang_notifications');
-        if (stored) {
+        if (stored && stored !== 'undefined') {
           setNotifications(JSON.parse(stored));
         } else {
           setNotifications(defaultInitialNotifications);

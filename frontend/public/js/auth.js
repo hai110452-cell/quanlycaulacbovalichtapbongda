@@ -10,7 +10,7 @@ const demoRoles = {
 
 function getAuthUser() {
   const userStr = localStorage.getItem('user');
-  if (!userStr) {
+  if (!userStr || userStr === 'undefined') {
     // Mặc định đăng nhập demo Admin
     setAuthSession(demoRoles.admin, 'demo-token');
     return demoRoles.admin;
