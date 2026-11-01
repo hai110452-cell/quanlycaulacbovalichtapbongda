@@ -69,7 +69,9 @@ export class SchedulesService {
 
   async remove(id: string) {
     const schedule = await this.schedulesRepository.findOne({ where: { id } });
-    if (!schedule) throw new NotFoundException('Không tìm thấy lịch tập');
+    if (!schedule) {
+      return { success: true, message: 'Lịch tập không tồn tại hoặc đã được xóa trước đó!', data: { id } };
+    }
     await this.schedulesRepository.remove(schedule);
     return { success: true, message: 'Đã hủy/xóa lịch tập thành công!', data: { id } };
   }

@@ -84,7 +84,11 @@ export default function RegisterPage() {
       {/* CARD ĐĂNG KÝ XANH LÁ & TRẮNG */}
       <div className="w-full max-w-lg bg-white rounded-3xl border-2 border-emerald-500/40 shadow-2xl shadow-emerald-950/15 overflow-hidden transition-all">
         {/* HEADER XANH GRADIENT */}
-        <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] p-7 text-center relative">
+        <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] p-7 text-center relative text-white">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/30 border border-emerald-400/50 text-emerald-200 text-[11px] font-black uppercase tracking-wider mb-3">
+            <span>🔒</span>
+            <span>CỔNG NỘI BỘ: CẦU THỦ • HLV • ADMIN</span>
+          </div>
           <div className="w-16 h-16 mx-auto rounded-2xl bg-white text-emerald-800 flex items-center justify-center text-3xl shadow-lg ring-4 ring-emerald-400/30 mb-3.5">
             📝
           </div>
@@ -92,8 +96,14 @@ export default function RegisterPage() {
             Đăng Ký Thành Viên CLB
           </h1>
           <p className="text-emerald-100 text-xs mt-1.5 font-medium">
-            Tạo tài khoản và lựa chọn quyền hạn truy cập hệ thống Sao Vàng FC
+            Tạo tài khoản phân quyền dành cho Cầu thủ, Huấn luyện viên và Quản trị viên
           </p>
+          <div className="mt-2.5 text-[11px] text-emerald-200/90 bg-black/20 py-1.5 px-3 rounded-xl border border-white/10">
+            Khách hàng & người hâm mộ (Customer) xem công khai tại{' '}
+            <Link href="/" className="font-bold underline text-white hover:text-emerald-200">
+              Trang Chủ
+            </Link>
+          </div>
         </div>
 
         {/* THÂN FORM */}
@@ -240,15 +250,26 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          {/* Footer chuyển sang Đăng nhập */}
-          <div className="text-center pt-3 border-t border-emerald-100 text-xs font-semibold text-slate-600">
-            <span>Đã có tài khoản? </span>
-            <Link
-              href="/login"
-              className="text-emerald-700 hover:text-emerald-900 font-extrabold underline underline-offset-2 ml-1"
-            >
-              Đăng nhập ngay
-            </Link>
+          {/* Footer chuyển sang Đăng nhập & Về Trang Chủ */}
+          <div className="text-center pt-3 border-t border-emerald-100 text-xs font-semibold text-slate-600 space-y-2">
+            <div>
+              <span>Đã có tài khoản nội bộ? </span>
+              <Link
+                href="/login"
+                className="text-emerald-700 hover:text-emerald-900 font-extrabold underline underline-offset-2 ml-1"
+              >
+                Đăng nhập ngay
+              </Link>
+            </div>
+            <div>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1 text-[11.5px] font-bold text-slate-500 hover:text-emerald-700 hover:underline"
+              >
+                <span>←</span>
+                <span>Quay lại Trang Chủ (Chế độ khách Customer)</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

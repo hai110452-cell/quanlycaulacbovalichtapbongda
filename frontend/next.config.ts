@@ -1,15 +1,9 @@
 import type { NextConfig } from "next";
-
-const backendApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${backendApiUrl.replace(/\/$/, "")}/:path*`,
-      },
-    ];
+  turbopack: {
+    root: path.resolve(__dirname),
   },
 };
 

@@ -196,6 +196,32 @@
   ];
   let nextId = 7;
 
+  async function loadNotifsFromDB() {
+    try {
+      const res = await fetch('/api/notifications');
+      if (res.ok) {
+        const json = await res.json();
+        if (json && Array.isArray(json.data) && json.data.length > 0) {
+          notifications = json.data.map(d => ({
+            id: d.id,
+            title: d.title,
+            type: d.type === 'cancel' || d.type === 'warning' ? 'warning' : d.type === 'change' || d.type === 'schedule' ? 'schedule' : 'general',
+            target: 'all',
+            body: d.message,
+            priority: d.type === 'cancel' || d.type === 'warning' ? 'urgent' : d.type === 'change' ? 'important' : 'normal',
+            date: d.createdAt ? d.createdAt.split('T')[0] : (d.timestamp || new Date().toISOString().split('T')[0]),
+            read: Boolean(d.read),
+            author: 'Ban Quản Trị CLB',
+          }));
+          updateStats();
+          filterNotifs();
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi kết nối /api/notifications:', e);
+    }
+  }
+
   function updateStats() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('statTotal').textContent  = notifications.length;
@@ -213,7 +239,7 @@
     el.innerHTML = sorted.map(n => {
       const t = TYPE_INFO[n.type]||TYPE_INFO.general;
       return `
-        <div class="notif-card ${n.read?'read':'unread'}" onclick="markRead(${n.id})">
+        <div class="notif-card ${n.read?'read':'unread'}" onclick="markRead('${n.id}')">
           <div class="notif-top">
             <div class="notif-icon-wrap ${t.cls}">${t.icon}</div>
             <div class="notif-meta">
@@ -230,7 +256,7 @@
           <div class="notif-footer">
             <span>📅 ${formatDate(n.date)} &nbsp;|&nbsp; ✍️ ${n.author||'Admin'}</span>
             <div style="display:flex;gap:6px;">
-              <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();deleteNotif(${n.id})">🗑️</button>
+              <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();deleteNotif('${n.id}')">🗑️</button>
             </div>
           </div>
         </div>`;
@@ -248,45 +274,79 @@
     ));
   }
 
-  function markRead(id) {
-    const n = notifications.find(x=>x.id===id);
+  async function markRead(id) {
+    const n = notifications.find(x=>String(x.id)===String(id));
     if(n) n.read=true;
     filterNotifs(); updateStats();
+    try {
+      await fetch(`/api/notifications/${id}`, { method: 'PUT' });
+    } catch (e) {}
   }
 
-  function markAllRead() {
+  async function markAllRead() {
     notifications.forEach(n=>n.read=true);
     filterNotifs(); updateStats();
     showToast('Đã đánh dấu tất cả đã đọc');
+    try {
+      await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAllAsRead: true }),
+      });
+    } catch (e) {}
   }
 
-  function deleteNotif(id) {
-    notifications = notifications.filter(n=>n.id!==id);
+  async function deleteNotif(id) {
+    notifications = notifications.filter(n=>String(n.id)!==String(id));
     filterNotifs(); updateStats();
-    showToast('Đã xóa thông báo','warning');
+    showToast('Đã xóa thông báo khỏi Neon DB','warning');
+    try {
+      await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
+    } catch (e) {}
   }
 
-  function sendNotification() {
+  async function sendNotification() {
     const title = document.getElementById('cTitle').value.trim();
     const body  = document.getElementById('cBody').value.trim();
     if(!title||!body){ showToast('Vui lòng nhập tiêu đề và nội dung','error'); return; }
     const user = getAuthUser();
-    notifications.unshift({
-      id: nextId++,
-      title, type: document.getElementById('cType').value,
+    const newId = `notif-${Date.now()}`;
+    const newObj = {
+      id: newId,
+      title,
+      type: document.getElementById('cType').value,
       target: document.getElementById('cTarget').value,
-      body, priority: document.getElementById('cPriority').value,
+      body,
+      priority: document.getElementById('cPriority').value,
       date: new Date().toISOString().split('T')[0],
       read: false,
       author: user?.name || 'Admin',
-    });
+    };
+    notifications.unshift(newObj);
     document.getElementById('cTitle').value='';
     document.getElementById('cBody').value='';
     filterNotifs(); updateStats();
     showToast('Gửi thông báo thành công! 📢');
+
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: newId,
+          title,
+          message: body,
+          type: newObj.type,
+          timestamp: new Date().toLocaleString('vi-VN'),
+        }),
+      });
+      await loadNotifsFromDB();
+    } catch (e) {
+      console.warn('Lỗi lưu thông báo vào Neon DB:', e);
+    }
   }
 
-  document.addEventListener('DOMContentLoaded',()=>{ renderSidebar('notifications'); updateStats(); renderNotifs(notifications); });
+  document.addEventListener('DOMContentLoaded',()=>{ renderSidebar('notifications'); updateStats(); renderNotifs(notifications); loadNotifsFromDB(); });
 </script>
 </body>
 </html>

@@ -248,15 +248,25 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white rounded-3xl border-2 border-emerald-400/90 shadow-2xl shadow-emerald-950/15 overflow-hidden transition-all">
         {/* Header Xanh Gradient Thể Thao */}
         <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] p-7 text-center relative text-white">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/30 border border-emerald-400/50 text-emerald-200 text-[11px] font-black uppercase tracking-wider mb-3">
+            <span>🔒</span>
+            <span>CỔNG NỘI BỘ: CẦU THỦ • HLV • ADMIN</span>
+          </div>
           <div className="w-16 h-16 mx-auto rounded-2xl bg-white text-emerald-800 flex items-center justify-center text-3xl shadow-lg ring-4 ring-emerald-400/30 mb-3">
             ⚽
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">
-            Đăng Nhập Hệ Thống
+            Đăng Nhập Thành Viên
           </h1>
           <p className="text-emerald-100 text-xs mt-1.5 font-medium">
             Hệ thống Quản lý Câu lạc bộ & Lịch tập Bóng đá Sao Vàng
           </p>
+          <div className="mt-2.5 text-[11px] text-emerald-200/90 bg-black/20 py-1.5 px-3 rounded-xl border border-white/10">
+            Khách hàng (Customer) không cần đăng nhập, có thể xem trực tiếp tại{' '}
+            <Link href="/" className="font-bold underline text-white hover:text-emerald-200">
+              Trang Chủ
+            </Link>
+          </div>
         </div>
 
         {/* THÂN FORM */}
@@ -351,15 +361,69 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* FOOTER CHUYỂN SANG ĐĂNG KÝ */}
-          <div className="text-center pt-3 border-t border-emerald-100 text-xs font-semibold text-slate-600">
-            <span>Chưa có tài khoản? </span>
-            <Link
-              href="/register"
-              className="text-emerald-700 hover:text-emerald-900 font-black underline underline-offset-2 ml-1"
-            >
-              Đăng ký tài khoản mới ngay
-            </Link>
+          {/* TÀI KHOẢN MẪU TEST 3 VAI TRÒ NỘI BỘ */}
+          <div className="pt-3 border-t border-emerald-100">
+            <div className="text-[11px] font-black uppercase text-emerald-900 tracking-wider mb-2 flex items-center justify-between">
+              <span>⚡ Chọn nhanh tài khoản test:</span>
+              <span className="text-[10px] text-slate-400 font-normal">MK: 123456</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setTxtID('admin');
+                  setTxtPass('123456');
+                }}
+                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 text-[11px] font-bold text-center transition-all cursor-pointer"
+              >
+                <span className="block text-sm">🛡️</span>
+                <span>Admin</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTxtID('coach01');
+                  setTxtPass('123456');
+                }}
+                className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-[11px] font-bold text-center transition-all cursor-pointer"
+              >
+                <span className="block text-sm">📋</span>
+                <span>HLV</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTxtID('quanghai19');
+                  setTxtPass('123456');
+                }}
+                className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-[11px] font-bold text-center transition-all cursor-pointer"
+              >
+                <span className="block text-sm">🏃</span>
+                <span>Cầu Thủ</span>
+              </button>
+            </div>
+          </div>
+
+          {/* FOOTER CHUYỂN SANG ĐĂNG KÝ HOẶC VỀ TRANG CHỦ */}
+          <div className="text-center pt-3 border-t border-emerald-100 text-xs font-semibold text-slate-600 space-y-2">
+            <div>
+              <span>Chưa có tài khoản nội bộ? </span>
+              <Link
+                href="/register"
+                className="text-emerald-700 hover:text-emerald-900 font-black underline underline-offset-2 ml-1"
+              >
+                Đăng ký ngay
+              </Link>
+            </div>
+            <div>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1 text-[11.5px] font-bold text-slate-500 hover:text-emerald-700 hover:underline"
+              >
+                <span>←</span>
+                <span>Quay lại Trang Chủ (Chế độ khách Customer)</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { Attendance } from './attendances/attendance.entity';
 import { Match } from './matches/match.entity';
 import { Club } from './clubs/club.entity';
 import { Notification } from './notifications/notification.entity';
+import { Team } from './teams/team.entity';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
@@ -25,7 +26,7 @@ async function runSeed() {
     type: 'postgres',
     url: databaseUrl,
     ssl: { rejectUnauthorized: false },
-    entities: [User, Player, Field, Schedule, Attendance, Match, Club, Notification],
+    entities: [User, Player, Field, Schedule, Attendance, Match, Club, Notification, Team],
     synchronize: true, // Tự động đồng bộ cấu trúc bảng
     logging: false,
   });
@@ -45,7 +46,7 @@ async function runSeed() {
   }
 
   // Kiểm tra số lượng bản ghi
-  const tables = ['clubs', 'users', 'fields', 'players', 'schedules', 'attendances', 'matches', 'notifications'];
+  const tables = ['clubs', 'users', 'fields', 'players', 'schedules', 'attendances', 'matches', 'notifications', 'teams'];
   console.log('\n📊 THỐNG KÊ DỮ LIỆU HIỆN CÓ TRÊN NEON DB:');
   for (const table of tables) {
     try {

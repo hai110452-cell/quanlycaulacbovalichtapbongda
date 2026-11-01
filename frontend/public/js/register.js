@@ -43,27 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           window.location.href = '/index.html';
         }, 800);
-        // Lưu tài khoản vào danh sách đã đăng ký
+      } else {
+        // Fallback lưu local nếu backend offline
+        const userObj = { id: 'u-' + Date.now(), name, email, role };
         try {
           const list = JSON.parse(localStorage.getItem('saovang_registered_users') || '[]');
           list.push({ username: email, email, password, name, role });
           localStorage.setItem('saovang_registered_users', JSON.stringify(list));
         } catch (e) {}
-
-        const userObj = { id: 'u-' + Date.now(), name, email, role };
-        localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('token', 'token-' + role);
-        if (typeof setAuthSession === 'function') {
-          setAuthSession(userObj, 'token-' + role);
-        }
-
+        setAuthSession(userObj, 'token-' + role);
         successAlert.textContent = 'Đăng ký tài khoản thành công! Đang chuyển hướng...';
         successAlert.style.display = 'flex';
         setTimeout(() => {
           window.location.href = '/index.html';
         }, 700);
+      }
     } catch (err) {
-      errorAlert.textContent = 'Có lỗi xảy ra, vui lòng thử lại sau!';
+      errorAlert.textContent = err?.message || 'Có lỗi xảy ra, vui lòng thử lại sau!';
       errorAlert.style.display = 'flex';
     } finally {
       btnRegister.disabled = false;

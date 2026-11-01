@@ -293,7 +293,7 @@
 
   async function loadDbTeams() {
     try {
-      const res = await fetch('http://localhost:5000/api/teams');
+      const res = await fetch('/api/teams');
       if (res.ok) {
         const json = await res.json();
         const list = json.data || json;
@@ -339,7 +339,7 @@
       if (i >= 0) teams[i] = { ...teams[i], ...data };
       showToast('Cập nhật đội thành công!');
       try {
-        await fetch(`http://localhost:5000/api/teams/${id}`, {
+        await fetch(`/api/teams/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -350,7 +350,7 @@
       teams.push({ id: newId, members: 0, ...data });
       showToast('Thêm đội mới thành công!');
       try {
-        await fetch('http://localhost:5000/api/teams', {
+        await fetch('/api/teams', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: newId, memberCount: 0, ...data }),
@@ -382,7 +382,7 @@
     showToast('Đã xóa đội bóng!', 'warning');
     if (idToDelete) {
       try {
-        await fetch(`http://localhost:5000/api/teams/${idToDelete}`, {
+        await fetch(`/api/teams/${idToDelete}`, {
           method: 'DELETE',
         });
       } catch (e) {}

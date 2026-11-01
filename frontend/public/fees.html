@@ -290,24 +290,73 @@
   function openModal(){ document.getElementById('fDate').value=new Date().toISOString().split('T')[0]; document.getElementById('txModal').classList.add('active'); }
   function closeModal(){ document.getElementById('txModal').classList.remove('active'); }
 
-  function saveTransaction() {
+  async function loadTransactionsFromDB() {
+    try {
+      const res = await fetch('/api/finances');
+      if (res.ok) {
+        const json = await res.json();
+        if (json && Array.isArray(json.data) && json.data.length > 0) {
+          transactions = json.data.map(d => ({
+            id: d.id,
+            date: d.date,
+            type: d.category === 'Chi' ? 'expense' : 'income',
+            desc: d.title,
+            category: d.notes ? d.notes.split(' - ')[0] : 'Chi phí CLB',
+            amount: Number(d.amount),
+            by: d.personInCharge || 'Ban quản lý',
+          }));
+          renderTxTable();
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi kết nối /api/finances:', e);
+    }
+  }
+
+  async function saveTransaction() {
     const desc = document.getElementById('fDesc').value.trim();
     const amount = parseInt(document.getElementById('fAmount').value)||0;
     if(!desc||!amount){ showToast('Vui lòng điền đủ thông tin','error'); return; }
-    transactions.push({
-      id:nextTxId++,
-      date:document.getElementById('fDate').value,
-      type:document.getElementById('fType').value,
-      desc,
-      category:document.getElementById('fCategory').value,
-      amount,
-      by:document.getElementById('fBy').value.trim()||'Admin',
-    });
-    closeModal(); renderTxTable(); showToast('Ghi nhận thu chi thành công!');
+    const txType = document.getElementById('fType').value;
+    const cat = document.getElementById('fCategory').value;
+    const note = document.getElementById('fNote') ? document.getElementById('fNote').value.trim() : '';
+
+    const newTx = {
+      id: 'fin-' + Date.now(),
+      date: document.getElementById('fDate').value || new Date().toISOString().split('T')[0],
+      title: desc,
+      category: txType === 'expense' ? 'Chi' : 'Thu',
+      amount: amount,
+      personInCharge: document.getElementById('fBy').value.trim() || 'Thủ quỹ CLB',
+      notes: cat + (note ? ' - ' + note : ''),
+    };
+
+    try {
+      await fetch('/api/finances', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTx),
+      });
+      await loadTransactionsFromDB();
+      showToast('Ghi nhận thu chi vào Neon Database thành công!');
+    } catch(e) {
+      console.warn('Lỗi lưu giao dịch vào DB:', e);
+      transactions.unshift({
+        id: newTx.id,
+        date: newTx.date,
+        type: txType,
+        desc: newTx.title,
+        category: cat,
+        amount: newTx.amount,
+        by: newTx.personInCharge,
+      });
+      renderTxTable();
+    }
+    closeModal();
     switchTab('tx');
   }
 
-  document.addEventListener('DOMContentLoaded',()=>{ renderSidebar('fees'); renderFeeTable(); renderTxTable(); });
+  document.addEventListener('DOMContentLoaded',()=>{ renderSidebar('fees'); renderFeeTable(); renderTxTable(); loadTransactionsFromDB(); });
 </script>
 </body>
 </html>

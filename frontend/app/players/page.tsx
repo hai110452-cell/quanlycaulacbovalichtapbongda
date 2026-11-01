@@ -150,20 +150,13 @@ export default function PlayersPage() {
 
   const fetchPlayers = async () => {
     try {
-      let data = null;
-      try {
-        const res = await fetch('/api/players');
-        if (res.ok) data = await res.json();
-      } catch {
-        // Fallback sang cổng 5000
-      }
-      if (!data || !data.data) {
-        const resDirect = await fetch('http://localhost:5000/api/players');
-        if (resDirect.ok) data = await resDirect.json();
-      }
-      const list = data?.data || (Array.isArray(data) ? data : null);
-      if (list && Array.isArray(list) && list.length > 0) {
-        setPlayers(list);
+      const res = await fetch('/api/players');
+      if (res.ok) {
+        const data = await res.json();
+        const list = data?.data || (Array.isArray(data) ? data : null);
+        if (list && Array.isArray(list) && list.length > 0) {
+          setPlayers(list);
+        }
       }
     } catch (err) {
       console.warn('Lỗi kết nối API /api/players:', err);
@@ -289,39 +282,71 @@ export default function PlayersPage() {
     if (!canManage) return;
     if (!newPlayer.name || !newPlayer.jerseyNumber) return;
 
+    const jNum = Number(newPlayer.jerseyNumber);
+    const nameClean = newPlayer.name.trim();
+    const phoneClean = (newPlayer.phone || '').trim();
+
+    // 1. Kiểm tra trùng số áo
+    const dupJersey = players.find((p) => p.jerseyNumber === jNum);
+    if (dupJersey) {
+      alert(`❌ LỖI TRÙNG DỮ LIỆU: Số áo #${jNum} đã được đăng ký cho cầu thủ "${dupJersey.name}"!\nVui lòng chọn số áo khác.`);
+      return;
+    }
+
+    // 2. Kiểm tra trùng họ tên
+    const dupName = players.find((p) => p.name.trim().toLowerCase() === nameClean.toLowerCase());
+    if (dupName) {
+      alert(`❌ LỖI TRÙNG DỮ LIỆU: Cầu thủ mang tên "${nameClean}" đã có trong danh sách!\nVui lòng kiểm tra lại.`);
+      return;
+    }
+
+    // 3. Kiểm tra trùng số điện thoại
+    if (phoneClean) {
+      const dupPhone = players.find((p) => p.phone && p.phone.trim() === phoneClean);
+      if (dupPhone) {
+        alert(`❌ LỖI TRÙNG DỮ LIỆU: Số điện thoại "${phoneClean}" đã thuộc về cầu thủ "${dupPhone.name}"!\nVui lòng kiểm tra lại.`);
+        return;
+      }
+    }
+
     try {
-      await fetch('/api/players', {
+      const res = await fetch('/api/players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: newPlayer.name,
-          jerseyNumber: Number(newPlayer.jerseyNumber),
+          name: nameClean,
+          jerseyNumber: jNum,
           position: newPlayer.position,
           dateOfBirth: newPlayer.dateOfBirth,
-          phone: newPlayer.phone || '0988888888',
+          phone: phoneClean || '0988888888',
           status: newPlayer.status,
           avatarUrl: null,
         }),
       });
 
-      // Tải lại danh sách từ Database để đảm bảo chỉ có đúng 1 bản ghi, không bị nhân đôi
-      await fetchPlayers();
-    } catch (err) {
-      console.error('Lỗi lưu cầu thủ vào database:', err);
-    }
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        alert(`❌ LỖI: ${errJson.message || 'Không thể thêm cầu thủ'}`);
+        return;
+      }
 
-    setNewPlayer({
-      name: '',
-      jerseyNumber: '',
-      position: 'Tiền vệ',
-      phone: '',
-      status: 'Đang thi đấu',
-      dateOfBirth: '2000-01-01',
-      height: '1m75',
-      weight: '70kg',
-      preferredFoot: 'Chân phải',
-    });
-    setShowAddModal(false);
+      await fetchPlayers();
+      setNewPlayer({
+        name: '',
+        jerseyNumber: '',
+        position: 'Tiền vệ',
+        phone: '',
+        status: 'Đang thi đấu',
+        dateOfBirth: '2000-01-01',
+        height: '1m75',
+        weight: '70kg',
+        preferredFoot: 'Chân phải',
+      });
+      setShowAddModal(false);
+    } catch (err: any) {
+      console.error('Lỗi lưu cầu thủ vào database:', err);
+      alert(`❌ LỖI MẠNG: ${err.message || 'Không thể kết nối máy chủ'}`);
+    }
   };
 
   const handleDelete = async (id: string) => {

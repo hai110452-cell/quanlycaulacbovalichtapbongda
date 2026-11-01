@@ -17,54 +17,46 @@ export class AttendancesService {
     } else if (scheduleId) {
       query = query.where('attendance.scheduleId = :scheduleId', { scheduleId });
     }
+    query = query.orderBy('attendance.id', 'ASC');
     const attendances = await query.getMany();
     return { success: true, total: attendances.length, data: attendances };
   }
 
   async saveAttendances(body: any) {
-    // Hỗ trợ cả mảng và single record (giống behavior gốc)
-    if (Array.isArray(body)) {
-      for (const item of body) {
-        const id = item.id || `att-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-        await this.attendancesRepository
-          .createQueryBuilder()
-          .insert()
-          .into(Attendance)
-          .values({
-            id,
-            scheduleId: item.scheduleId,
-            playerId: item.playerId,
-            playerName: item.playerName,
-            status: item.status || 'Có mặt',
-            checkInTime: item.checkInTime || null,
-            note: item.note || null,
-          })
-          .orUpdate(['status', 'check_in_time', 'note'], ['id'])
-          .execute();
+    const rawList = Array.isArray(body)
+      ? body
+      : Array.isArray(body?.attendances)
+      ? body.attendances
+      : [body];
+    const defaultScheduleId = body?.scheduleId || 'sched-001';
+
+    for (const item of rawList) {
+      if (!item) continue;
+      const id = item.id;
+      let att = id ? await this.attendancesRepository.findOne({ where: { id } }) : null;
+      if (!att && item.playerId) {
+        att = await this.attendancesRepository.findOne({ where: { playerId: item.playerId } });
       }
-      return { success: true, message: 'Lưu điểm danh hàng loạt thành công!', total: body.length };
+      if (att) {
+        att.status = item.status || att.status;
+        if (item.note !== undefined) att.note = item.note;
+        if (item.playerName) att.playerName = item.playerName;
+        if (item.checkInTime) att.checkInTime = item.checkInTime;
+        await this.attendancesRepository.save(att);
+      } else {
+        const newAtt = this.attendancesRepository.create({
+          id: id || `att-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          scheduleId: item.scheduleId || defaultScheduleId,
+          playerId: item.playerId || `p-${Date.now()}`,
+          playerName: item.playerName || '',
+          status: item.status || 'Có mặt',
+          checkInTime: item.checkInTime || null,
+          note: item.note || null,
+        });
+        await this.attendancesRepository.save(newAtt);
+      }
     }
-
-    // Single record
-    const id = body.id || `att-${Date.now()}`;
-    await this.attendancesRepository
-      .createQueryBuilder()
-      .insert()
-      .into(Attendance)
-      .values({
-        id,
-        scheduleId: body.scheduleId,
-        playerId: body.playerId,
-        playerName: body.playerName,
-        status: body.status || 'Có mặt',
-        checkInTime: body.checkInTime || null,
-        note: body.note || null,
-      })
-      .orUpdate(['status', 'check_in_time', 'note'], ['id'])
-      .execute();
-
-    const saved = await this.attendancesRepository.findOne({ where: { id } });
-    return { success: true, message: 'Cập nhật điểm danh thành công!', data: saved };
+    return { success: true, message: 'Lưu điểm danh thành công!', total: rawList.length };
   }
 }
 

@@ -75,7 +75,17 @@ let matches = [
 let currentFilter = 'Tất cả';
 let currentSearch = '';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    if (typeof apiClient !== 'undefined') {
+      const dbMatches = await apiClient.get('/matches');
+      if (dbMatches && Array.isArray(dbMatches) && dbMatches.length > 0) {
+        matches = dbMatches;
+      }
+    }
+  } catch (err) {
+    console.warn('Sử dụng dữ liệu matches mẫu:', err);
+  }
   renderKPIs();
   renderMatches();
   setupRolePermissions();
@@ -321,6 +331,9 @@ function setupEventListeners() {
       matches.unshift(newM);
       renderKPIs();
       renderMatches();
+      if (typeof apiClient !== 'undefined') {
+        apiClient.post('/matches', newM).catch(e => console.warn('Lỗi lưu trận đấu lên backend:', e));
+      }
       if (modal) modal.classList.remove('active');
       form.reset();
     });

@@ -1,6 +1,6 @@
 import { ClubInfo, FootballField, Player, TrainingSchedule, AttendanceRecord } from '../types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${url}`, {
@@ -11,8 +11,21 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
     },
     cache: 'no-store',
   });
+
+  // Nếu thao tác DELETE mà server trả về 404 (mục đã bị xóa trước đó hoặc chưa có trên DB), coi như xóa thành công
+  if (options?.method === 'DELETE' && res.status === 404) {
+    return { success: true, message: 'Mục không tồn tại hoặc đã được dọn dẹp trước đó' } as T;
+  }
+
   if (!res.ok) {
-    throw new Error(`Lỗi kết nối API: ${res.statusText}`);
+    let errorDetail = res.statusText;
+    try {
+      const errJson = await res.json();
+      if (errJson && errJson.message) {
+        errorDetail = Array.isArray(errJson.message) ? errJson.message.join(', ') : errJson.message;
+      }
+    } catch {}
+    throw new Error(`Lỗi kết nối API (${res.status}): ${errorDetail}`);
   }
   const text = await res.text();
   if (!text || text === 'undefined') {
@@ -72,6 +85,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  updatePlayer: (id: string, data: Partial<Player>) =>
+    fetchJson<{ success: boolean; message: string; data: Player }>(`/players/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
   deletePlayer: (id: string) =>
     fetchJson<{ success: boolean; message: string }>(`/players/${id}`, {
       method: 'DELETE',
@@ -88,6 +106,11 @@ export const api = {
   addSchedule: (data: Partial<TrainingSchedule>) =>
     fetchJson<{ success: boolean; message: string; data: TrainingSchedule }>('/schedules', {
       method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateSchedule: (id: string, data: Partial<TrainingSchedule>) =>
+    fetchJson<{ success: boolean; message: string; data: TrainingSchedule }>(`/schedules/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     }),
   deleteSchedule: (id: string) =>
@@ -108,12 +131,31 @@ export const api = {
 
   // Sân bóng
   getFields: () => fetchJson<{ success: boolean; data: FootballField[] }>('/fields'),
+  addField: (data: Partial<FootballField>) =>
+    fetchJson<{ success: boolean; message: string; data: FootballField }>('/fields', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateField: (id: string, data: Partial<FootballField>) =>
+    fetchJson<{ success: boolean; message: string; data: FootballField }>(`/fields/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteField: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/fields/${id}`, {
+      method: 'DELETE',
+    }),
 
   // Người dùng & HLV
   getUsers: () => fetchJson<{ success: boolean; total: number; data: any[] }>('/users'),
   addUser: (data: any) =>
     fetchJson<{ success: boolean; message: string; data: any }>('/users', {
       method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateUser: (id: string, data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any }>(`/users/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     }),
   deleteUser: (id: string) =>
@@ -123,11 +165,16 @@ export const api = {
 
   // Thông báo
   getNotifications: () =>
-    fetchJson<{ success: boolean; total: number; data: any[] }>('/notifications'),
+    fetchJson<{ success: boolean; total: number; unreadCount: number; data: any[] }>('/notifications'),
   addNotification: (data: any) =>
     fetchJson<{ success: boolean; data: any }>('/notifications', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+  markNotificationRead: (id?: string, markAllAsRead?: boolean) =>
+    fetchJson<{ success: boolean; message: string }>('/notifications', {
+      method: 'PUT',
+      body: JSON.stringify({ id, markAllAsRead }),
     }),
   deleteNotification: (id: string) =>
     fetchJson<{ success: boolean; message: string }>(`/notifications/${id}`, {
@@ -137,5 +184,38 @@ export const api = {
   // Trận đấu
   getMatches: () =>
     fetchJson<{ success: boolean; total: number; data: any[] }>('/matches'),
+  addMatch: (data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any }>('/matches', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteMatch: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/matches/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Chi phí & Quỹ CLB (Finances)
+  getFinances: (category?: string, search?: string) => {
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (search) params.append('search', search);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchJson<{ success: boolean; total: number; data: any[] }>(`/finances${qs}`);
+  },
+  addFinance: (data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any }>('/finances', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateFinance: (id: string, data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any }>(`/finances/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteFinance: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/finances/${id}`, {
+      method: 'DELETE',
+    }),
 };
+
 

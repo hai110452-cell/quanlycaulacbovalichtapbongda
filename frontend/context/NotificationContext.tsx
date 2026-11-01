@@ -17,6 +17,7 @@ interface NotificationContextType {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearAll: () => void;
+  deleteNotification: (id: string) => void;
   toasts: ToastItem[];
   dismissToast: (id: string) => void;
 }
@@ -57,8 +58,34 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [notifications, setNotifications] = useState<ScheduleNotification[]>([]);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
-  // Load from localStorage on mount
-  useEffect(() => {
+  // Tải thông báo trực tiếp từ Neon DB qua /api/notifications
+  const fetchNotificationsFromDB = async () => {
+    try {
+      const res = await fetch('/api/notifications');
+      if (res.ok) {
+        const json = await res.json();
+        if (json && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped: ScheduleNotification[] = json.data.map((d: any) => ({
+            id: d.id,
+            title: d.title,
+            message: d.message,
+            type: d.type || 'new',
+            timestamp: d.timestamp || (d.createdAt ? new Date(d.createdAt).toLocaleString('vi-VN') : ''),
+            read: Boolean(d.read),
+            scheduleId: d.scheduleId,
+          }));
+          setNotifications(mapped);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('saovang_notifications', JSON.stringify(mapped));
+          }
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Lỗi kết nối /api/notifications, dùng cache:', err);
+    }
+
+    // Fallback sang localStorage nếu API ngoại tuyến hoặc trống
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('saovang_notifications');
@@ -66,16 +93,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           setNotifications(JSON.parse(stored));
         } else {
           setNotifications(defaultInitialNotifications);
-          localStorage.setItem('saovang_notifications', JSON.stringify(defaultInitialNotifications));
         }
-      } catch (err) {
-        console.error('Lỗi đọc notifications từ localStorage:', err);
+      } catch {
         setNotifications(defaultInitialNotifications);
       }
     }
+  };
+
+  useEffect(() => {
+    fetchNotificationsFromDB();
   }, []);
 
-  // Save to localStorage whenever notifications change
+  // Save to state & localStorage
   const saveNotifications = (newList: ScheduleNotification[]) => {
     setNotifications(newList);
     if (typeof window !== 'undefined') {
@@ -87,7 +116,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  const addNotification = (
+  const addNotification = async (
     title: string,
     message: string,
     type: 'new' | 'change' | 'cancel' | 'reminder' = 'new',
@@ -111,28 +140,74 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       type === 'cancel' ? 'danger' : type === 'change' ? 'warning' : 'success';
     setToasts((prev) => [...prev, { id: toastId, title, message, type: toastType }]);
 
-    // Auto dismiss toast after 5 seconds
     setTimeout(() => {
       dismissToast(toastId);
     }, 5000);
+
+    // Đồng bộ lên Neon DB
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: newNotif.id,
+          title,
+          message,
+          type,
+          timestamp: newNotif.timestamp,
+          scheduleId,
+        }),
+      });
+    } catch (e) {
+      console.warn('Lỗi lưu thông báo vào Neon DB:', e);
+    }
   };
 
   const dismissToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
     saveNotifications(updated);
+    try {
+      await fetch(`/api/notifications/${id}`, { method: 'PUT' });
+    } catch (e) {
+      console.warn('Lỗi cập nhật trạng thái đã đọc vào Neon DB:', e);
+    }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     const updated = notifications.map((n) => ({ ...n, read: true }));
     saveNotifications(updated);
+    try {
+      await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAllAsRead: true }),
+      });
+    } catch (e) {
+      console.warn('Lỗi cập nhật tất cả đã đọc vào Neon DB:', e);
+    }
   };
 
-  const clearAll = () => {
+  const clearAll = async () => {
     saveNotifications([]);
+    try {
+      await fetch('/api/notifications', { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Lỗi xóa tất cả thông báo trên Neon DB:', e);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    const updated = notifications.filter((n) => n.id !== id);
+    saveNotifications(updated);
+    try {
+      await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Lỗi xóa thông báo trên Neon DB:', e);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -146,6 +221,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         markAsRead,
         markAllAsRead,
         clearAll,
+        deleteNotification,
         toasts,
         dismissToast,
       }}

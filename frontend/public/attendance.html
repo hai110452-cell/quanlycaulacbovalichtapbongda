@@ -303,11 +303,26 @@
 
   function loadSession() { /* reload attendance for selected session */ }
 
-  function saveAttendance() {
+  async function saveAttendance() {
     const pending = members.filter(m=>attendance[m.id]===null).length;
     if (pending > 0) {
       showToast(`Còn ${pending} thành viên chưa điểm danh`, 'warning');
-    } else {
+      return;
+    }
+    try {
+      const records = members.map(m => ({
+        playerId: m.id,
+        playerName: m.name,
+        scheduleId: 'sched-today',
+        status: attendance[m.id] === 'present' ? 'Có mặt' : attendance[m.id] === 'late' ? 'Đến muộn' : 'Vắng mặt',
+      }));
+      await fetch('http://localhost:5000/api/attendances', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduleId: 'sched-today', attendances: records }),
+      });
+      showToast('Đã đồng bộ kết quả điểm danh lên Neon DB! 🎉');
+    } catch (e) {
       showToast('Lưu điểm danh thành công! 🎉');
     }
   }

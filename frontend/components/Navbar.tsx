@@ -9,23 +9,58 @@ import { useNotifications } from '@/context/NotificationContext';
 function NavbarContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'teams';
+  const currentTab = searchParams.get('tab') || 'home';
   const { user, logout } = useAuth();
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll, deleteNotification } = useNotifications();
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
-  // 7 core modules chính thức đưa lên trên cùng web
-  const navItems = [
-    { href: '/?tab=teams', tab: 'teams', label: 'Quản Lý Đội', icon: '🛡️' },
-    { href: '/?tab=members', tab: 'members', label: 'Quản Lý Thành Viên', icon: '🏃' },
-    { href: '/?tab=coaches', tab: 'coaches', label: 'Huấn Luyện Viên', icon: '📋' },
-    { href: '/?tab=schedules', tab: 'schedules', label: 'Quản Lý Lịch Tập', icon: '📅' },
-    { href: '/?tab=attendance', tab: 'attendance', label: 'Quản Lý Điểm Danh', icon: '✅' },
-    { href: '/?tab=finances', tab: 'finances', label: 'Phí Sinh Hoạt & Quỹ', icon: '💰' },
-    { href: '/?tab=announcements', tab: 'announcements', label: 'Quản Lý Thông Báo', icon: '📢' },
-  ];
+  // Phân quyền hiển thị Menu:
+  // - Customer (Khách vãng lai / chưa đăng nhập): Liệt kê đầy đủ các tính năng, chuyên mục có sẵn của CLB
+  // - Thành viên nội bộ đã đăng nhập (Admin, Coach, Player): Mở khóa các module quản trị tương ứng
+  const visibleNavItems = !user
+    ? [
+        { href: '/', tab: 'home', label: 'Trang Chủ', icon: '🏠' },
+        { href: '/?tab=teams', tab: 'teams', label: 'Đội Tuyển', icon: '🏆' },
+        { href: '/?tab=members', tab: 'members', label: 'Cầu Thủ', icon: '🏃' },
+        { href: '/?tab=coaches', tab: 'coaches', label: 'Huấn Luyện Viên', icon: '👨‍💼' },
+        { href: '/?tab=schedules', tab: 'schedules', label: 'Lịch Tập & Đấu', icon: '📅' },
+        { href: '/?tab=results', tab: 'results', label: 'Kết Quả & Phong Độ', icon: '📊' },
+        { href: '/?tab=announcements', tab: 'announcements', label: 'Bản Tin CLB', icon: '📢' },
+        { href: '/?tab=about', tab: 'about', label: 'Về CLB', icon: '⭐' },
+      ]
+    : user.role === 'admin'
+    ? [
+        { href: '/', tab: 'home', label: 'Trang Chủ', icon: '🏠' },
+        { href: '/?tab=teams', tab: 'teams', label: 'Quản Lý Đội', icon: '🛡️' },
+        { href: '/?tab=members', tab: 'members', label: 'Quản Lý Thành Viên', icon: '🏃' },
+        { href: '/?tab=coaches', tab: 'coaches', label: 'Huấn Luyện Viên', icon: '📋' },
+        { href: '/?tab=schedules', tab: 'schedules', label: 'Quản Lý Lịch Tập', icon: '📅' },
+        { href: '/?tab=attendance', tab: 'attendance', label: 'Quản Lý Điểm Danh', icon: '✅' },
+        { href: '/?tab=finances', tab: 'finances', label: 'Phí Sinh Hoạt & Quỹ', icon: '💰' },
+        { href: '/?tab=announcements', tab: 'announcements', label: 'Quản Lý Thông Báo', icon: '📢' },
+      ]
+    : user.role === 'coach'
+    ? [
+        { href: '/', tab: 'home', label: 'Trang Chủ', icon: '🏠' },
+        { href: '/?tab=teams', tab: 'teams', label: 'Quản Lý Đội', icon: '🛡️' },
+        { href: '/?tab=members', tab: 'members', label: 'Danh Sách Cầu Thủ', icon: '🏃' },
+        { href: '/?tab=schedules', tab: 'schedules', label: 'Quản Lý Lịch Tập', icon: '📅' },
+        { href: '/?tab=attendance', tab: 'attendance', label: 'Quản Lý Điểm Danh', icon: '✅' },
+        { href: '/?tab=announcements', tab: 'announcements', label: 'Quản Lý Thông Báo', icon: '📢' },
+      ]
+    : [
+        // Player (Cầu thủ)
+        { href: '/', tab: 'home', label: 'Trang Chủ', icon: '🏠' },
+        { href: '/?tab=teams', tab: 'teams', label: 'Tuyến Đội CLB', icon: '🛡️' },
+        { href: '/?tab=members', tab: 'members', label: 'Đồng Đội', icon: '🏃' },
+        { href: '/?tab=coaches', tab: 'coaches', label: 'Ban Huấn Luyện', icon: '📋' },
+        { href: '/?tab=schedules', tab: 'schedules', label: 'Lịch Tập Của Tôi', icon: '📅' },
+        { href: '/?tab=attendance', tab: 'attendance', label: 'Điểm Danh Cá Nhân', icon: '✅' },
+        { href: '/?tab=finances', tab: 'finances', label: 'Đóng Quỹ CLB', icon: '💰' },
+        { href: '/?tab=announcements', tab: 'announcements', label: 'Bảng Tin CLB', icon: '📢' },
+      ];
 
   const getRoleBadge = (role?: string) => {
     switch (role) {
@@ -74,9 +109,9 @@ function NavbarContent() {
           </div>
         </Link>
 
-        {/* 7 NAV ITEMS - THANH ĐIỀU HƯỚNG TRÊN CÙNG WEB (CHUYỂN TAB TRỰC TIẾP) */}
+        {/* NAV ITEMS - PHÂN QUYỀN: CUSTOMER CHỈ THẤY TRANG CHỦ, THÀNH VIÊN NỘI BỘ MỞ KHÓA TOÀN BỘ */}
         <nav className="hidden lg:flex items-center gap-1 bg-[#022c22]/85 p-1 rounded-2xl border border-emerald-500/40 overflow-x-auto">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = pathname === '/' && currentTab === item.tab;
             return (
               <Link
@@ -98,80 +133,95 @@ function NavbarContent() {
         {/* RIGHT CONTROLS: NOTIFICATIONS + USER BADGE + LOGOUT */}
         <div className="flex items-center gap-2 shrink-0">
 
-          {/* NOTIFICATION BUTTON */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifDropdown(!showNotifDropdown)}
-              className="relative w-10 h-10 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 border border-emerald-500/40 flex items-center justify-center text-base text-white transition-all shadow-sm"
-              title="Thông báo câu lạc bộ"
-            >
-              🔔
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center shadow-md animate-bounce">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* NOTIFICATION DROPDOWN */}
-            {showNotifDropdown && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border-2 border-emerald-600 shadow-2xl p-4 z-50 text-slate-800 animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-sm text-emerald-950">Thông Báo CLB</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                      {notifications.length} tin
-                    </span>
-                  </div>
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-[11px] text-emerald-700 hover:underline font-bold"
-                    >
-                      Đã đọc hết
-                    </button>
-                  )}
-                </div>
-
-                <div className="max-h-72 overflow-y-auto space-y-2 mt-3 pr-1">
-                  {notifications.length === 0 ? (
-                    <p className="text-center text-xs text-slate-400 py-6">Không có thông báo mới nào</p>
-                  ) : (
-                    notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        onClick={() => markAsRead(n.id)}
-                        className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
-                          n.read
-                            ? 'bg-slate-50 border-slate-200 opacity-75'
-                            : 'bg-emerald-50 border-emerald-300'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-bold text-xs text-emerald-950">{n.title}</p>
-                          <span className="text-[10px] text-slate-400">{n.timestamp}</span>
-                        </div>
-                        <p className="text-xs text-slate-600 mt-1 line-clamp-2">{n.message}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {notifications.length > 0 && (
-                  <div className="pt-3 mt-2 border-t border-slate-100 text-center">
-                    <button
-                      onClick={clearAll}
-                      className="text-xs text-rose-600 hover:text-rose-700 font-bold"
-                    >
-                      Xóa tất cả thông báo
-                    </button>
-                  </div>
+          {/* NOTIFICATION BUTTON - CHỈ HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP / CÓ QUYỀN */}
+          {user && (
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                className="relative w-10 h-10 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 border border-emerald-500/40 flex items-center justify-center text-base text-white transition-all shadow-sm"
+                title="Thông báo câu lạc bộ"
+              >
+                🔔
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center shadow-md animate-bounce">
+                    {unreadCount}
+                  </span>
                 )}
-              </div>
-            )}
-          </div>
+              </button>
 
-          {/* AUTH CONTROLS: ĐĂNG NHẬP / ĐĂNG KÝ (KHI CHƯA ĐĂNG NHẬP) HOẶC USER PROFILE MENU (KHI ĐÃ ĐĂNG NHẬP) */}
+              {/* NOTIFICATION DROPDOWN */}
+              {showNotifDropdown && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border-2 border-emerald-600 shadow-2xl p-4 z-50 text-slate-800 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-sm text-emerald-950">Thông Báo CLB</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                        {notifications.length} tin
+                      </span>
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-[11px] text-emerald-700 hover:underline font-bold"
+                      >
+                        Đã đọc hết
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto space-y-2 mt-3 pr-1">
+                    {notifications.length === 0 ? (
+                      <p className="text-center text-xs text-slate-400 py-6">Không có thông báo mới nào</p>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          onClick={() => markAsRead(n.id)}
+                          className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                            n.read
+                              ? 'bg-slate-50 border-slate-200 opacity-75'
+                              : 'bg-emerald-50 border-emerald-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-bold text-xs text-emerald-950 flex-1 truncate">{n.title}</p>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-[10px] text-slate-400">{n.timestamp}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteNotification(n.id);
+                                }}
+                                className="w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-[10px] font-bold"
+                                title="Xóa thông báo này"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-600 mt-1 line-clamp-2">{n.message}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {notifications.length > 0 && (
+                    <div className="pt-3 mt-2 border-t border-slate-100 text-center">
+                      <button
+                        onClick={clearAll}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-bold"
+                      >
+                        Xóa tất cả thông báo
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* AUTH CONTROLS: ĐÃ ĐĂNG NHẬP HIỂN THỊ MENU TÀI KHOẢN, CHƯA ĐĂNG NHẬP ẨN TOÀN BỘ (CHỈ VÀO QUA /admin) */}
           {user ? (
             <div className="relative">
               <div className="flex items-center gap-1.5 bg-[#022c22]/90 border border-emerald-500/50 p-1.5 rounded-2xl shadow-md">
@@ -250,26 +300,7 @@ function NavbarContent() {
                 </div>
               )}
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-emerald-800/90 hover:bg-emerald-700 border border-emerald-500/50 shadow-sm transition-all flex items-center gap-1.5"
-                title="Đăng nhập tài khoản"
-              >
-                <span>🔑</span>
-                <span>Đăng Nhập</span>
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 rounded-xl text-xs font-extrabold text-emerald-950 bg-white hover:bg-emerald-50 border border-white shadow-md shadow-emerald-950/20 transition-all flex items-center gap-1.5"
-                title="Đăng ký tài khoản mới"
-              >
-                <span>📝</span>
-                <span>Đăng Ký</span>
-              </Link>
-            </div>
-          )}
+          ) : null}
 
           {/* MOBILE MENU TOGGLE */}
           <button
@@ -285,7 +316,7 @@ function NavbarContent() {
       {showMobileMenu && (
         <div className="lg:hidden border-t-2 border-emerald-500/50 bg-[#064e3b] p-4 space-y-2 animate-in slide-in-from-top duration-200 shadow-xl">
           <div className="grid grid-cols-2 gap-2 mb-3">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = pathname === '/' && currentTab === item.tab;
               return (
                 <Link
@@ -305,41 +336,22 @@ function NavbarContent() {
             })}
           </div>
 
-          {/* Mobile User Info & Auth Links */}
-          <div className="pt-2 border-t border-emerald-600 flex items-center justify-between text-xs">
-            {user ? (
-              <>
-                <div className="flex items-center gap-2 text-white">
-                  <span className="font-bold">{user?.name}</span>
-                  <span>{getRoleBadge(user?.role)}</span>
-                </div>
-                <button
-                  onClick={() => { logout(); setShowMobileMenu(false); }}
-                  className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs flex items-center gap-1"
-                >
-                  <span>Đăng xuất</span>
-                  <span>🚪</span>
-                </button>
-              </>
-            ) : (
-              <div className="w-full flex gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="flex-1 text-center py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs border border-emerald-500 shadow-sm"
-                >
-                  🔑 Đăng Nhập
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="flex-1 text-center py-2.5 bg-white hover:bg-emerald-50 text-emerald-950 font-bold rounded-xl text-xs shadow-md"
-                >
-                  📝 Đăng Ký
-                </Link>
+          {/* Mobile User Info & Logout (Chỉ hiển thị khi đã đăng nhập) */}
+          {user && (
+            <div className="pt-2 border-t border-emerald-600 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-white">
+                <span className="font-bold">{user?.name}</span>
+                <span>{getRoleBadge(user?.role)}</span>
               </div>
-            )}
-          </div>
+              <button
+                onClick={() => { logout(); setShowMobileMenu(false); }}
+                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-xs flex items-center gap-1"
+              >
+                <span>Đăng xuất</span>
+                <span>🚪</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

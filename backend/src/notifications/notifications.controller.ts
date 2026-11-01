@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
@@ -14,6 +14,9 @@ export class NotificationsController {
 
   @Patch()
   markAsRead(@Body() body: any) { return this.notificationsService.markAsRead(body); }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) { return this.notificationsService.remove(id); }
 
   @Delete()
   removeAll() { return this.notificationsService.removeAll(); }

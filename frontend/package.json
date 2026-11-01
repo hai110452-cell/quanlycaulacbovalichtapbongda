@@ -4,13 +4,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "start:dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/pg": "^8.23.1",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
     "next": "16.4.3",
+    "pg": "^8.23.1",
     "postcss": "^8.5.31",
     "react": "19.3.0",
     "react-dom": "19.3.0"

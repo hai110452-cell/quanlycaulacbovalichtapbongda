@@ -1,12 +1,24 @@
-import { IsString, IsNotEmpty, Length } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class LoginDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  txtID: string;
+  txtID?: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  txtPass: string;
+  txtPass?: string;
+
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  password?: string;
+
+  @IsOptional()
+  @IsString()
+  username?: string;
 }
 

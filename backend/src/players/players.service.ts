@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, ILike } from 'typeorm';
+import { Repository, Like, ILike, Not } from 'typeorm';
 import { Player } from './player.entity';
 
 @Injectable()
@@ -47,16 +47,56 @@ export class PlayersService {
   }
 
   async create(body: any) {
+    const nameClean = (body.name || '').trim();
+    const jerseyNum = Number(body.jerseyNumber);
+
+    // 1. Kiểm tra trùng số áo
+    if (jerseyNum) {
+      const existingJersey = await this.playersRepository.findOne({
+        where: { jerseyNumber: jerseyNum },
+      });
+      if (existingJersey) {
+        throw new BadRequestException(
+          `Trùng dữ liệu: Số áo #${jerseyNum} đã được đăng ký cho cầu thủ "${existingJersey.name}". Vui lòng chọn số áo khác!`,
+        );
+      }
+    }
+
+    // 2. Kiểm tra trùng họ tên
+    if (nameClean) {
+      const existingName = await this.playersRepository.findOne({
+        where: { name: ILike(nameClean) },
+      });
+      if (existingName) {
+        throw new BadRequestException(
+          `Trùng dữ liệu: Cầu thủ mang tên "${nameClean}" đã tồn tại trong danh sách!`,
+        );
+      }
+    }
+
+    // 3. Kiểm tra trùng số điện thoại
+    if (body.phone && body.phone.trim()) {
+      const phoneClean = body.phone.trim();
+      const existingPhone = await this.playersRepository.findOne({
+        where: { phone: phoneClean },
+      });
+      if (existingPhone) {
+        throw new BadRequestException(
+          `Trùng dữ liệu: Số điện thoại "${phoneClean}" đã được sử dụng bởi cầu thủ "${existingPhone.name}"!`,
+        );
+      }
+    }
+
     const id = `player-${Date.now()}`;
     const joinedDate = new Date().toISOString().split('T')[0];
 
     const newPlayer = this.playersRepository.create({
       id,
-      name: body.name,
-      jerseyNumber: Number(body.jerseyNumber) || 99,
+      name: nameClean,
+      jerseyNumber: jerseyNum || 99,
       position: body.position || 'Tiền vệ',
       dateOfBirth: body.dateOfBirth || '2000-01-01',
-      phone: body.phone || '',
+      phone: body.phone ? body.phone.trim() : '',
       status: body.status || 'Đang thi đấu',
       joinedDate,
       avatarUrl: body.avatarUrl || null,
@@ -76,11 +116,50 @@ export class PlayersService {
       throw new NotFoundException('Không tìm thấy cầu thủ để cập nhật');
     }
 
+    // 1. Kiểm tra trùng số áo (loại trừ chính cầu thủ này)
+    if (body.jerseyNumber !== undefined && body.jerseyNumber !== null && body.jerseyNumber !== '') {
+      const jerseyNum = Number(body.jerseyNumber);
+      const existingJersey = await this.playersRepository.findOne({
+        where: { jerseyNumber: jerseyNum, id: Not(id) },
+      });
+      if (existingJersey) {
+        throw new BadRequestException(
+          `Trùng dữ liệu: Số áo #${jerseyNum} đã thuộc về cầu thủ "${existingJersey.name}". Vui lòng chọn số áo khác!`,
+        );
+      }
+    }
+
+    // 2. Kiểm tra trùng họ tên
+    if (body.name && body.name.trim()) {
+      const nameClean = body.name.trim();
+      const existingName = await this.playersRepository.findOne({
+        where: { name: ILike(nameClean), id: Not(id) },
+      });
+      if (existingName) {
+        throw new BadRequestException(
+          `Trùng dữ liệu: Cầu thủ mang tên "${nameClean}" đã tồn tại trong danh sách!`,
+        );
+      }
+    }
+
+    // 3. Kiểm tra trùng số điện thoại
+    if (body.phone && body.phone.trim()) {
+      const phoneClean = body.phone.trim();
+      const existingPhone = await this.playersRepository.findOne({
+        where: { phone: phoneClean, id: Not(id) },
+      });
+      if (existingPhone) {
+        throw new BadRequestException(
+          `Trùng dữ liệu: Số điện thoại "${phoneClean}" đã được sử dụng bởi cầu thủ "${existingPhone.name}"!`,
+        );
+      }
+    }
+
     Object.assign(player, {
-      name: body.name ?? player.name,
+      name: body.name ? body.name.trim() : player.name,
       jerseyNumber: body.jerseyNumber ? Number(body.jerseyNumber) : player.jerseyNumber,
       position: body.position ?? player.position,
-      phone: body.phone ?? player.phone,
+      phone: body.phone ? body.phone.trim() : player.phone,
       status: body.status ?? player.status,
     });
 
@@ -95,7 +174,11 @@ export class PlayersService {
   async remove(id: string) {
     const player = await this.playersRepository.findOne({ where: { id } });
     if (!player) {
-      throw new NotFoundException('Không tìm thấy cầu thủ để xóa');
+      return {
+        success: true,
+        message: 'Cầu thủ không tồn tại hoặc đã được xóa trước đó!',
+        data: { id },
+      };
     }
     await this.playersRepository.remove(player);
     return {

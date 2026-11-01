@@ -15,9 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     txtID.focus();
   }
 
-  // Hàm kiểm tra hợp lệ: Min 6, Max 15, không chứa ký tự đặc biệt
+  // Hàm kiểm tra hợp lệ: Cho phép chữ, số, gạch nối, dấu chấm và email
   function isValidFormat(value) {
-    const regex = /^[a-zA-Z0-9]{6,15}$/;
+    if (!value || value.length < 3) return false;
+    const regex = /^[a-zA-Z0-9@._-]{3,50}$/;
     return regex.test(value);
   }
 
@@ -43,7 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Gửi yêu cầu xác thực tới Backend
-      const res = await apiClient.post('/auth/login', { email: idVal, password: passVal });
+      const res = await apiClient.post('/auth/login', {
+        txtID: idVal,
+        txtPass: passVal,
+        email: idVal,
+        password: passVal,
+        username: idVal,
+      });
 
       if (res && res.success) {
         successAlert.textContent = 'Đăng nhập thành công! Đang chuyển đến trang chủ...';

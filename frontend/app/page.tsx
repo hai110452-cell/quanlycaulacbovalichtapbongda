@@ -142,7 +142,7 @@ const initialMembers: ClubMember[] = [
   {
     id: 'player-003',
     name: 'Lê Quốc Bảo',
-    jerseyNumber: 4,
+    jerseyNumber: 15,
     position: 'Hậu vệ',
     teamId: 'team-2',
     teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
@@ -172,7 +172,7 @@ const initialMembers: ClubMember[] = [
   {
     id: 'player-002',
     name: 'Trần Minh Tuấn',
-    jerseyNumber: 5,
+    jerseyNumber: 2,
     position: 'Hậu vệ',
     teamId: 'team-1',
     teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
@@ -292,7 +292,7 @@ const initialMembers: ClubMember[] = [
   {
     id: 'player-5',
     name: 'Nguyễn Hoàng Đức',
-    jerseyNumber: 14,
+    jerseyNumber: 28,
     position: 'Tiền vệ',
     teamId: 'team-1',
     teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
@@ -468,6 +468,7 @@ interface TrainingSchedule {
   fieldName: string;
   coach: string;
   notes: string;
+  status?: 'Sắp diễn ra' | 'Đang diễn ra' | 'Đã hoàn thành' | 'Đã hủy' | string;
 }
 
 const initialSchedules: TrainingSchedule[] = [
@@ -735,14 +736,16 @@ function DashboardContent() {
   const { addNotification } = useNotifications();
   const searchParams = useSearchParams();
 
-  // Active Tab: 7 requested modules
-  type TabType = 'teams' | 'members' | 'coaches' | 'schedules' | 'attendance' | 'finances' | 'announcements';
-  const [activeTab, setActiveTab] = useState<TabType>('teams');
+  // Active Tab: Trang Chủ + Các tính năng CLB + Quản trị
+  type TabType = 'home' | 'teams' | 'members' | 'coaches' | 'schedules' | 'attendance' | 'finances' | 'announcements' | 'results' | 'about';
+  const [activeTab, setActiveTab] = useState<TabType>('home');
 
   useEffect(() => {
     const tab = searchParams.get('tab') as TabType;
-    if (tab && ['teams', 'members', 'coaches', 'schedules', 'attendance', 'finances', 'announcements'].includes(tab)) {
+    if (tab && ['home', 'teams', 'members', 'coaches', 'schedules', 'attendance', 'finances', 'announcements', 'results', 'about'].includes(tab)) {
       setActiveTab(tab);
+    } else if (!tab) {
+      setActiveTab('home');
     }
   }, [searchParams]);
 
@@ -765,19 +768,21 @@ function DashboardContent() {
     attendances: number;
     notifications: number;
     users: number;
-  }>({ teams: 0, players: 0, schedules: 0, attendances: 0, notifications: 0, users: 0 });
+    finances: number;
+  }>({ teams: 0, players: 0, schedules: 0, attendances: 0, notifications: 0, users: 0, finances: 0 });
 
-  // Nạp dữ liệu trực tiếp từ Neon Cloud PostgreSQL thông qua NestJS backend
+  // Nạp dữ liệu trực tiếp từ Neon Cloud PostgreSQL thông qua Next.js API nội bộ
   const loadNeonDatabase = async () => {
     setIsLoadingNeon(true);
     try {
-      const [teamsRes, playersRes, schedulesRes, attendancesRes, notifsRes, usersRes] = await Promise.all([
+      const [teamsRes, playersRes, schedulesRes, attendancesRes, notifsRes, usersRes, financesRes] = await Promise.all([
         api.getTeams().catch(() => null),
         api.getPlayers().catch(() => null),
         api.getSchedules().catch(() => null),
         api.getAttendances().catch(() => null),
         api.getNotifications().catch(() => null),
         api.getUsers().catch(() => null),
+        api.getFinances().catch(() => null),
       ]);
 
       let hasNeonData = false;
@@ -866,17 +871,25 @@ function DashboardContent() {
       // 3. Điểm danh từ Neon DB (20 bản ghi điểm danh)
       if (attendancesRes && Array.isArray(attendancesRes.data) && attendancesRes.data.length > 0) {
         hasNeonData = true;
+        const playerMap = new Map<string, any>();
+        if (playersRes && Array.isArray(playersRes.data)) {
+          playersRes.data.forEach((p: any) => {
+            playerMap.set(p.id, p);
+            playerMap.set(p.name, p);
+          });
+        }
         const mappedAttendance: AttendanceItem[] = attendancesRes.data.map((a: any, idx: number) => {
           let st: AttendanceItem['status'] = 'Có mặt';
           if (['Có mặt', 'Vắng có phép', 'Vắng không phép', 'Đến muộn'].includes(a.status)) {
             st = a.status;
           }
+          const matchedPlayer = playerMap.get(a.playerId) || playerMap.get(a.playerName);
           return {
             id: a.id || `att-${idx + 1}`,
             memberId: a.playerId || `mem-${idx + 1}`,
-            memberName: a.playerName || 'Cầu thủ Sao Vàng FC',
-            jerseyNumber: a.jerseyNumber || (idx + 1),
-            position: a.position || 'Cầu thủ',
+            memberName: a.playerName || (matchedPlayer ? matchedPlayer.name : 'Cầu thủ Sao Vàng FC'),
+            jerseyNumber: matchedPlayer ? matchedPlayer.jerseyNumber : (a.jerseyNumber || (idx + 1)),
+            position: matchedPlayer ? matchedPlayer.position : (a.position || 'Tiền vệ'),
             status: st,
             note: a.note || (st === 'Có mặt' ? 'Thể lực tốt' : 'Theo dõi thêm'),
           };
@@ -972,6 +985,21 @@ function DashboardContent() {
         }
       }
 
+      // 6. Quản lý Thu chi & Quỹ CLB từ Neon DB
+      if (financesRes && Array.isArray(financesRes.data) && financesRes.data.length > 0) {
+        hasNeonData = true;
+        const mappedFinances: FinanceTransaction[] = financesRes.data.map((f: any) => ({
+          id: f.id,
+          date: f.date,
+          title: f.title,
+          category: f.category === 'Chi' ? 'Chi' : 'Thu',
+          amount: Number(f.amount) || 0,
+          personInCharge: f.personInCharge || f.person_in_charge || 'Thủ quỹ CLB',
+          notes: f.notes || '',
+        }));
+        setTransactions(mappedFinances);
+      }
+
       setIsNeonConnected(hasNeonData);
       setNeonStats({
         teams: (teamsRes?.data?.length) || 0,
@@ -980,6 +1008,7 @@ function DashboardContent() {
         attendances: (attendancesRes?.data?.length) || 0,
         notifications: (notifsRes?.data?.length) || 0,
         users: (usersRes?.data?.length) || 0,
+        finances: (financesRes?.data?.length) || 0,
       });
     } catch (err) {
       console.warn('Lỗi kết nối Neon PostgreSQL API:', err);
@@ -1083,9 +1112,17 @@ function DashboardContent() {
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTeam.name) return;
+
+    const tName = newTeam.name.trim();
+    const dupTeam = teams.find((t) => t.name.trim().toLowerCase() === tName.toLowerCase());
+    if (dupTeam) {
+      alert(`❌ LỖI TRÙNG DỮ LIỆU: Đội bóng "${tName}" đã tồn tại! Vui lòng chọn tên khác.`);
+      return;
+    }
+
     const team: ClubTeam = {
       id: `team-${Date.now()}`,
-      name: newTeam.name,
+      name: tName,
       level: newTeam.level,
       headCoach: newTeam.headCoach,
       captain: newTeam.captain || 'Chưa chỉ định',
@@ -1095,17 +1132,17 @@ function DashboardContent() {
       description: newTeam.description || 'Đội bóng thuộc biên chế CLB Sao Vàng FC',
       status: 'Hoạt động',
     };
-    setTeams([...teams, team]);
-    addNotification('Thành lập đội bóng mới', `CLB vừa phê duyệt thành lập đội "${team.name}".`, 'new');
-    setShowAddTeamModal(false);
-    setNewTeam({ name: '', level: 'Đội hình 1 Chuyên nghiệp', headCoach: 'HLV. Nguyễn Văn Huấn', captain: '', memberCount: 15, homePitch: 'Sân bóng Sao Vàng A (Sân 7)', description: '' });
 
-    // Lưu trực tiếp vào Neon Cloud PostgreSQL
     try {
       await api.addTeam(team);
+      setTeams([...teams, team]);
+      addNotification('Thành lập đội bóng mới', `CLB vừa phê duyệt thành lập đội "${team.name}".`, 'new');
+      setShowAddTeamModal(false);
+      setNewTeam({ name: '', level: 'Đội hình 1 Chuyên nghiệp', headCoach: 'HLV. Nguyễn Văn Huấn', captain: '', memberCount: 15, homePitch: 'Sân bóng Sao Vàng A (Sân 7)', description: '' });
       loadNeonDatabase();
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Lỗi lưu đội bóng vào Neon DB:', err);
+      alert(`❌ LỖI: ${err.message || 'Không thể tạo đội bóng do trùng dữ liệu hoặc lỗi máy chủ'}`);
     }
   };
 
@@ -1125,15 +1162,43 @@ function DashboardContent() {
   const handleCreateMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMember.name) return;
+
+    const jNum = Number(newMember.jerseyNumber);
+    const nameClean = newMember.name.trim();
+    const phoneClean = (newMember.phone || '').trim();
+
+    // 1. Kiểm tra trùng số áo
+    const dupJersey = members.find((m) => m.jerseyNumber === jNum);
+    if (dupJersey) {
+      alert(`❌ LỖI TRÙNG DỮ LIỆU: Số áo #${jNum} đã được đăng ký cho cầu thủ "${dupJersey.name}" (${dupJersey.teamName})!\nVui lòng chọn số áo khác.`);
+      return;
+    }
+
+    // 2. Kiểm tra trùng họ tên
+    const dupName = members.find((m) => m.name.trim().toLowerCase() === nameClean.toLowerCase());
+    if (dupName) {
+      alert(`❌ LỖI TRÙNG DỮ LIỆU: Cầu thủ mang tên "${nameClean}" đã có trong danh sách (${dupName.teamName})!\nVui lòng kiểm tra lại.`);
+      return;
+    }
+
+    // 3. Kiểm tra trùng số điện thoại
+    if (phoneClean) {
+      const dupPhone = members.find((m) => m.phone && m.phone.trim() === phoneClean);
+      if (dupPhone) {
+        alert(`❌ LỖI TRÙNG DỮ LIỆU: Số điện thoại "${phoneClean}" đã thuộc về cầu thủ "${dupPhone.name}"!\nVui lòng kiểm tra lại.`);
+        return;
+      }
+    }
+
     const targetTeam = teams.find((t) => t.id === newMember.teamId);
     const member: ClubMember = {
       id: `player-${Date.now()}`,
-      name: newMember.name,
-      jerseyNumber: Number(newMember.jerseyNumber),
+      name: nameClean,
+      jerseyNumber: jNum,
       position: newMember.position,
       teamId: newMember.teamId,
       teamName: targetTeam ? targetTeam.name : 'Sao Vàng FC - Đội 1',
-      phone: newMember.phone || '0900000000',
+      phone: phoneClean || '0900000000',
       dateOfBirth: newMember.dateOfBirth,
       height: newMember.height,
       weight: newMember.weight,
@@ -1141,10 +1206,6 @@ function DashboardContent() {
       status: 'Đang tập luyện',
       feePaidMonth: false,
     };
-    setMembers([member, ...members]);
-    addNotification('Thành viên mới gia nhập', `Cầu thủ ${member.name} (#${member.jerseyNumber}) vừa gia nhập ${member.teamName}.`, 'new');
-    setShowAddMemberModal(false);
-    setNewMember({ name: '', jerseyNumber: 9, position: 'Tiền đạo', teamId: 'team-1', phone: '', dateOfBirth: '2000-01-01', height: '1m78', weight: '72kg', preferredFoot: 'Chân phải' });
 
     // Lưu trực tiếp vào Neon Cloud PostgreSQL
     try {
@@ -1156,9 +1217,14 @@ function DashboardContent() {
         dateOfBirth: member.dateOfBirth,
         status: member.status === 'Chấn thương' ? 'Chấn thương' : member.status === 'Nghỉ phép' ? 'Nghỉ phép' : 'Đang thi đấu',
       });
+      setMembers([member, ...members]);
+      addNotification('Thành viên mới gia nhập', `Cầu thủ ${member.name} (#${member.jerseyNumber}) vừa gia nhập ${member.teamName}.`, 'new');
+      setShowAddMemberModal(false);
+      setNewMember({ name: '', jerseyNumber: 9, position: 'Tiền đạo', teamId: 'team-1', phone: '', dateOfBirth: '2000-01-01', height: '1m78', weight: '72kg', preferredFoot: 'Chân phải' });
       loadNeonDatabase();
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Lỗi lưu cầu thủ vào Neon DB:', err);
+      alert(`❌ LỖI: ${err.message || 'Không thể lưu do trùng dữ liệu hoặc lỗi kết nối'}`);
     }
   };
 
@@ -1282,28 +1348,94 @@ function DashboardContent() {
   };
 
   // 5. Handlers for Attendance
-  const handleUpdateAttendance = (id: string, newStatus: AttendanceItem['status']) => {
+  const [isSavingAttendance, setIsSavingAttendance] = useState(false);
+
+  const handleUpdateAttendance = async (id: string, newStatus: AttendanceItem['status']) => {
     if (!canManage) return;
-    setAttendance(attendance.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
+    const updated = attendance.map((a) => (a.id === id ? { ...a, status: newStatus } : a));
+    setAttendance(updated);
+
+    // Tự động lưu ngay vào Neon DB khi thay đổi lựa chọn (F5 không bị mất)
+    try {
+      const item = updated.find((a) => a.id === id);
+      if (item) {
+        await api.saveAttendances([
+          {
+            id: item.id,
+            playerId: item.memberId,
+            playerName: item.memberName,
+            status: item.status,
+            note: item.note || '',
+            scheduleId: 'sched-001',
+          },
+        ]);
+      }
+    } catch (err) {
+      console.warn('Lỗi tự động lưu điểm danh vào Neon DB:', err);
+    }
   };
 
-  // 6. Handlers for Finances
-  const handleCreateTransaction = (e: React.FormEvent) => {
+  const handleSaveAttendance = async () => {
+    if (!canManage) return;
+    setIsSavingAttendance(true);
+    try {
+      const records = attendance.map((a) => ({
+        id: a.id,
+        playerId: a.memberId,
+        playerName: a.memberName,
+        status: a.status,
+        note: a.note || '',
+        scheduleId: 'sched-001',
+      }));
+      await api.saveAttendances(records);
+      addNotification('Điểm danh thành công', `Đã đồng bộ tình trạng điểm danh của ${records.length} cầu thủ vào Neon DB.`, 'new');
+      alert('✅ ĐÃ LƯU DỮ LIỆU ĐIỂM DANH THÀNH CÔNG VÀO NEON DATABASE!');
+      await loadNeonDatabase();
+    } catch (err: any) {
+      console.warn('Lỗi lưu điểm danh vào Neon DB:', err);
+      alert(`❌ Lỗi lưu dữ liệu: ${err.message || 'Không thể kết nối máy chủ'}`);
+    } finally {
+      setIsSavingAttendance(false);
+    }
+  };
+
+  // 6. Handlers for Finances (Chi phí & Quỹ)
+  const handleCreateTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTransaction.title || newTransaction.amount <= 0) return;
     const trans: FinanceTransaction = {
       id: `fin-${Date.now()}`,
       date: new Date().toISOString().split('T')[0],
-      title: newTransaction.title,
+      title: newTransaction.title.trim(),
       category: newTransaction.category,
       amount: Number(newTransaction.amount),
-      personInCharge: newTransaction.personInCharge || 'Thủ quỹ',
+      personInCharge: newTransaction.personInCharge || 'Thủ quỹ CLB',
       notes: newTransaction.notes || '',
     };
-    setTransactions([trans, ...transactions]);
-    addNotification('Giao dịch quỹ câu lạc bộ', `Ghi nhận khoản ${trans.category}: "${trans.title}" số tiền ${formatVND(trans.amount)}.`, 'new');
-    setShowAddFinanceModal(false);
-    setNewTransaction({ title: '', category: 'Thu', amount: 1000000, personInCharge: 'Thủ quỹ CLB', notes: '' });
+
+    try {
+      await api.addFinance(trans);
+      setTransactions([trans, ...transactions]);
+      addNotification('Giao dịch quỹ câu lạc bộ', `Ghi nhận khoản ${trans.category}: "${trans.title}" số tiền ${formatVND(trans.amount)}.`, 'new');
+      setShowAddFinanceModal(false);
+      setNewTransaction({ title: '', category: 'Thu', amount: 1000000, personInCharge: 'Thủ quỹ CLB', notes: '' });
+      loadNeonDatabase();
+    } catch (err: any) {
+      console.warn('Lỗi lưu giao dịch vào Neon DB:', err);
+      alert(`❌ LỖI: ${err.message || 'Không thể lưu giao dịch vào database'}`);
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    if (!canManage) return;
+    if (confirm('Bạn có chắc chắn muốn xóa bản ghi thu/chi này khỏi hệ thống?')) {
+      setTransactions(transactions.filter((t) => t.id !== id));
+      try {
+        await api.deleteFinance(id);
+      } catch (err) {
+        console.warn('Lỗi xóa giao dịch khỏi Neon DB:', err);
+      }
+    }
   };
 
   // 7. Handlers for Announcements
@@ -1416,62 +1548,575 @@ function DashboardContent() {
         </div>
       </section>
 
-      {/* THÔNG BÁO VAI TRÒ & PHÂN QUYỀN HỆ THỐNG */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 px-5 rounded-2xl bg-[#022c22]/90 border border-emerald-500/40 text-xs text-emerald-100 shadow-md">
+      {/* THANH TRẠNG THÁI NEON CLOUD DATABASE */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 px-5 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border-2 border-emerald-500/50 text-xs text-white shadow-xl">
         <div className="flex items-center gap-3">
-          <span className="text-xl shrink-0 p-2 rounded-xl bg-emerald-800/80 border border-emerald-500/40">
-            {isAdmin ? '🛡️' : isCoach ? '📋' : isPlayer ? '🏃' : '👋'}
-          </span>
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500/25 border border-emerald-400">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping absolute"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 relative"></span>
+          </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-sm text-white">
-                {user ? `Vai trò: ${isAdmin ? 'Quản Trị Viên (Admin)' : isCoach ? 'Huấn Luyện Viên (HLV)' : 'Thành Viên / Cầu Thủ'}` : 'Chế Độ Xem Khách (Chưa đăng nhập)'}
-              </span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                isAdmin
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                  : isCoach
-                  ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
-                  : user
-                  ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/40'
-                  : 'bg-white/20 text-white border border-white/40'
-              }`}>
-                {isAdmin ? 'Toàn Quyền' : isCoach ? 'Chuyên Môn & Điểm Danh' : user ? 'Chế Độ Xem & Tham Gia' : 'Khách Vãng Lai'}
+              <span className="font-extrabold text-sm text-white">Cơ sở dữ liệu Neon Cloud PostgreSQL:</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/60 font-black text-[11px] tracking-wide">
+                ● ĐÃ KẾT NỐI (ONLINE)
               </span>
             </div>
-            <p className="text-emerald-300/90 mt-0.5 text-[11.5px]">
-              {isAdmin
-                ? 'Bạn có toàn quyền thêm, sửa, xóa các đội bóng, nhân sự, lịch tập, tài chính và thông báo CLB.'
-                : isCoach
-                ? 'Bạn có quyền điều hành lịch tập luyện, thực hiện điểm danh các buổi tập và đăng thông báo.'
-                : user
-                ? 'Bạn có quyền theo dõi lịch tập luyện, danh sách đội bóng, kiểm tra điểm danh và đóng phí sinh hoạt.'
-                : 'Bạn đang xem thông tin chung của CLB. Hãy Đăng Nhập hoặc Đăng Ký để mở khóa toàn bộ quyền hạn!'}
+            <p className="text-emerald-200/90 mt-0.5 text-[11.5px]">
+              Dữ liệu đồng bộ trực tiếp qua <strong>NestJS Backend (Port 5000/api)</strong> tới <strong>Neon PostgreSQL Cloud</strong>.
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-          {user ? (
-            <>
-              <span className="text-[11px] text-emerald-400 font-bold">Tài khoản:</span>
-              <span className="font-black text-white px-2.5 py-1 rounded-lg bg-emerald-800 border border-emerald-600">
-                {user.name}
-              </span>
-            </>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link href="/login" className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-lg text-xs border border-emerald-500">
-                🔑 Đăng Nhập
-              </Link>
-              <Link href="/register" className="px-3 py-1 bg-white hover:bg-emerald-100 text-emerald-950 font-bold rounded-lg text-xs shadow">
-                📝 Đăng Ký
-              </Link>
-            </div>
-          )}
+        <div className="flex items-center flex-wrap gap-2 text-[11px] font-bold text-emerald-200 self-stretch sm:self-auto justify-end">
+          <span className="bg-emerald-900/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">🛡️ {neonStats.teams || teams.length} Đội</span>
+          <span className="bg-emerald-900/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">🏃 {neonStats.players || members.length} Cầu thủ</span>
+          <span className="bg-emerald-900/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">📅 {neonStats.schedules || schedules.length} Lịch tập</span>
+          <span className="bg-emerald-900/60 px-2.5 py-1 rounded-lg border border-emerald-500/30">✅ {neonStats.attendances || attendance.length} Điểm danh</span>
+          <button
+            onClick={() => loadNeonDatabase()}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg border border-emerald-400 transition-all font-bold cursor-pointer"
+            title="Đồng bộ lại dữ liệu mới nhất từ Neon DB"
+          >
+            🔄 Làm mới
+          </button>
         </div>
       </div>
 
+      {/* THÔNG BÁO VAI TRÒ & PHÂN QUYỀN HỆ THỐNG - CHỈ HIỂN THỊ KHI THÀNH VIÊN ĐÃ ĐĂNG NHẬP */}
+      {user && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 px-5 rounded-2xl bg-[#022c22]/90 border border-emerald-500/40 text-xs text-emerald-100 shadow-md animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <span className="text-xl shrink-0 p-2 rounded-xl bg-emerald-800/80 border border-emerald-500/40">
+              {isAdmin ? '🛡️' : isCoach ? '📋' : '🏃'}
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-extrabold text-sm text-white">
+                  Vai trò: {isAdmin ? 'Quản Trị Viên (Admin)' : isCoach ? 'Huấn Luyện Viên (HLV)' : 'Cầu Thủ / Thành Viên'}
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isAdmin
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                    : isCoach
+                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                    : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/40'
+                }`}>
+                  {isAdmin ? 'Toàn Quyền Quản Trị' : isCoach ? 'Chuyên Môn & Điểm Danh' : 'Cầu Thủ Thành Viên'}
+                </span>
+              </div>
+              <p className="text-emerald-300/90 mt-0.5 text-[11.5px]">
+                {isAdmin
+                  ? 'Bạn có toàn quyền thêm, sửa, xóa các đội bóng, nhân sự, lịch tập, tài chính và thông báo CLB.'
+                  : isCoach
+                  ? 'Bạn có quyền điều hành lịch tập luyện, thực hiện điểm danh các buổi tập và đăng thông báo.'
+                  : 'Bạn có quyền theo dõi lịch tập luyện, danh sách đội bóng, kiểm tra điểm danh và đóng phí sinh hoạt.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <span className="text-[11px] text-emerald-400 font-bold">Đang online:</span>
+            <span className="font-black text-white px-2.5 py-1 rounded-lg bg-emerald-800 border border-emerald-600">
+              {user.name}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* 3. MODULE CONTENTS */}
+
+      {/* CHẶN TRUY CẬP CHO KHÁCH (CUSTOMER) KHI VÀO 2 MODULE NỘI BỘ BẢO MẬT: ĐIỂM DANH & QUỸ */}
+      {!user && (activeTab === 'attendance' || activeTab === 'finances') && (
+        <div className="rounded-3xl bg-white border-2 border-emerald-400 p-8 sm:p-12 text-center shadow-2xl space-y-6 max-w-2xl mx-auto my-8 animate-in fade-in duration-200">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-4xl shadow-inner border border-emerald-300">
+            🔒
+          </div>
+          <div className="space-y-2">
+            <span className="px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-black uppercase tracking-wider inline-block">
+              Phân Hệ Nghiệp Vụ Nội Bộ
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
+              Yêu Cầu Xác Thực Tài Khoản
+            </h2>
+            <p className="text-sm text-slate-600 leading-relaxed max-w-lg mx-auto">
+              Chức năng điểm danh chuyên cần buổi tập và sổ thu chi quỹ câu lạc bộ là nghiệp vụ nội bộ, chỉ dành riêng cho <strong>Cầu thủ</strong>, <strong>Huấn luyện viên</strong> và <strong>Quản trị viên (Admin)</strong>.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              href="/admin"
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-emerald-950/20 transition-all flex items-center justify-center gap-2"
+            >
+              <span>🛡️ Đăng Nhập Cổng Quản Trị</span>
+            </Link>
+            <button
+              onClick={() => setActiveTab('home')}
+              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition-all"
+            >
+              🏠 Quay Lại Trang Chủ
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= TRANG CHỦ / TỔNG QUAN CLB (CHO KHÁCH HÀNG & THÀNH VIÊN) ================= */}
+      {activeTab === 'home' && (
+        <div className="space-y-8 animate-in fade-in duration-300">
+          {/* 1. HERO BANNER SỰ KIỆN KẾ TIẾP */}
+          {(() => {
+            const nextSchedule = schedules.find((s) => s.status !== 'Đã hoàn thành') || schedules[0];
+            return (
+              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white p-6 sm:p-8 border-2 border-emerald-400/40 shadow-2xl">
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+                <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                  <div className="space-y-3 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/30 border border-emerald-400/50 text-emerald-200 text-xs font-black uppercase tracking-wider">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                      ⚽ HOẠT ĐỘNG HUẤN LUYỆN & THI ĐẤU KẾ TIẾP
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                      {nextSchedule ? nextSchedule.title : 'Buổi Tập Chiến Thuật Đội Hình'}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-emerald-100 font-semibold">
+                      <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
+                        📅 {nextSchedule ? nextSchedule.date : '2026-11-01'}
+                      </span>
+                      <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
+                        ⏰ {nextSchedule ? `${nextSchedule.startTime} - ${nextSchedule.endTime}` : '18:00 - 20:00'}
+                      </span>
+                      <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
+                        📍 {nextSchedule ? nextSchedule.fieldName : 'Sân bóng Sao Vàng A'}
+                      </span>
+                      <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
+                        📋 {nextSchedule ? nextSchedule.coach : 'HLV. Nguyễn Văn Huấn'}
+                      </span>
+                    </div>
+                    {nextSchedule?.notes && (
+                      <p className="text-emerald-200/90 text-xs sm:text-sm italic">
+                        💡 Ghi chú: &ldquo;{nextSchedule.notes}&rdquo;
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0 w-full sm:w-auto">
+                    <button
+                      onClick={() => setActiveTab('schedules')}
+                      className="px-5 py-3 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-950 font-black text-xs sm:text-sm shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>📅 Xem Chi Tiết Lịch Tập</span>
+                      <span>→</span>
+                    </button>
+                    {canManage && (
+                      <button
+                        onClick={() => setActiveTab('attendance')}
+                        className="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm border border-emerald-400 shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <span>✅ Điểm Danh Buổi Tập Này</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* 2. THỐNG KÊ TỔNG QUAN 6 MODULE (6 WIDGETS ĐẸP MẮT) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
+            <div
+              onClick={() => setActiveTab('teams')}
+              className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">🛡️</span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">4 Tuyến</span>
+              </div>
+              <strong className="text-2xl font-black text-slate-900 block mt-2">{teams.length} Đội Bóng</strong>
+              <span className="text-xs text-slate-500 font-semibold block mt-0.5">Biên chế CLB</span>
+              <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
+                Quản lý đội →
+              </span>
+            </div>
+
+            <div
+              onClick={() => setActiveTab('members')}
+              className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">🏃</span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Sẵn sàng</span>
+              </div>
+              <strong className="text-2xl font-black text-slate-900 block mt-2">{members.length} Cầu Thủ</strong>
+              <span className="text-xs text-slate-500 font-semibold block mt-0.5">Hồ sơ hoàn chỉnh</span>
+              <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
+                Xem cầu thủ →
+              </span>
+            </div>
+
+            <div
+              onClick={() => setActiveTab('coaches')}
+              className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">📋</span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Bằng AFC</span>
+              </div>
+              <strong className="text-2xl font-black text-slate-900 block mt-2">{coaches.length} HLV</strong>
+              <span className="text-xs text-slate-500 font-semibold block mt-0.5">Ban huấn luyện</span>
+              <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
+                Xem HLV →
+              </span>
+            </div>
+
+            <div
+              onClick={() => setActiveTab('schedules')}
+              className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">📅</span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Lịch tập</span>
+              </div>
+              <strong className="text-2xl font-black text-slate-900 block mt-2">{schedules.length} Buổi Tập</strong>
+              <span className="text-xs text-slate-500 font-semibold block mt-0.5">Chiến thuật & thể lực</span>
+              <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
+                Lịch chi tiết →
+              </span>
+            </div>
+
+            <div
+              onClick={() => setActiveTab('attendance')}
+              className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">✅</span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  {Math.round((attendance.filter((a) => a.status === 'Có mặt').length / (attendance.length || 1)) * 100)}%
+                </span>
+              </div>
+              <strong className="text-2xl font-black text-slate-900 block mt-2">
+                {attendance.filter((a) => a.status === 'Có mặt').length}/{attendance.length}
+              </strong>
+              <span className="text-xs text-slate-500 font-semibold block mt-0.5">Cầu thủ có mặt</span>
+              <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
+                Điểm danh →
+              </span>
+            </div>
+
+            <div
+              onClick={() => setActiveTab('finances')}
+              className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">💰</span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Số dư</span>
+              </div>
+              <strong className="text-lg font-black text-emerald-700 block mt-2 truncate">
+                {formatVND(currentBalance)}
+              </strong>
+              <span className="text-xs text-slate-500 font-semibold block mt-0.5">Quỹ sinh hoạt CLB</span>
+              <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
+                Thu chi quỹ →
+              </span>
+            </div>
+          </div>
+
+          {/* 3. PHÍM TẮT HÀNH ĐỘNG NHANH (QUICK ACTIONS BAR) */}
+          <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md">
+            {user ? (
+              <>
+                <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <span>⚡</span> Phím Tắt Thao Tác Nhanh (Nội Bộ)
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {canManageClub && (
+                    <button
+                      onClick={() => setShowAddMemberModal(true)}
+                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
+                    >
+                      <span className="text-xl group-hover:scale-110 transition-transform">➕</span>
+                      <span>Thêm Cầu Thủ</span>
+                    </button>
+                  )}
+                  {canManageTraining && (
+                    <button
+                      onClick={() => setShowAddScheduleModal(true)}
+                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
+                    >
+                      <span className="text-xl group-hover:scale-110 transition-transform">📅</span>
+                      <span>Lên Lịch Tập Mới</span>
+                    </button>
+                  )}
+                  {canManageTraining && (
+                    <button
+                      onClick={() => setActiveTab('attendance')}
+                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
+                    >
+                      <span className="text-xl group-hover:scale-110 transition-transform">✅</span>
+                      <span>Điểm Danh Ngay</span>
+                    </button>
+                  )}
+                  {canManageClub && (
+                    <button
+                      onClick={() => setShowAddFinanceModal(true)}
+                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
+                    >
+                      <span className="text-xl group-hover:scale-110 transition-transform">💵</span>
+                      <span>Ghi Nhận Thu / Chi</span>
+                    </button>
+                  )}
+                  {canManage && (
+                    <button
+                      onClick={() => setShowAddAnnouncementModal(true)}
+                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
+                    >
+                      <span className="text-xl group-hover:scale-110 transition-transform">📢</span>
+                      <span>Đăng Thông Báo</span>
+                    </button>
+                  )}
+                  {canManageClub && (
+                    <button
+                      onClick={() => setShowAddTeamModal(true)}
+                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
+                    >
+                      <span className="text-xl group-hover:scale-110 transition-transform">🛡️</span>
+                      <span>Thành Lập Đội Mới</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-1">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-black uppercase tracking-wide">
+                      ⭐ Cổng Thông Tin Chính Thức CLB
+                    </span>
+                    <span className="text-xs text-slate-500 font-semibold hidden md:inline">• Sao Vàng Football Club</span>
+                  </div>
+                  <h4 className="text-base font-black text-slate-900">
+                    Chào Mừng Quý Khán Giả, Người Hâm Mộ & Phụ Huynh Học Viên!
+                  </h4>
+                  <p className="text-xs text-slate-600 max-w-2xl">
+                    Kênh thông tin cập nhật chính thức các hoạt động huấn luyện, thi đấu giao hữu, kết quả phong độ và danh sách vận động viên của các tuyến đội Sao Vàng FC.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                  <span className="px-4 py-2 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-300 font-extrabold text-xs flex items-center gap-1.5 shadow-sm">
+                    <span>⚽</span>
+                    <span>Sao Vàng FC - Tinh Thần Bất Diệt</span>
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 4. CÁC ĐỘI BÓNG TRỰC THUỘC (TEAMS SPOTLIGHT) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <span>🏆</span> Các Tuyến Đội Bóng Trực Thuộc CLB Sao Vàng FC
+                </h3>
+                <p className="text-xs text-slate-500">Cơ cấu tổ chức và ban huấn luyện phụ trách từng tuyến thi đấu</p>
+              </div>
+              <button
+                onClick={() => setActiveTab('teams')}
+                className="text-xs font-extrabold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1"
+              >
+                <span>Xem tất cả đội bóng</span>
+                <span>→</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {teams.map((t) => (
+                <div
+                  key={t.id}
+                  className="bg-white rounded-3xl p-5 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-xl">
+                        ⚽
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold text-[10px]">
+                        {t.status}
+                      </span>
+                    </div>
+                    <h4 className="font-extrabold text-slate-900 text-sm">{t.name}</h4>
+                    <span className="text-[11px] font-bold text-emerald-700 block mt-0.5">{t.level}</span>
+                    <p className="text-slate-500 text-xs mt-2 line-clamp-2">{t.description}</p>
+
+                    <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">HLV Trưởng:</span>
+                        <strong className="text-slate-800">{t.headCoach}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Đội Trưởng:</span>
+                        <strong className="text-slate-800">{t.captain}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Quân số:</span>
+                        <strong className="text-emerald-700 font-black">{t.memberCount} Cầu thủ</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setMemberTeamFilter(t.name);
+                      setActiveTab('members');
+                    }}
+                    className="w-full mt-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-sm"
+                  >
+                    Xem Cầu Thủ Đội Này →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 5. HAI CỘT: BẢNG TIN HOẠT ĐỘNG & KẾT QUẢ THI ĐẤU */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* CỘT 1: THÔNG BÁO QUAN TRỌNG GẦN ĐÂY */}
+            <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                  <h4 className="font-black text-slate-900 text-base flex items-center gap-2">
+                    <span>📢</span> Thông Báo Mới Nhất Từ Ban Quản Trị
+                  </h4>
+                  <button
+                    onClick={() => setActiveTab('announcements')}
+                    className="text-xs font-bold text-emerald-700 hover:underline"
+                  >
+                    Xem tất cả →
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {announcements.slice(0, 3).map((a) => (
+                    <div
+                      key={a.id}
+                      className="p-3.5 rounded-2xl bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-200 transition-all"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                            a.priority === 'Khẩn cấp'
+                              ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                              : a.priority === 'Quan trọng'
+                              ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                              : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                          }`}
+                        >
+                          {a.priority}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-semibold">{a.date}</span>
+                      </div>
+                      <h5 className="font-extrabold text-slate-900 text-xs sm:text-sm">{a.title}</h5>
+                      <p className="text-slate-600 text-xs mt-1 line-clamp-2 leading-relaxed">{a.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>Tác giả: Ban Điều Hành Sao Vàng FC</span>
+                <span className="font-bold text-emerald-700">Tổng cộng {announcements.length} thông báo</span>
+              </div>
+            </div>
+
+            {/* CỘT 2: KẾT QUẢ TRẬN ĐẤU & CHIẾN TÍCH GẦN NHẤT */}
+            <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                  <h4 className="font-black text-slate-900 text-base flex items-center gap-2">
+                    <span>⚽</span> Kết Quả Thi Đấu & Chiến Tích Gần Đây
+                  </h4>
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                    Phong độ cao
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-slate-500 font-bold">10/10/2026 • Sân Sao Vàng A</span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">THẮNG</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-slate-900 text-sm">Sao Vàng FC</span>
+                      <span className="text-lg font-black text-emerald-700 px-3 py-0.5 rounded-xl bg-white border border-emerald-300">3 - 1</span>
+                      <span className="font-black text-slate-900 text-sm">FC Rồng Đỏ</span>
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1.5">
+                      ⚽ Bàn thắng: Hoàng Minh Huy (15&apos;, 45&apos;), Nguyễn Đức Thắng (78&apos;) • MVP: Hoàng Minh Huy
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-slate-500 font-bold">17/10/2026 • Sân Thống Nhất</span>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-extrabold text-[10px]">HÒA</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-slate-900 text-sm">Sao Vàng FC</span>
+                      <span className="text-lg font-black text-amber-700 px-3 py-0.5 rounded-xl bg-white border border-amber-300">2 - 2</span>
+                      <span className="font-black text-slate-900 text-sm">Hổ Biển FC</span>
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1.5">
+                      ⚽ Bàn thắng: Bùi Văn Kiên (22&apos;), Hoàng Minh Huy (60&apos;) • MVP: Bùi Văn Kiên
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-slate-500 font-bold">28/09/2026 • Sân Phú Thọ</span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">THẮNG</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-slate-900 text-sm">Sao Vàng FC</span>
+                      <span className="text-lg font-black text-emerald-700 px-3 py-0.5 rounded-xl bg-white border border-emerald-300">1 - 0</span>
+                      <span className="font-black text-slate-900 text-sm">Sông Hồng Utd</span>
+                    </div>
+                    <p className="text-slate-500 text-[11px] mt-1.5">
+                      ⚽ Bàn thắng: Nguyễn Đức Thắng (88&apos;) • MVP: Thủ môn Nguyễn Văn Khải
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>Giải bóng đá phong trào & Cúp khu vực</span>
+                <span className="font-bold text-emerald-700">Tỷ lệ thắng 75%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 6. BẢN SẮC & TRUYỀN THỐNG CLB */}
+          <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] text-white border-2 border-emerald-500/40 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 max-w-3xl">
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-300 block">
+                ⭐ BẢN SẮC & TINH THẦN SAO VÀNG FC
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white">
+                &ldquo;Đoàn Kết - Kỷ Luật - Tinh Thần Thể Thao Cống Hiến&rdquo;
+              </h3>
+              <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed">
+                Được thành lập từ năm 2015, Sao Vàng FC là mái nhà chung kết nối đam mê bóng đá, rèn luyện thể chất và xây dựng phong cách thi đấu hiện đại, công bằng. Chúng tôi tự hào phát triển toàn diện từ lứa tuổi trẻ U17, U21 đến đội 1 chuyên nghiệp và đội bóng đá trong nhà Futsal.
+              </p>
+            </div>
+            <div className="shrink-0 flex items-center gap-3">
+              <button
+                onClick={() => setActiveTab('members')}
+                className="px-5 py-3 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-950 font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer"
+              >
+                Gia Nhập CLB →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================= MODULE 1: QUẢN LÝ ĐỘI ================= */}
       {activeTab === 'teams' && (
@@ -1925,7 +2570,7 @@ function DashboardContent() {
       )}
 
       {/* ================= MODULE 5: QUẢN LÝ ĐIỂM DANH ================= */}
-      {activeTab === 'attendance' && (
+      {user && activeTab === 'attendance' && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -1953,10 +2598,11 @@ function DashboardContent() {
 
               {canManage && (
                 <button
-                  onClick={() => alert('Đã lưu dữ liệu điểm danh thành công!')}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20"
+                  onClick={handleSaveAttendance}
+                  disabled={isSavingAttendance}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
-                  💾 Lưu Điểm Danh
+                  {isSavingAttendance ? '⏳ Đang lưu Neon DB...' : '💾 Lưu Điểm Danh'}
                 </button>
               )}
             </div>
@@ -2029,7 +2675,7 @@ function DashboardContent() {
       )}
 
       {/* ================= MODULE 6: QUẢN LÝ PHÍ SINH HOẠT & QUỸ ================= */}
-      {activeTab === 'finances' && (
+      {user && activeTab === 'finances' && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -2104,6 +2750,7 @@ function DashboardContent() {
                     <th className="p-4 text-right">Số Tiền (VNĐ)</th>
                     <th className="p-4">Người Thực Hiện</th>
                     <th className="p-4">Ghi Chú</th>
+                    {canManage && <th className="p-4 text-center">Thao Tác</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-emerald-100 text-slate-700">
@@ -2131,6 +2778,17 @@ function DashboardContent() {
                       </td>
                       <td className="p-4 text-slate-600 font-medium">{t.personInCharge}</td>
                       <td className="p-4 text-slate-500">{t.notes || '—'}</td>
+                      {canManage && (
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => handleDeleteTransaction(t.id)}
+                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Xóa giao dịch khỏi Neon Database"
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -2216,6 +2874,159 @@ function DashboardContent() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ================= CHUYÊN TRANG: KẾT QUẢ & PHONG ĐỘ ================= */}
+      {activeTab === 'results' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] rounded-3xl p-6 sm:p-8 text-white border-2 border-emerald-400/40 shadow-xl">
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-300 block mb-1">
+              📊 THỐNG KÊ CHIẾN TÍCH & PHONG ĐỘ THI ĐẤU
+            </span>
+            <h3 className="text-2xl font-black text-white">Kết Quả Các Trận Đấu & Phong Độ Toàn Đội</h3>
+            <p className="text-xs sm:text-sm text-emerald-100 mt-1 max-w-2xl">
+              Tổng hợp kết quả các trận giao hữu, giải bóng đá phong trào ngoại hạng và cúp khu vực của các tuyến đội Sao Vàng FC.
+            </p>
+          </div>
+
+          {/* 4 Thẻ KPI Phong Độ */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white p-5 rounded-3xl border-2 border-emerald-300 shadow-md">
+              <span className="text-xs text-slate-500 font-bold block">Tỷ Lệ Chiến Thắng</span>
+              <strong className="text-2xl font-black text-emerald-700 block mt-1">75%</strong>
+              <span className="text-[11px] text-emerald-600 font-semibold">6 Thắng / 1 Hòa / 1 Thua</span>
+            </div>
+            <div className="bg-white p-5 rounded-3xl border-2 border-emerald-300 shadow-md">
+              <span className="text-xs text-slate-500 font-bold block">Tổng Bàn Thắng</span>
+              <strong className="text-2xl font-black text-emerald-700 block mt-1">21 Bàn</strong>
+              <span className="text-[11px] text-slate-500 font-semibold">Trung bình 2.6 bàn/trận</span>
+            </div>
+            <div className="bg-white p-5 rounded-3xl border-2 border-emerald-300 shadow-md">
+              <span className="text-xs text-slate-500 font-bold block">Trận Sạch Lưới</span>
+              <strong className="text-2xl font-black text-emerald-700 block mt-1">4 Trận</strong>
+              <span className="text-[11px] text-slate-500 font-semibold">Hàng thủ kỷ luật cao</span>
+            </div>
+            <div className="bg-white p-5 rounded-3xl border-2 border-emerald-300 shadow-md">
+              <span className="text-xs text-slate-500 font-bold block">Cầu Thủ Ghi Bàn Số 1</span>
+              <strong className="text-base font-black text-emerald-700 block mt-1">Hoàng Minh Huy (#10)</strong>
+              <span className="text-[11px] text-emerald-600 font-semibold">7 Bàn thắng & 4 Kiến tạo</span>
+            </div>
+          </div>
+
+          {/* Danh sách các trận đấu gần nhất */}
+          <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md space-y-4">
+            <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
+              <span>⚽</span> Chi Tiết Các Trận Đấu Gần Đây
+            </h4>
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-white border-2 border-emerald-300 shadow-sm">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="text-slate-500 font-bold">10/10/2026 • Giải Ngoại Hạng Phong Trào • Sân Sao Vàng A</span>
+                  <span className="px-3 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[11px]">THẮNG</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2 font-black text-base text-slate-900">
+                    <span>⚽ Sao Vàng FC</span>
+                  </div>
+                  <div className="text-xl font-black text-emerald-700 px-4 py-1 rounded-2xl bg-white border-2 border-emerald-300 shadow-inner">
+                    3 - 1
+                  </div>
+                  <div className="flex items-center gap-2 font-black text-base text-slate-700">
+                    <span>FC Rồng Đỏ</span>
+                  </div>
+                </div>
+                <p className="text-slate-600 text-xs mt-2 pt-2 border-t border-emerald-200/60">
+                  ⚽ <strong>Bàn thắng:</strong> Hoàng Minh Huy (15&apos;, 45&apos;), Nguyễn Đức Thắng (78&apos;) • <strong>MVP:</strong> Hoàng Minh Huy
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-yellow-50 to-white border-2 border-amber-300 shadow-sm">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="text-slate-500 font-bold">17/10/2026 • Giao Hữu Thử Nghiệm • Sân Thống Nhất</span>
+                  <span className="px-3 py-0.5 rounded-full bg-amber-500 text-white font-black text-[11px]">HÒA</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2 font-black text-base text-slate-900">
+                    <span>⚽ Sao Vàng FC</span>
+                  </div>
+                  <div className="text-xl font-black text-amber-700 px-4 py-1 rounded-2xl bg-white border-2 border-amber-300 shadow-inner">
+                    2 - 2
+                  </div>
+                  <div className="flex items-center gap-2 font-black text-base text-slate-700">
+                    <span>Hổ Biển FC</span>
+                  </div>
+                </div>
+                <p className="text-slate-600 text-xs mt-2 pt-2 border-t border-amber-200/60">
+                  ⚽ <strong>Bàn thắng:</strong> Bùi Văn Kiên (22&apos;), Hoàng Minh Huy (60&apos;) • <strong>MVP:</strong> Bùi Văn Kiên
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-white border-2 border-emerald-300 shadow-sm">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="text-slate-500 font-bold">28/09/2026 • Cúp Mùa Thu • Sân Phú Thọ</span>
+                  <span className="px-3 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[11px]">THẮNG</span>
+                </div>
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2 font-black text-base text-slate-900">
+                    <span>⚽ Sao Vàng FC</span>
+                  </div>
+                  <div className="text-xl font-black text-emerald-700 px-4 py-1 rounded-2xl bg-white border-2 border-emerald-300 shadow-inner">
+                    1 - 0
+                  </div>
+                  <div className="flex items-center gap-2 font-black text-base text-slate-700">
+                    <span>Sông Hồng Utd</span>
+                  </div>
+                </div>
+                <p className="text-slate-600 text-xs mt-2 pt-2 border-t border-emerald-200/60">
+                  ⚽ <strong>Bàn thắng:</strong> Nguyễn Đức Thắng (88&apos;) • <strong>MVP:</strong> Thủ môn Nguyễn Văn Khải
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= CHUYÊN TRANG: VỀ CLB SAO VÀNG ================= */}
+      {activeTab === 'about' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="rounded-3xl p-8 bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] text-white border-2 border-emerald-400 shadow-xl">
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-300 block mb-2">
+              ⭐ BẢN SẮC, TRUYỀN THỐNG & SỨ MỆNH
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">
+              &ldquo;Đoàn Kết - Kỷ Luật - Tinh Thần Thể Thao Cống Hiến&rdquo;
+            </h2>
+            <p className="text-emerald-100 text-xs sm:text-sm mt-3 leading-relaxed max-w-3xl">
+              Thành lập từ năm 2015, Sao Vàng FC là mái nhà chung kết nối niềm đam mê sân cỏ, đào tạo thể chất toàn diện và bồi dưỡng đạo đức thể thao cho các thế hệ cầu thủ trẻ.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-3xl border-2 border-emerald-300 shadow-md space-y-2">
+              <span className="text-3xl">🏆</span>
+              <h4 className="font-black text-base text-slate-900">Mục Tiêu Phát Triển</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Xây dựng mô hình bóng đá phong trào bài bản, chuyên nghiệp, tiến tới tham dự các giải quốc gia và phát triển học viện đào tạo trẻ U17 - U21.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border-2 border-emerald-300 shadow-md space-y-2">
+              <span className="text-3xl">🏟️</span>
+              <h4 className="font-black text-base text-slate-900">Cơ Sở Vật Chất</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Hệ thống sân bóng Sao Vàng A (Sân 7), Sân B (Sân 11) đạt chuẩn cỏ nhân tạo FIFA Quality cùng phòng thể lực VO2Max và y tế phục hồi.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border-2 border-emerald-300 shadow-md space-y-2">
+              <span className="text-3xl">🤝</span>
+              <h4 className="font-black text-base text-slate-900">Văn Hóa Câu Lạc Bộ</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Tôn trọng đồng đội, trọng tài và đối thủ. Chơi bóng nhiệt huyết, kỷ luật chiến thuật và lan tỏa tinh thần sống khỏe, sống đẹp.
+              </p>
+            </div>
           </div>
         </div>
       )}

@@ -48,6 +48,11 @@ export class NotificationsService {
     return { success: true };
   }
 
+  async remove(id: string) {
+    await this.notificationsRepository.delete(id);
+    return { success: true, message: 'Đã xóa thông báo thành công' };
+  }
+
   async removeAll() {
     await this.notificationsRepository.clear();
     return { success: true, message: 'Đã xóa toàn bộ lịch sử thông báo' };

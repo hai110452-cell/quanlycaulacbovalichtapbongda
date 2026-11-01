@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { Team } from './team.entity';
 
 @Injectable()
@@ -30,10 +30,17 @@ export class TeamsService {
   }
 
   async create(body: any) {
+    if (body.name && body.name.trim()) {
+      const existing = await this.teamsRepository.findOne({ where: { name: body.name.trim() } });
+      if (existing) {
+        throw new BadRequestException(`Trùng dữ liệu: Đội bóng "${body.name.trim()}" đã tồn tại!`);
+      }
+    }
+
     const id = body.id || `team-${Date.now()}`;
     const newTeam = this.teamsRepository.create({
       id,
-      name: body.name,
+      name: body.name ? body.name.trim() : 'Đội bóng mới',
       level: body.level || 'Đội bóng trực thuộc CLB',
       headCoach: body.headCoach || body.head_coach || 'Chưa phân công',
       captain: body.captain || 'Chưa chỉ định',
@@ -56,6 +63,13 @@ export class TeamsService {
     const team = await this.teamsRepository.findOne({ where: { id } });
     if (!team) {
       throw new NotFoundException('Không tìm thấy đội bóng để cập nhật');
+    }
+
+    if (body.name && body.name.trim()) {
+      const existing = await this.teamsRepository.findOne({ where: { name: body.name.trim(), id: Not(id) } });
+      if (existing) {
+        throw new BadRequestException(`Trùng dữ liệu: Đội bóng "${body.name.trim()}" đã tồn tại!`);
+      }
     }
 
     Object.assign(team, {
@@ -81,7 +95,11 @@ export class TeamsService {
   async remove(id: string) {
     const team = await this.teamsRepository.findOne({ where: { id } });
     if (!team) {
-      throw new NotFoundException('Không tìm thấy đội bóng để xóa');
+      return {
+        success: true,
+        message: 'Đội bóng không tồn tại hoặc đã được xóa trước đó!',
+        data: { id },
+      };
     }
     await this.teamsRepository.remove(team);
     return {

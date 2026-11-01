@@ -356,7 +356,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const position = document.getElementById('newPlayerPosition').value;
     const phone = document.getElementById('newPlayerPhone').value.trim();
     const status = document.getElementById('newPlayerStatus').value;
-    const dateOfBirth = document.getElementById('newPlayerDob').value || '2000-01-01';
+    // 1. Kiểm tra trùng số áo
+    const dupJersey = playerList.find((p) => Number(p.jerseyNumber) === jerseyNumber);
+    if (dupJersey) {
+      alert(`❌ LỖI TRÙNG DỮ LIỆU: Số áo #${jerseyNumber} đã thuộc về cầu thủ "${dupJersey.name}"!\nVui lòng chọn số áo khác.`);
+      return;
+    }
+
+    // 2. Kiểm tra trùng tên
+    const dupName = playerList.find((p) => p.name.trim().toLowerCase() === name.toLowerCase());
+    if (dupName) {
+      alert(`❌ LỖI TRÙNG DỮ LIỆU: Cầu thủ "${name}" đã có trong danh sách!\nVui lòng kiểm tra lại.`);
+      return;
+    }
+
+    // 3. Kiểm tra trùng số điện thoại
+    if (phone) {
+      const dupPhone = playerList.find((p) => p.phone && p.phone.trim() === phone);
+      if (dupPhone) {
+        alert(`❌ LỖI TRÙNG DỮ LIỆU: Số điện thoại "${phone}" đã được sử dụng bởi cầu thủ "${dupPhone.name}"!\nVui lòng kiểm tra lại.`);
+        return;
+      }
+    }
 
     const newObj = {
       name,
