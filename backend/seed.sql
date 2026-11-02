@@ -54,6 +54,9 @@ SET password = EXCLUDED.password;
 -- ============================================================
 INSERT INTO fields (id, name, location, field_type, surface_type, status)
 VALUES
+  ('field-c1-1', 'Sân bóng C1 - Sân 1', '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 (Hotline: 0983 830 955 / 0906 424 006)', 'Sân mini cỏ nhân tạo', 'Cỏ nhân tạo cao cấp & Đèn cao áp (250k - 350k/h)', 'Khả dụng'),
+  ('field-c1-2', 'Sân bóng C1 - Sân 2', '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 (Hotline: 0983 830 955 / 0906 424 006)', 'Sân mini cỏ nhân tạo', 'Cỏ nhân tạo cao cấp & Đèn cao áp (250k - 350k/h)', 'Khả dụng'),
+  ('field-c1',   'Sân bóng C1 (Cụm 2 Sân)', '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 (Hotline: 0983 830 955 / 0906 424 006)', 'Cụm 2 sân mini', 'Cỏ nhân tạo cao cấp & Đèn cao áp (250k - 350k/h)', 'Khả dụng'),
   ('field-001', 'Sân Sao Vàng A', '123 Nguyễn Duy Trinh, Q.9, TP.HCM', 'Sân 7 người', 'Cỏ nhân tạo', 'Khả dụng'),
   ('field-002', 'Sân Sao Vàng B', '123 Nguyễn Duy Trinh, Q.9, TP.HCM', 'Sân 7 người', 'Cỏ nhân tạo', 'Khả dụng'),
   ('field-003', 'Sân Thống Nhất', '138 Đường 3/2, Q.10, TP.HCM', 'Sân 11 người', 'Cỏ tự nhiên', 'Khả dụng'),
@@ -64,7 +67,12 @@ VALUES
   ('field-008', 'Sân Tao Đàn', '55 Trương Định, Q.3, TP.HCM', 'Sân futsal', 'Sàn gỗ', 'Khả dụng'),
   ('field-009', 'Sân Đại học Thể dục', '41 Lê Văn Huân, Q.Tân Bình, TP.HCM', 'Sân 11 người', 'Cỏ tự nhiên', 'Khả dụng'),
   ('field-010', 'Sân Cộng đồng Bình Dương', '12 Đại lộ Bình Dương, Thủ Dầu Một', 'Sân 7 người', 'Cỏ nhân tạo', 'Khả dụng')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE
+SET name = EXCLUDED.name,
+    location = EXCLUDED.location,
+    field_type = EXCLUDED.field_type,
+    surface_type = EXCLUDED.surface_type,
+    status = EXCLUDED.status;
 
 -- ============================================================
 -- 4. BẢNG PLAYERS - Cầu thủ
@@ -90,7 +98,8 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 INSERT INTO schedules (id, title, type, date, start_time, end_time, field_id, field_name, coach, status, notes)
 VALUES
-  ('sched-001', 'Tập thể lực đầu tuần',          'Tập thể lực',       '2026-10-28', '18:00', '20:00', 'field-001', 'Sân Sao Vàng A',    'HLV. Nguyễn Văn Huấn', 'Đã hoàn thành', 'Chú trọng cardio và tốc độ'),
+  ('sched-c1',  'Tập chiến thuật đêm tại Sân C1', 'Tập chiến thuật',   '2026-11-03', '19:00', '21:00', 'field-c1',  'Sân bóng C1',       'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Tập luyện ban đêm dưới dàn đèn cao áp Sân C1'),
+  ('sched-001', 'Tập thể lực đầu tuần',          'Tập thể lực',       '2026-10-28', '18:00', '20:00', 'field-c1',  'Sân bóng C1',       'HLV. Nguyễn Văn Huấn', 'Đã hoàn thành', 'Chú trọng cardio và tốc độ'),
   ('sched-002', 'Tập chiến thuật 4-3-3',          'Tập chiến thuật',   '2026-10-29', '17:30', '19:30', 'field-001', 'Sân Sao Vàng A',    'HLV. Nguyễn Văn Huấn', 'Đã hoàn thành', 'Luyện sơ đồ chiến thuật mới'),
   ('sched-003', 'Đấu tập nội bộ thứ 4',          'Đấu tập nội bộ',   '2026-10-30', '18:00', '20:30', 'field-002', 'Sân Sao Vàng B',    'HLV. Nguyễn Văn Huấn', 'Đang diễn ra',  'Chia 2 đội: Đỏ vs Xanh'),
   ('sched-004', 'Tập thể lực cuối tuần',          'Tập thể lực',       '2026-11-01', '07:00', '09:00', 'field-001', 'Sân Sao Vàng A',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Buổi tập sáng sớm, mang giày đinh'),
@@ -140,7 +149,9 @@ SET status = EXCLUDED.status,
 -- ============================================================
 INSERT INTO matches (id, opponent, opponent_logo, match_type, date, time, field_name, home_score, away_score, status, goal_scorers, mvp, yellow_cards, red_cards, notes)
 VALUES
-  ('match-001', 'FC Rồng Đỏ',       NULL, 'Giao hữu',    '2026-10-10', '16:00', 'Sân Sao Vàng A',     3, 1, 'Đã kết thúc',
+  ('match-c1',  'FC Khách Mời C1',   NULL, 'Giao hữu',    '2026-11-04', '19:30', 'Sân bóng C1',        0, 0, 'Sắp diễn ra',
+   '[]', NULL, 0, 0, 'Thi đấu giao lưu dưới ánh đèn cao áp Sân C1'),
+  ('match-001', 'FC Rồng Đỏ',       NULL, 'Giao hữu',    '2026-10-10', '16:00', 'Sân bóng C1',        3, 1, 'Đã kết thúc',
    '[{"playerName":"Hoàng Minh Huy","minute":15},{"playerName":"Bùi Văn Kiên","minute":45},{"playerName":"Nguyễn Đức Thắng","minute":78}]',
    'Hoàng Minh Huy', 1, 0, 'Chiến thắng ấn tượng, đội hình thi đấu tốt'),
 

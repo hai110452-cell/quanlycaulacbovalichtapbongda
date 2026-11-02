@@ -17,18 +17,14 @@ function NavbarContent() {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // Phân quyền hiển thị Menu:
-  // - Customer (Khách vãng lai / chưa đăng nhập): Liệt kê đầy đủ các tính năng, chuyên mục có sẵn của CLB
+  // - Customer (Khách hàng / Người dùng công cộng): Chỉ có 4 tính năng: Trang Chủ, Tìm Sân, Lịch Đặt Sân, Liên Hệ
   // - Thành viên nội bộ đã đăng nhập (Admin, Coach, Player): Mở khóa các module quản trị tương ứng
   const visibleNavItems = !user
     ? [
         { href: '/', tab: 'home', label: 'Trang Chủ', icon: '🏠' },
-        { href: '/?tab=teams', tab: 'teams', label: 'Đội Tuyển', icon: '🏆' },
-        { href: '/?tab=members', tab: 'members', label: 'Cầu Thủ', icon: '🏃' },
-        { href: '/?tab=coaches', tab: 'coaches', label: 'Huấn Luyện Viên', icon: '👨‍💼' },
-        { href: '/?tab=schedules', tab: 'schedules', label: 'Lịch Tập & Đấu', icon: '📅' },
-        { href: '/?tab=results', tab: 'results', label: 'Kết Quả & Phong Độ', icon: '📊' },
-        { href: '/?tab=announcements', tab: 'announcements', label: 'Bản Tin CLB', icon: '📢' },
-        { href: '/?tab=about', tab: 'about', label: 'Về CLB', icon: '⭐' },
+        { href: '/?tab=fields', tab: 'fields', label: 'Tìm Sân', icon: '🔍' },
+        { href: '/?tab=booking-schedule', tab: 'booking-schedule', label: 'Lịch Đặt Sân', icon: '📅' },
+        { href: '/?tab=contact', tab: 'contact', label: 'Liên Hệ', icon: '📞' },
       ]
     : user.role === 'admin'
     ? [

@@ -9,32 +9,27 @@ interface FootballField {
   fieldType: string;
   surfaceType: string;
   status: string;
+  image?: string;
 }
 
 const defaultFields: FootballField[] = [
   {
-    id: 'field-1',
-    name: 'Sân bóng Sao Vàng A (Sân 7)',
-    location: 'Số 12 Đường Cầu Diễn, Bắc Từ Liêm, Hà Nội',
-    fieldType: 'Sân 7 người',
-    surfaceType: 'Cỏ nhân tạo',
+    id: 'field-c1-1',
+    name: 'Sân bóng C1 - Sân 1 (Cỏ nhân tạo)',
+    location: '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Giờ hoạt động: Thứ 2 – Chủ nhật: 24/24 • Hotline: 0983 830 955 / 0906 424 006 (250k – 350k/h)',
+    fieldType: 'Sân bóng mini cỏ nhân tạo đạt chuẩn',
+    surfaceType: 'Cỏ nhân tạo cao cấp & Dàn đèn cao áp ban đêm',
     status: 'Khả dụng',
+    image: '/san-c1.jpg',
   },
   {
-    id: 'field-2',
-    name: 'Sân bóng Sao Vàng B (Sân 11)',
-    location: 'Khu liên hợp thể thao Quốc Gia, Mỹ Đình',
-    fieldType: 'Sân 11 người',
-    surfaceType: 'Cỏ tự nhiên',
+    id: 'field-c1-2',
+    name: 'Sân bóng C1 - Sân 2 (Cỏ nhân tạo)',
+    location: '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Giờ hoạt động: Thứ 2 – Chủ nhật: 24/24 • Hotline: 0983 830 955 / 0906 424 006 (250k – 350k/h)',
+    fieldType: 'Sân bóng mini cỏ nhân tạo đạt chuẩn',
+    surfaceType: 'Cỏ nhân tạo cao cấp & Dàn đèn cao áp ban đêm',
     status: 'Khả dụng',
-  },
-  {
-    id: 'field-3',
-    name: 'Sân trong nhà Futsal Center',
-    location: 'Quận Nam Từ Liêm, Hà Nội',
-    fieldType: 'Sân futsal',
-    surfaceType: 'Sàn gỗ',
-    status: 'Bảo trì',
+    image: '/san-c1.jpg',
   },
 ];
 
@@ -70,7 +65,19 @@ export default function FieldsPage() {
         {fields.map((f) => {
           const isAvail = f.status === 'Khả dụng';
           return (
-            <article key={f.id} className="field-card">
+            <article key={f.id} className="field-card overflow-hidden">
+              {f.image && (
+                <div style={{ margin: '-24px -24px 16px -24px', height: '180px', overflow: 'hidden', position: 'relative' }}>
+                  <img
+                    src={f.image}
+                    alt={f.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div style={{ position: 'absolute', bottom: '8px', left: '12px', background: 'rgba(0,0,0,0.6)', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', color: '#fff', fontWeight: 'bold' }}>
+                    🏟️ SÂN C1
+                  </div>
+                </div>
+              )}
               <div className="field-top">
                 <span className={`badge ${isAvail ? 'badge-success' : 'badge-warning'}`}>
                   {f.status}

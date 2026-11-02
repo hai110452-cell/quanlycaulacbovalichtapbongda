@@ -146,6 +146,24 @@ export const api = {
       method: 'DELETE',
     }),
 
+  // Đặt sân trực tuyến & Demo sân khách hàng
+  getFieldBookings: (date?: string, fieldId?: string) => {
+    const params = new URLSearchParams();
+    if (date) params.append('date', date);
+    if (fieldId) params.append('fieldId', fieldId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchJson<{ success: boolean; total: number; data: any[] }>(`/field-bookings${qs}`);
+  },
+  bookFieldSlot: (data: any) =>
+    fetchJson<{ success: boolean; message: string; data: any; receiptCode?: string }>('/field-bookings', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  cancelFieldBooking: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/field-bookings?id=${id}`, {
+      method: 'DELETE',
+    }),
+
   // Người dùng & HLV
   getUsers: () => fetchJson<{ success: boolean; total: number; data: any[] }>('/users'),
   addUser: (data: any) =>
@@ -215,6 +233,31 @@ export const api = {
   deleteFinance: (id: string) =>
     fetchJson<{ success: boolean; message: string }>(`/finances/${id}`, {
       method: 'DELETE',
+    }),
+
+  // Chi phí / Thu phí cầu thủ theo tháng & năm (Player Monthly & Yearly Fees)
+  getPlayerFees: (year?: number, month?: number, playerId?: string) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', String(year));
+    if (month) params.append('month', String(month));
+    if (playerId) params.append('playerId', playerId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchJson<{ success: boolean; total: number; data: any[] }>(`/player-fees${qs}`);
+  },
+  updatePlayerFee: (data: {
+    playerId: string;
+    year: number;
+    month: number;
+    status: 'paid' | 'unpaid' | 'exempt';
+    amount?: number;
+    paidDate?: string;
+    paymentMethod?: string;
+    receiptNo?: string;
+    notes?: string;
+  }) =>
+    fetchJson<{ success: boolean; message: string; data: any }>('/player-fees', {
+      method: 'POST',
+      body: JSON.stringify(data),
     }),
 };
 

@@ -42,10 +42,14 @@ export default function RootLayout({
                 <p className="text-emerald-100 text-xs">
                   © 2026 Quản Lý Câu Lạc Bộ & Lịch Tập Bóng Đá. Tông màu chủ đạo Xanh Lá Sân Cỏ.
                 </p>
-                <div className="flex items-center gap-4 text-emerald-200 text-xs font-semibold">
-                  <span className="bg-emerald-800/80 px-2.5 py-1 rounded-lg border border-emerald-600">Trụ sở: SVĐ Quốc Gia Mỹ Đình</span>
+                <div className="flex flex-wrap items-center justify-center gap-3 text-emerald-200 text-xs font-semibold">
+                  <span className="bg-emerald-800/80 px-2.5 py-1 rounded-lg border border-emerald-600">Trụ sở: 1B Y Ngông, Tân Tiến, Buôn Ma Thuột</span>
                   <span>•</span>
-                  <span className="bg-emerald-800/80 px-2.5 py-1 rounded-lg border border-emerald-600">Hotline: 0901.234.567</span>
+                  <span className="bg-emerald-800/80 px-2.5 py-1 rounded-lg border border-emerald-600">Hotline: 0983 830 955 / 0906 424 006</span>
+                  <span>•</span>
+                  <span className="bg-emerald-800/80 px-2.5 py-1 rounded-lg border border-emerald-600">Hoạt động: Thứ 2 – Chủ nhật: 24/24</span>
+                  <span>•</span>
+                  <span className="bg-emerald-800/80 px-2.5 py-1 rounded-lg border border-emerald-600">Quy mô: Cụm 2 Sân C1</span>
                 </div>
               </div>
             </footer>

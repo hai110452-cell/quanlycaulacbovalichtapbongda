@@ -4,17 +4,36 @@
 
 const defaultFields = [
   {
+    id: 'field-c1-1',
+    name: 'Sân bóng C1 - Sân 1 (Cỏ nhân tạo)',
+    location: '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 • Hotline: 0983 830 955 / 0906 424 006',
+    fieldType: 'Sân mini cỏ nhân tạo',
+    surfaceType: 'Cỏ nhân tạo cao cấp & Đèn cao áp ban đêm (250k - 350k/h)',
+    status: 'Khả dụng',
+    image: '/san-c1.jpg',
+  },
+  {
+    id: 'field-c1-2',
+    name: 'Sân bóng C1 - Sân 2 (Cỏ nhân tạo)',
+    location: '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 • Hotline: 0983 830 955 / 0906 424 006',
+    fieldType: 'Sân mini cỏ nhân tạo',
+    surfaceType: 'Cỏ nhân tạo cao cấp & Đèn cao áp ban đêm (250k - 350k/h)',
+    status: 'Khả dụng',
+    image: '/san-c1.jpg',
+  },
+  {
     id: 'field-1',
     name: 'Sân bóng Sao Vàng A (Sân 7)',
     location: 'Số 12 Đường Cầu Diễn, Bắc Từ Liêm, Hà Nội',
     fieldType: 'Sân 7 người',
     surfaceType: 'Cỏ nhân tạo cao cấp',
     status: 'Khả dụng',
+    image: '/san-c1.jpg',
   },
   {
     id: 'field-2',
     name: 'Sân bóng Sao Vàng B (Sân 11)',
-    location: 'Khu liên hợp thể thao Mỹ Đình, Nam Từ Liêm',
+    location: 'Khu liên hợp thể thao Sân C1 mở rộng',
     fieldType: 'Sân 11 người',
     surfaceType: 'Cỏ tự nhiên đạt chuẩn',
     status: 'Khả dụng',
@@ -41,7 +60,15 @@ async function initFields() {
   container.innerHTML = fields.map((f) => {
     const isAvail = f.status === 'Khả dụng';
     return `
-      <article class="field-card">
+      <article class="field-card" style="overflow: hidden;">
+        ${f.image ? `
+          <div style="margin: -24px -24px 16px -24px; height: 180px; overflow: hidden; position: relative;">
+            <img src="${f.image}" alt="${f.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+            <div style="position: absolute; bottom: 8px; left: 12px; background: rgba(0,0,0,0.65); padding: 3px 8px; border-radius: 6px; font-size: 11px; color: #fff; font-weight: bold;">
+              🏟️ SÂN C1
+            </div>
+          </div>
+        ` : ''}
         <div class="field-top">
           <span class="badge ${isAvail ? 'badge-success' : 'badge-warning'}">${f.status || 'Khả dụng'}</span>
           <span style="font-size: 20px;">🏟️</span>
