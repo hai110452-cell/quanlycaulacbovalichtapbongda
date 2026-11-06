@@ -62,16 +62,23 @@ export default function RegisterPage() {
       setSuccess(
         `Đăng ký thành công với quyền ${
           formData.role === 'admin'
-            ? 'Quản trị viên (Admin)'
-            : formData.role === 'coach'
-            ? 'Huấn luyện viên (HLV)'
-            : 'Thành viên CLB'
+            ? 'ADMIN (Chủ sân)'
+            : formData.role === 'manager' || formData.role === 'staff' || formData.role === 'coach'
+            ? 'STAFF / MANAGER (Quản lý ca / CLB)'
+            : 'USER (Khách hàng / Cầu thủ)'
         }! Đang chuyển hướng...`
       );
       login(newUserObj, 'mock-token-' + formData.role);
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+      const target = basePath ? `${basePath}/` : '/';
+      try {
+        router.push(target);
+      } catch {}
       setTimeout(() => {
-        router.push('/');
-      }, 700);
+        if (typeof window !== 'undefined') {
+          window.location.href = target;
+        }
+      }, 300);
     } catch (err: any) {
       setError(err.message || 'Lỗi kết nối tới máy chủ');
     } finally {
@@ -194,9 +201,10 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full px-4 py-2.5 rounded-xl border-2 border-emerald-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15 bg-emerald-50/50 focus:bg-white text-slate-900 text-sm font-bold outline-none transition-all"
               >
-                <option value="admin">🛡️ Quản trị viên (Admin) - Toàn quyền quản trị CLB</option>
-                <option value="coach">📋 Huấn luyện viên (HLV) - Quản lý lịch tập & điểm danh</option>
-                <option value="player">🏃 Cầu thủ / Thành viên - Xem lịch & tham gia CLB</option>
+                <option value="admin">👑 ADMIN (Chủ sân) - Toàn quyền, doanh thu, tạo sân, nhân viên & KPI</option>
+                <option value="manager">📋 STAFF / MANAGER (Quản lý ca / CLB) - Duyệt/hủy đặt sân, xếp lịch đá tập, thanh toán & thiết bị thuê</option>
+                <option value="coach">🧢 COACH (Huấn luyện viên) - Toàn quyền lịch tập & điểm danh đội mình (Chỉ xem thu chi & thông báo)</option>
+                <option value="user">⚽ USER (Khách hàng / Cầu thủ) - Xem lịch trống, đặt sân, lịch sử cá nhân</option>
               </select>
             </div>
 

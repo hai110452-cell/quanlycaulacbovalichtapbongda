@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, ILike, Not } from 'typeorm';
+import { Repository, ILike, Not } from 'typeorm';
 import { Player } from './player.entity';
 
 @Injectable()

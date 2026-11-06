@@ -9,8 +9,8 @@ const demoRoles = {
 };
 
 function getAuthUser() {
-  const userStr = localStorage.getItem('user');
-  if (!userStr || userStr === 'undefined') {
+  const userStr = localStorage.getItem('user') || localStorage.getItem('saovang_user');
+  if (!userStr || userStr === 'undefined' || userStr === 'null') {
     // Mặc định đăng nhập demo Admin
     setAuthSession(demoRoles.admin, 'demo-token');
     return demoRoles.admin;
@@ -23,14 +23,20 @@ function getAuthUser() {
 }
 
 function setAuthSession(user, token) {
-  localStorage.setItem('user', JSON.stringify(user));
-  if (token) localStorage.setItem('token', token);
+  const str = JSON.stringify(user);
+  const finalToken = token || 'demo-token';
+  localStorage.setItem('user', str);
+  localStorage.setItem('saovang_user', str);
+  localStorage.setItem('token', finalToken);
+  localStorage.setItem('saovang_token', finalToken);
 }
 
 function clearAuthSession() {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
-  window.location.href = '/login.html';
+  localStorage.removeItem('saovang_user');
+  localStorage.removeItem('saovang_token');
+  window.location.href = 'login.html';
 }
 
 function renderNavbarAuth() {

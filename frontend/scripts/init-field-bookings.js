@@ -75,11 +75,11 @@ async function main() {
         services: null,
         notes: null
       },
-      // Sân Sao Vàng A (Sân 7) - Hôm nay 2026-11-01
+      // Sân C1 (Sân 1) (Sân 7) - Hôm nay 2026-11-01
       {
         id: 'fb-001',
         field_id: 'field-001',
-        field_name: 'Sân Sao Vàng A (Sân 7)',
+        field_name: 'Sân C1 (Sân 1) (Sân 7)',
         booking_date: '2026-11-01',
         slot_id: 'slot-1',
         slot_time: '06:00 - 07:30',
@@ -95,7 +95,7 @@ async function main() {
       {
         id: 'fb-002',
         field_id: 'field-001',
-        field_name: 'Sân Sao Vàng A (Sân 7)',
+        field_name: 'Sân C1 (Sân 1) (Sân 7)',
         booking_date: '2026-11-01',
         slot_id: 'slot-2',
         slot_time: '07:30 - 09:00',
@@ -111,7 +111,7 @@ async function main() {
       {
         id: 'fb-003',
         field_id: 'field-001',
-        field_name: 'Sân Sao Vàng A (Sân 7)',
+        field_name: 'Sân C1 (Sân 1) (Sân 7)',
         booking_date: '2026-11-01',
         slot_id: 'slot-3',
         slot_time: '16:00 - 17:30',
@@ -127,7 +127,7 @@ async function main() {
       {
         id: 'fb-004',
         field_id: 'field-001',
-        field_name: 'Sân Sao Vàng A (Sân 7)',
+        field_name: 'Sân C1 (Sân 1) (Sân 7)',
         booking_date: '2026-11-01',
         slot_id: 'slot-4',
         slot_time: '17:30 - 19:00',
@@ -143,7 +143,7 @@ async function main() {
       {
         id: 'fb-005',
         field_id: 'field-001',
-        field_name: 'Sân Sao Vàng A (Sân 7)',
+        field_name: 'Sân C1 (Sân 1) (Sân 7)',
         booking_date: '2026-11-01',
         slot_id: 'slot-5',
         slot_time: '19:00 - 20:30',
@@ -152,14 +152,14 @@ async function main() {
         is_booked: true,
         customer_name: 'Lê Hoàng Hải',
         customer_phone: '0903.222.111',
-        team_name: 'Sao Vàng FC - Tuyến Trẻ U21',
+        team_name: 'CLB Sân C1 - Tuyến Trẻ U21',
         services: 'Bật dàn đèn cao áp 100% công suất',
         notes: 'Lịch tập chiến thuật câu lạc bộ'
       },
       {
         id: 'fb-006',
         field_id: 'field-001',
-        field_name: 'Sân Sao Vàng A (Sân 7)',
+        field_name: 'Sân C1 (Sân 1) (Sân 7)',
         booking_date: '2026-11-01',
         slot_id: 'slot-6',
         slot_time: '20:30 - 22:00',
@@ -173,11 +173,11 @@ async function main() {
         notes: null
       },
 
-      // Sân Thống Nhất / SVĐ Quốc Gia Sao Vàng (Sân 11 - Chuẩn Olympic như ảnh khách hàng tải lên)
+      // Sân Thống Nhất / SVĐ Quốc Gia Sân C1 (Sân 11 - Chuẩn Olympic như ảnh khách hàng tải lên)
       {
         id: 'fb-011',
         field_id: 'field-003',
-        field_name: 'Sân Vận Động Sao Vàng (Sân 11 Chuẩn Quốc Tế)',
+        field_name: 'Sân Vận Động Sân C1 (Sân 11 Chuẩn Quốc Tế)',
         booking_date: '2026-11-01',
         slot_id: 'slot-1',
         slot_time: '06:30 - 08:30',
@@ -193,7 +193,7 @@ async function main() {
       {
         id: 'fb-012',
         field_id: 'field-003',
-        field_name: 'Sân Vận Động Sao Vàng (Sân 11 Chuẩn Quốc Tế)',
+        field_name: 'Sân Vận Động Sân C1 (Sân 11 Chuẩn Quốc Tế)',
         booking_date: '2026-11-01',
         slot_id: 'slot-3',
         slot_time: '15:30 - 17:30',
@@ -209,7 +209,7 @@ async function main() {
       {
         id: 'fb-013',
         field_id: 'field-003',
-        field_name: 'Sân Vận Động Sao Vàng (Sân 11 Chuẩn Quốc Tế)',
+        field_name: 'Sân Vận Động Sân C1 (Sân 11 Chuẩn Quốc Tế)',
         booking_date: '2026-11-01',
         slot_id: 'slot-4',
         slot_time: '18:00 - 20:30',
@@ -218,7 +218,7 @@ async function main() {
         is_booked: true,
         customer_name: 'Phạm Hồng Thái',
         customer_phone: '0977.889.900',
-        team_name: 'Sao Vàng FC - Đội 1 (Tuyển Chính) vs FC Hà Nội All Stars',
+        team_name: 'CLB Sân C1 - Đội 1 (Tuyển Chính) vs FC Hà Nội All Stars',
         services: 'Mở cửa khán đài A + Bảng điện tử LED + Tổ trọng tài VFF',
         notes: 'Trận đại chiến giao hữu phong trào cúp mùa thu'
       },

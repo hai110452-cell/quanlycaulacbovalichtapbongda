@@ -55,11 +55,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res && res.success) {
         successAlert.textContent = 'Đăng nhập thành công! Đang chuyển đến trang chủ...';
         successAlert.style.display = 'flex';
-        setAuthSession(res.user, res.token);
+        const str = JSON.stringify(res.user);
+        localStorage.setItem('user', str);
+        localStorage.setItem('saovang_user', str);
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('saovang_token', res.token);
+        if (typeof setAuthSession === 'function') setAuthSession(res.user, res.token);
         setTimeout(() => {
           // Đúng thì chuyển đến frmMain (Trang chủ)
-          window.location.href = '/index.html';
-        }, 700);
+          window.location.href = 'index.html';
+        }, 500);
       } else {
         // 1. Kiểm tra tài khoản đã đăng ký trong localStorage
         let matched = null;
@@ -72,12 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
           successAlert.textContent = `Đăng nhập thành công với vai trò ${matched.role === 'admin' ? 'Quản trị viên' : matched.role === 'coach' ? 'HLV' : 'Thành viên'}! Đang chuyển hướng...`;
           successAlert.style.display = 'flex';
           const userObj = { id: 'u-' + Date.now(), name: matched.name, email: idVal, role: matched.role };
-          localStorage.setItem('user', JSON.stringify(userObj));
-          localStorage.setItem('token', 'token-' + matched.role);
-          if (typeof setAuthSession === 'function') setAuthSession(userObj, 'token-' + matched.role);
+          const str = JSON.stringify(userObj);
+          const tok = 'token-' + matched.role;
+          localStorage.setItem('user', str);
+          localStorage.setItem('saovang_user', str);
+          localStorage.setItem('token', tok);
+          localStorage.setItem('saovang_token', tok);
+          if (typeof setAuthSession === 'function') setAuthSession(userObj, tok);
           setTimeout(() => {
-            window.location.href = '/index.html';
-          }, 600);
+            window.location.href = 'index.html';
+          }, 500);
           return;
         }
 
@@ -99,12 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
         successAlert.textContent = `Đăng nhập thành công với vai trò ${role === 'admin' ? 'Quản trị viên' : role === 'coach' ? 'HLV' : 'Thành viên'}! Đang chuyển hướng...`;
         successAlert.style.display = 'flex';
         const userObj = { id: 'u-' + Date.now(), name, email: idVal, role };
-        localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('token', 'token-' + role);
-        if (typeof setAuthSession === 'function') setAuthSession(userObj, 'token-' + role);
+        const str = JSON.stringify(userObj);
+        const tok = 'token-' + role;
+        localStorage.setItem('user', str);
+        localStorage.setItem('saovang_user', str);
+        localStorage.setItem('token', tok);
+        localStorage.setItem('saovang_token', tok);
+        if (typeof setAuthSession === 'function') setAuthSession(userObj, tok);
         setTimeout(() => {
-          window.location.href = '/index.html';
-        }, 600);
+          window.location.href = 'index.html';
+        }, 500);
         return;
       }
     } catch (err) {

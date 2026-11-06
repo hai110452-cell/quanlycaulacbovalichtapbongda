@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { exportToCSV, printReport } from '@/lib/exportUtils';
 
@@ -46,10 +47,18 @@ const initialStats: PlayerAttendanceStat[] = [
 
 export default function AttendancePage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'sheet' | 'stats'>('sheet');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
   const [list, setList] = useState<AttendanceItem[]>(defaultList);
   const [saved, setSaved] = useState(false);
+
+  // Nếu là vai trò Cầu thủ / Khách hàng, tự động chuyển về giao diện Hồ sơ cá nhân
+  useEffect(() => {
+    if (user && (user.role === 'user' || user.role === 'player')) {
+      router.replace('/?tab=attendance');
+    }
+  }, [user, router]);
 
   // Kiểm tra quyền: Chỉ Admin và HLV mới được điểm danh & lưu
   const canEdit = user?.role === 'admin' || user?.role === 'coach';

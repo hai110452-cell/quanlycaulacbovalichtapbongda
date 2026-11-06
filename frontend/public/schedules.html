@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lịch tập - Sao Vàng FC</title>
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/navbar.css">
+  <title>Lịch tập - Sân Bóng C1</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navbar.css">
   <style>
     .schedule-list { display:flex; flex-direction:column; gap:14px; }
     .schedule-row {
@@ -174,7 +174,7 @@
   </div>
 </div>
 
-<script src="/js/app.js"></script>
+<script src="js/app.js"></script>
 <script>
   if (!requireLogin()) {}
 
@@ -182,19 +182,19 @@
   const TYPE_BADGE = { training:'badge-success', tactical:'badge-info', fitness:'badge-warning', match:'badge-danger' };
 
   let schedules = [
-    { id: 'sched-1', title: 'Rèn luyện thể lực và sức bền đầu tuần', type: 'fitness', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-27', timeStart: '17:30', timeEnd: '19:30', location: 'Sân bóng Sao Vàng A (Sân 7)', desc: 'Khởi động kỹ, mang giày đinh dăm AG, tập chạy biến tốc.' },
-    { id: 'sched-001', title: 'Tập thể lực đầu tuần', type: 'fitness', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-10-28', timeStart: '18:00', timeEnd: '20:00', location: 'Sân Sao Vàng A', desc: 'Chú trọng cardio và tốc độ' },
-    { id: 'sched-002', title: 'Tập chiến thuật 4-3-3', type: 'tactical', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-29', timeStart: '17:30', timeEnd: '19:30', location: 'Sân Sao Vàng A', desc: 'Luyện sơ đồ chiến thuật mới' },
-    { id: 'sched-2', title: 'Tập phối hợp bóng ngắn và sút phạt góc', type: 'tactical', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-29', timeStart: '18:00', timeEnd: '20:00', location: 'Sân bóng Sao Vàng A (Sân 7)', desc: 'Chia đội 7v7 tập phản công nhanh.' },
-    { id: 'sched-003', title: 'Đấu tập nội bộ thứ 4', type: 'match', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-30', timeStart: '18:00', timeEnd: '20:30', location: 'Sân Sao Vàng B', desc: 'Chia 2 đội: Đỏ vs Xanh' },
-    { id: 'sched-3', title: 'Giao hữu thử nghiệm đội hình với Hà Nội Star FC', type: 'match', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-10-31', timeStart: '16:00', timeEnd: '18:30', location: 'Sân bóng Sao Vàng B (Sân 11)', desc: 'Mặc đồng phục thi đấu màu Đỏ, có mặt trước 45 phút.' },
-    { id: 'sched-004', title: 'Tập thể lực cuối tuần', type: 'fitness', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-11-01', timeStart: '07:00', timeEnd: '09:00', location: 'Sân Sao Vàng A', desc: 'Buổi tập sáng sớm, mang giày đinh' },
-    { id: 'sched-005', title: 'Tập kỹ thuật cá nhân', type: 'tactical', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-11-02', timeStart: '18:00', timeEnd: '20:00', location: 'Sân Mini Star', desc: 'Tập rê bóng và dứt điểm' },
-    { id: 'sched-006', title: 'Giao hữu vs FC Rồng Xanh', type: 'match', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-11-05', timeStart: '16:00', timeEnd: '18:00', location: 'Sân Thống Nhất', desc: 'Trận giao hữu hàng tháng, toàn đội tham gia' },
-    { id: 'sched-007', title: 'Đấu tập nội bộ chủ nhật', type: 'match', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-11-08', timeStart: '07:30', timeEnd: '10:00', location: 'Sân Sao Vàng B', desc: 'Luyện set-piece và phạt góc' },
-    { id: 'sched-008', title: 'Tập thể lực - Bài tập sức mạnh', type: 'fitness', team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', date: '2026-11-10', timeStart: '18:00', timeEnd: '20:00', location: 'Sân Sao Vàng A', desc: 'Gym + field training' },
-    { id: 'sched-009', title: 'Tập phòng thủ', type: 'tactical', team: 'Sao Vàng FC - Tuyến Trẻ U21', date: '2026-11-12', timeStart: '17:00', timeEnd: '19:00', location: 'Sân Rạch Miễu', desc: 'Tập pressing cao và chuyển trạng thái' },
-    { id: 'sched-010', title: 'Giao hữu vs Hoàng Long FC', type: 'match', team: 'Sao Vàng FC - Futsal Team', date: '2026-11-15', timeStart: '15:30', timeEnd: '17:30', location: 'Sân Đại học Thể dục', desc: 'Trận quan trọng chuẩn bị cho giải cuối năm' },
+    { id: 'sched-1', title: 'Rèn luyện thể lực và sức bền đầu tuần', type: 'fitness', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-10-27', timeStart: '17:30', timeEnd: '19:30', location: 'Sân bóng C1 (Sân 1)', desc: 'Khởi động kỹ, mang giày đinh dăm AG, tập chạy biến tốc.' },
+    { id: 'sched-001', title: 'Tập thể lực đầu tuần', type: 'fitness', team: 'CLB Sân C1 - Tuyến Trẻ U21', date: '2026-10-28', timeStart: '18:00', timeEnd: '20:00', location: 'Sân C1 (Sân 1)', desc: 'Chú trọng cardio và tốc độ' },
+    { id: 'sched-002', title: 'Tập chiến thuật 4-3-3', type: 'tactical', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-10-29', timeStart: '17:30', timeEnd: '19:30', location: 'Sân C1 (Sân 1)', desc: 'Luyện sơ đồ chiến thuật mới' },
+    { id: 'sched-2', title: 'Tập phối hợp bóng ngắn và sút phạt góc', type: 'tactical', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-10-29', timeStart: '18:00', timeEnd: '20:00', location: 'Sân bóng C1 (Sân 1)', desc: 'Chia đội 7v7 tập phản công nhanh.' },
+    { id: 'sched-003', title: 'Đấu tập nội bộ thứ 4', type: 'match', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-10-30', timeStart: '18:00', timeEnd: '20:30', location: 'Sân C1 (Sân 2)', desc: 'Chia 2 đội: Đỏ vs Xanh' },
+    { id: 'sched-3', title: 'Giao hữu thử nghiệm đội hình với Hà Nội Star FC', type: 'match', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-10-31', timeStart: '16:00', timeEnd: '18:30', location: 'Sân bóng C1 (Sân 2)', desc: 'Mặc đồng phục thi đấu màu Đỏ, có mặt trước 45 phút.' },
+    { id: 'sched-004', title: 'Tập thể lực cuối tuần', type: 'fitness', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-11-01', timeStart: '07:00', timeEnd: '09:00', location: 'Sân C1 (Sân 1)', desc: 'Buổi tập sáng sớm, mang giày đinh' },
+    { id: 'sched-005', title: 'Tập kỹ thuật cá nhân', type: 'tactical', team: 'CLB Sân C1 - Tuyến Trẻ U21', date: '2026-11-02', timeStart: '18:00', timeEnd: '20:00', location: 'Sân Mini Star', desc: 'Tập rê bóng và dứt điểm' },
+    { id: 'sched-006', title: 'Giao hữu vs FC Rồng Xanh', type: 'match', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-11-05', timeStart: '16:00', timeEnd: '18:00', location: 'Sân Thống Nhất', desc: 'Trận giao hữu hàng tháng, toàn đội tham gia' },
+    { id: 'sched-007', title: 'Đấu tập nội bộ chủ nhật', type: 'match', team: 'CLB Sân C1 - Tuyến Trẻ U21', date: '2026-11-08', timeStart: '07:30', timeEnd: '10:00', location: 'Sân C1 (Sân 2)', desc: 'Luyện set-piece và phạt góc' },
+    { id: 'sched-008', title: 'Tập thể lực - Bài tập sức mạnh', type: 'fitness', team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', date: '2026-11-10', timeStart: '18:00', timeEnd: '20:00', location: 'Sân C1 (Sân 1)', desc: 'Gym + field training' },
+    { id: 'sched-009', title: 'Tập phòng thủ', type: 'tactical', team: 'CLB Sân C1 - Tuyến Trẻ U21', date: '2026-11-12', timeStart: '17:00', timeEnd: '19:00', location: 'Sân Rạch Miễu', desc: 'Tập pressing cao và chuyển trạng thái' },
+    { id: 'sched-010', title: 'Giao hữu vs Hoàng Long FC', type: 'match', team: 'CLB Sân C1 - Futsal Team', date: '2026-11-15', timeStart: '15:30', timeEnd: '17:30', location: 'Sân Đại học Thể dục', desc: 'Trận quan trọng chuẩn bị cho giải cuối năm' },
   ];
   let nextId = 14;
   let deleteId = null;
@@ -309,7 +309,7 @@
 
   async function loadDbSchedules() {
     try {
-      const res = await fetch('http://localhost:5000/api/schedules');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/schedules');
       if (res.ok) {
         const json = await res.json();
         const list = json.data || json;
@@ -318,11 +318,11 @@
             id: s.id || (idx + 1),
             title: s.title,
             type: s.type === 'Tập thể lực' ? 'fitness' : (s.type === 'Thi đấu giao hữu' || s.type === 'Đấu tập nội bộ' ? 'match' : 'tactical'),
-            team: s.teamName || 'Sao Vàng FC',
+            team: s.teamName || 'CLB Sân Bóng C1',
             date: s.date,
             timeStart: s.startTime,
             timeEnd: s.endTime,
-            location: s.fieldName || 'Sân Sao Vàng A',
+            location: s.fieldName || 'Sân C1 (Sân 1)',
             desc: s.notes || ''
           }));
           updateStats();

@@ -150,7 +150,7 @@ export default function PlayersPage() {
 
   const fetchPlayers = async () => {
     try {
-      const res = await fetch('/api/players');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/players');
       if (res.ok) {
         const data = await res.json();
         const list = data?.data || (Array.isArray(data) ? data : null);
@@ -159,7 +159,7 @@ export default function PlayersPage() {
         }
       }
     } catch (err) {
-      console.warn('Lỗi kết nối API /api/players:', err);
+      console.warn('Lỗi kết nối API Wispbyte /api/players:', err);
     }
   };
 
@@ -265,7 +265,7 @@ export default function PlayersPage() {
     ]);
     printReport({
       title: 'DANH SÁCH CẦU THỦ BIÊN CHẾ CÂU LẠC BỘ',
-      subtitle: 'Hồ sơ nhân trắc, thông tin liên lạc và vị trí thi đấu đội hình Sao Vàng FC',
+      subtitle: 'Hồ sơ nhân trắc, thông tin liên lạc và vị trí thi đấu đội hình CLB Sân Bóng C1',
       filterInfo: `Bộ lọc: Vị trí [${filterPosition}] • Trạng thái [${filterStatus}] • Kết quả: ${filtered.length} cầu thủ`,
       tableHeaders: headers,
       tableRows: rows,
@@ -310,7 +310,7 @@ export default function PlayersPage() {
     }
 
     try {
-      const res = await fetch('/api/players', {
+      const res = await fetch('https://haiandbao.wispbyte.app/api/players', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -353,7 +353,7 @@ export default function PlayersPage() {
     if (!canManage) return;
     if (confirm('Bạn có chắc chắn muốn xóa cầu thủ này khỏi danh sách?')) {
       try {
-        await fetch(`/api/players/${id}`, { method: 'DELETE' });
+        await fetch(`https://haiandbao.wispbyte.app/api/players/${id}`, { method: 'DELETE' });
         await fetchPlayers();
       } catch (err) {
         console.error('Lỗi xóa cầu thủ khỏi database:', err);
@@ -379,7 +379,7 @@ export default function PlayersPage() {
             <span>🏃</span> Quản Lý Cầu Thủ ({players.length})
           </h1>
           <p className="page-subtitle">
-            Hồ sơ danh sách cầu thủ thuộc biên chế câu lạc bộ Sao Vàng FC kèm tìm kiếm nâng cao & xuất báo cáo
+            Hồ sơ danh sách cầu thủ thuộc biên chế câu lạc bộ Sân Bóng C1 kèm tìm kiếm nâng cao & xuất báo cáo
           </p>
         </div>
 
@@ -534,7 +534,7 @@ export default function PlayersPage() {
                   🎂 <span>Ngày sinh: {player.dateOfBirth}</span>
                 </li>
                 <li className="player-info-item">
-                  ⚽ <span>Biên chế: CLB Sao Vàng FC</span>
+                  ⚽ <span>Biên chế: CLB Sân Bóng C1</span>
                 </li>
               </ul>
 

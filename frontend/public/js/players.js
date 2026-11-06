@@ -229,7 +229,7 @@ function renderPlayers() {
         <ul class="player-info-list">
           <li class="player-info-item">📞 <span>Điện thoại: ${player.phone || 'Chưa cập nhật'}</span></li>
           <li class="player-info-item">🎂 <span>Ngày sinh: ${player.dateOfBirth || '2000-01-01'}</span></li>
-          <li class="player-info-item">⚽ <span>Biên chế: CLB Sao Vàng FC</span></li>
+          <li class="player-info-item">⚽ <span>Biên chế: CLB Sân Bóng C1</span></li>
         </ul>
         <div class="player-actions" style="display: flex; gap: 8px;">
           <button class="btn btn-secondary" style="flex: 1; font-size: 12px; padding: 7px 10px;" onclick="viewPlayerProfile('${player.id}')">
@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ]);
     printReport({
       title: 'DANH SÁCH CẦU THỦ BIÊN CHẾ CÂU LẠC BỘ',
-      subtitle: 'Hồ sơ nhân sự thi đấu câu lạc bộ bóng đá Sao Vàng FC',
+      subtitle: 'Hồ sơ nhân sự thi đấu câu lạc bộ bóng đá CLB Sân Bóng C1',
       filterInfo: `Tổng số: ${playerList.length} cầu thủ`,
       tableHeaders: headers,
       tableRows: rows,

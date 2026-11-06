@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       body.headCoach || body.head_coach || 'Chưa phân công',
       body.captain || 'Chưa chỉ định',
       Number(body.memberCount || body.member_count) || 0,
-      body.homePitch || body.home_pitch || 'Sân bóng Sao Vàng',
+      body.homePitch || body.home_pitch || 'Sân bóng C1',
       Number(body.establishedYear || body.established_year) || 2024,
       body.description || '',
       body.status || 'Hoạt động',

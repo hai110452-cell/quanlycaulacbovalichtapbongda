@@ -25,7 +25,7 @@ async function run() {
   // 2. Chèn dữ liệu mẫu cho chi phí / quỹ CLB
   const initialFinances = [
     ['fin-1', '2026-10-01', 'Thu phí sinh hoạt tháng 10 của các thành viên', 'Thu', 6600000, 'Thủ quỹ CLB', '22 thành viên x 300.000 VNĐ'],
-    ['fin-2', '2026-10-03', 'Thanh toán tiền thuê sân tập tháng 10 (Sân Sao Vàng A)', 'Chi', 3500000, 'HLV Huấn', '8 buổi tập x 437.500 VNĐ'],
+    ['fin-2', '2026-10-03', 'Thanh toán tiền thuê sân tập tháng 10 (Sân C1 (Sân 1))', 'Chi', 3500000, 'HLV Huấn', '8 buổi tập x 437.500 VNĐ'],
     ['fin-3', '2026-10-10', 'Tiền tài trợ từ Công ty Thể thao Động Lực', 'Thu', 10000000, 'Ban Lãnh Đạo', 'Tài trợ trang phục & bóng thi đấu'],
     ['fin-4', '2026-10-15', 'Mua 10 quả bóng thi đấu tiêu chuẩn FIFA Quality Pro', 'Chi', 2400000, 'Ban Hậu Cần', 'Mua sắm trang bị tập luyện'],
     ['fin-5', '2026-10-24', 'Chi phí nước uống, y tế trận giao hữu với Hà Nội Star FC', 'Chi', 800000, 'Bác sĩ CLB', 'Nước khoáng, điện giải và băng gạc y tế'],
@@ -49,10 +49,10 @@ async function run() {
 
   // 3. Đảm bảo bảng teams có đầy đủ 4 đội bóng
   const initialTeams = [
-    ['team-1', 'Sao Vàng FC - Đội 1 (Tuyển Chính)', 'Đội hình 1 Chuyên nghiệp', 'HLV. Nguyễn Văn Huấn', 'Nguyễn Quang Hải (#19)', 22, 'Sân bóng Sao Vàng B (Sân 11)', 2021, 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.', 'Hoạt động'],
-    ['team-2', 'Sao Vàng FC - Tuyển Trẻ U21', 'Lứa tuổi U21 Đào tạo', 'HLV. Trần Đình Trọng', 'Lê Văn Đô (#7)', 18, 'Sân bóng Sao Vàng A (Sân 7)', 2023, 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.', 'Hoạt động'],
-    ['team-3', 'Sao Vàng FC - Đội Trẻ U17', 'Lứa tuổi U17 Học viện', 'HLV. Phạm Đức Huy', 'Trần Minh Quân (#10)', 16, 'Sân bóng Sao Vàng A (Sân 7)', 2024, 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.', 'Hoạt động'],
-    ['team-4', 'Sao Vàng FC - Futsal Team', 'Bóng đá trong nhà 5 người', 'HLV. Vũ Trọng Khôi', 'Đỗ Hùng Dũng (#8)', 12, 'Sân trong nhà Futsal Arena', 2023, 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.', 'Hoạt động']
+    ['team-1', 'CLB Sân C1 - Đội 1 (Tuyển Chính)', 'Đội hình 1 Chuyên nghiệp', 'HLV. Nguyễn Văn Huấn', 'Nguyễn Quang Hải (#19)', 22, 'Sân bóng C1 (Sân 2)', 2021, 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.', 'Hoạt động'],
+    ['team-2', 'CLB Sân C1 - Tuyến Trẻ U21', 'Lứa tuổi U21 Đào tạo', 'HLV. Trần Đình Trọng', 'Lê Văn Đô (#7)', 18, 'Sân bóng C1 (Sân 1)', 2023, 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.', 'Hoạt động'],
+    ['team-3', 'CLB Sân C1 - Đội Trẻ U17', 'Lứa tuổi U17 Học viện', 'HLV. Phạm Đức Huy', 'Trần Minh Quân (#10)', 16, 'Sân bóng C1 (Sân 1)', 2024, 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.', 'Hoạt động'],
+    ['team-4', 'CLB Sân C1 - Futsal Team', 'Bóng đá trong nhà 5 người', 'HLV. Vũ Trọng Khôi', 'Đỗ Hùng Dũng (#8)', 12, 'Sân trong nhà Futsal Arena', 2023, 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.', 'Hoạt động']
   ];
 
   for (const t of initialTeams) {

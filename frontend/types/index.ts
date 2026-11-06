@@ -64,7 +64,7 @@ export interface ClubInfo {
   description: string;
 }
 
-export type UserRole = 'admin' | 'coach' | 'player';
+export type UserRole = 'admin' | 'staff' | 'manager' | 'coach' | 'user' | 'player';
 
 export interface User {
   id: string;
@@ -110,4 +110,8 @@ export interface ScheduleNotification {
   timestamp: string;
   read: boolean;
   scheduleId?: string;
+  tab?: string;
+  link?: string;
+  sender?: string;
+  priority?: 'normal' | 'important' | 'urgent';
 }

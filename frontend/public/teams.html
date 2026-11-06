@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý đội - Sao Vàng FC</title>
-  <meta name="description" content="Quản lý các đội bóng trong câu lạc bộ Sao Vàng FC">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/navbar.css">
+  <title>Quản lý đội - Sân Bóng C1</title>
+  <meta name="description" content="Quản lý các đội bóng tại Sân Bóng C1">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navbar.css">
   <style>
     .team-grid {
       display: grid;
@@ -138,7 +138,7 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Tên đội *</label>
-          <input type="text" class="form-control" id="fName" placeholder="VD: Đội A – Sao Vàng">
+          <input type="text" class="form-control" id="fName" placeholder="VD: Đội A – Sân C1">
         </div>
         <div class="form-group">
           <label class="form-label">Màu đại diện</label>
@@ -199,7 +199,7 @@
   </div>
 </div>
 
-<script src="/js/app.js"></script>
+<script src="js/app.js"></script>
 <script>
   if (!requireLogin()) {}
 
@@ -212,10 +212,10 @@
   };
 
   let teams = [
-    { id: 'team-1', name: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', desc: 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.', color: 'green', coach: 'HLV. Nguyễn Văn Huấn', field: 'Sân bóng Sao Vàng B (Sân 11)', members: 22, status: 'Đang hoạt động' },
-    { id: 'team-2', name: 'Sao Vàng FC - Tuyến Trẻ U21', desc: 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.', color: 'blue', coach: 'HLV. Trần Đình Trọng', field: 'Sân bóng Sao Vàng A (Sân 7)', members: 18, status: 'Đang hoạt động' },
-    { id: 'team-3', name: 'Sao Vàng FC - Đội Trẻ U17', desc: 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.', color: 'orange', coach: 'HLV. Phạm Đức Huy', field: 'Sân bóng Sao Vàng A (Sân 7)', members: 16, status: 'Đang hoạt động' },
-    { id: 'team-4', name: 'Sao Vàng FC - Futsal Team', desc: 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.', color: 'purple', coach: 'HLV. Vũ Trọng Khôi', field: 'Sân trong nhà Futsal Arena', members: 12, status: 'Đang hoạt động' },
+    { id: 'team-1', name: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', desc: 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.', color: 'green', coach: 'HLV. Nguyễn Văn Huấn', field: 'Sân bóng C1 (Sân 2)', members: 22, status: 'Đang hoạt động' },
+    { id: 'team-2', name: 'CLB Sân C1 - Tuyến Trẻ U21', desc: 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.', color: 'blue', coach: 'HLV. Trần Đình Trọng', field: 'Sân bóng C1 (Sân 1)', members: 18, status: 'Đang hoạt động' },
+    { id: 'team-3', name: 'CLB Sân C1 - Đội Trẻ U17', desc: 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.', color: 'orange', coach: 'HLV. Phạm Đức Huy', field: 'Sân bóng C1 (Sân 1)', members: 16, status: 'Đang hoạt động' },
+    { id: 'team-4', name: 'CLB Sân C1 - Futsal Team', desc: 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.', color: 'purple', coach: 'HLV. Vũ Trọng Khôi', field: 'Sân trong nhà Futsal Arena', members: 12, status: 'Đang hoạt động' },
   ];
   let nextId = 5;
   let deleteId = null;
@@ -250,7 +250,7 @@
             <div class="team-actions">
               <button class="btn btn-sm btn-outline admin-only" onclick="editTeam(${t.id})">✏️ Sửa</button>
               <button class="btn btn-sm btn-danger admin-only" onclick="askDelete(${t.id})">🗑️ Xóa</button>
-              <a href="/members.html?team=${t.id}" class="btn btn-sm btn-secondary" style="margin-left:auto;">👥 Thành viên</a>
+              <a href="members.html?team=${t.id}" class="btn btn-sm btn-secondary" style="margin-left:auto;">👥 Thành viên</a>
             </div>
           </div>
         </div>`;
@@ -293,7 +293,7 @@
 
   async function loadDbTeams() {
     try {
-      const res = await fetch('/api/teams');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/teams');
       if (res.ok) {
         const json = await res.json();
         const list = json.data || json;
@@ -339,7 +339,7 @@
       if (i >= 0) teams[i] = { ...teams[i], ...data };
       showToast('Cập nhật đội thành công!');
       try {
-        await fetch(`/api/teams/${id}`, {
+        await fetch(`https://haiandbao.wispbyte.app/api/teams/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
@@ -350,7 +350,7 @@
       teams.push({ id: newId, members: 0, ...data });
       showToast('Thêm đội mới thành công!');
       try {
-        await fetch('/api/teams', {
+        await fetch('https://haiandbao.wispbyte.app/api/teams', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: newId, memberCount: 0, ...data }),
@@ -382,7 +382,7 @@
     showToast('Đã xóa đội bóng!', 'warning');
     if (idToDelete) {
       try {
-        await fetch(`/api/teams/${idToDelete}`, {
+        await fetch(`https://haiandbao.wispbyte.app/api/teams/${idToDelete}`, {
           method: 'DELETE',
         });
       } catch (e) {}

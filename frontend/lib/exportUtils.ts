@@ -105,7 +105,7 @@ export function printReport({
     <html lang="vi">
     <head>
       <meta charset="UTF-8">
-      <title>${title} - Sao Vàng FC</title>
+      <title>${title} - CLB Sân Bóng C1</title>
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -126,7 +126,7 @@ export function printReport({
             ⚽
           </div>
           <div>
-            <h1 style="margin: 0; font-size: 20px; color: #065f46; letter-spacing: 0.5px;">CÂU LẠC BỘ BÓNG ĐÁ SAO VÀNG FC</h1>
+            <h1 style="margin: 0; font-size: 20px; color: #065f46; letter-spacing: 0.5px;">CÂU LẠC BỘ & SÂN BÓNG C1</h1>
             <p style="margin: 2px 0 0; font-size: 12px; color: #64748b;">Hệ Thống Quản Lý Câu Lạc Bộ & Lịch Tập Bóng Đá Chuyên Nghiệp</p>
           </div>
         </div>

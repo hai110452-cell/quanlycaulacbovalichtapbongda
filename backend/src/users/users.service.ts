@@ -18,7 +18,7 @@ export class UsersService {
     return {
       success: true,
       total: users.length,
-      data: users.map(({ password, ...u }) => u),
+      data: users.map(({ password: _password, ...u }) => u),
     };
   }
 

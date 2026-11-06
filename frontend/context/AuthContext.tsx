@@ -15,22 +15,43 @@ interface AuthContextType {
 const defaultDemoUsers: Record<UserRole, User> = {
   admin: {
     id: 'u-admin',
-    name: 'Ban Lãnh Đạo (Admin)',
-    email: 'admin@saovangfc.vn',
+    name: 'Chủ Sân C1 (Admin)',
+    email: 'admin@sanc1.vn',
     role: 'admin',
-    phone: '0901234567',
+    phone: '0983830955',
+  },
+  staff: {
+    id: 'u-staff',
+    name: 'Nhân Viên Quản Lý Ca (Staff)',
+    email: 'staff@sanc1.vn',
+    role: 'staff',
+    phone: '0906424006',
+  },
+  manager: {
+    id: 'u-manager',
+    name: 'Quản Lý CLB (Manager)',
+    email: 'manager@sanc1.vn',
+    role: 'manager',
+    phone: '0906424006',
   },
   coach: {
     id: 'u-coach',
     name: 'HLV. Nguyễn Văn Huấn',
-    email: 'coach.huan@saovangfc.vn',
+    email: 'coach.huan@sanc1.vn',
     role: 'coach',
     phone: '0912345678',
+  },
+  user: {
+    id: 'u-user',
+    name: 'Khách Hàng Đặt Sân',
+    email: 'khachhang@sanc1.vn',
+    role: 'user',
+    phone: '0908767623',
   },
   player: {
     id: 'u-player',
     name: 'Nguyễn Quang Hải (#19)',
-    email: 'quanghai19@saovangfc.vn',
+    email: 'quanghai19@sanc1.vn',
     role: 'player',
     phone: '0934567890',
   },
@@ -52,21 +73,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('saovang_user');
-      const storedToken = localStorage.getItem('saovang_token');
-      if (storedUser && storedUser !== 'undefined' && storedToken && storedToken !== 'undefined') {
-        setUser(JSON.parse(storedUser));
-        setToken(storedToken);
+      const storedUser = localStorage.getItem('saovang_user') || localStorage.getItem('user');
+      const storedToken = localStorage.getItem('saovang_token') || localStorage.getItem('token');
+      if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+        const parsed = JSON.parse(storedUser);
+        setUser(parsed);
+        const validToken =
+          storedToken && storedToken !== 'undefined' && storedToken !== 'null'
+            ? storedToken
+            : 'token-' + (parsed.role || 'user');
+        setToken(validToken);
+
+        // Đồng bộ 2 chiều các key lưu trữ để tương thích toàn hệ thống
+        const str = JSON.stringify(parsed);
+        localStorage.setItem('saovang_user', str);
+        localStorage.setItem('user', str);
+        localStorage.setItem('saovang_token', validToken);
+        localStorage.setItem('token', validToken);
       } else {
-        localStorage.removeItem('saovang_user');
-        localStorage.removeItem('saovang_token');
         setUser(null);
         setToken(null);
       }
     } catch (e) {
       console.error('Lỗi đọc auth từ localStorage:', e);
-      localStorage.removeItem('saovang_user');
-      localStorage.removeItem('saovang_token');
       setUser(null);
       setToken(null);
     } finally {
@@ -74,24 +103,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = (newUser: User, newToken: string) => {
+  const login = (newUser: User, newToken?: string) => {
+    const finalToken = newToken || 'token-' + (newUser.role || 'user');
     setUser(newUser);
-    setToken(newToken);
-    localStorage.setItem('saovang_user', JSON.stringify(newUser));
-    localStorage.setItem('saovang_token', newToken);
+    setToken(finalToken);
+    try {
+      const str = JSON.stringify(newUser);
+      localStorage.setItem('saovang_user', str);
+      localStorage.setItem('user', str);
+      localStorage.setItem('saovang_token', finalToken);
+      localStorage.setItem('token', finalToken);
+    } catch (e) {
+      console.warn('Lỗi lưu auth vào localStorage:', e);
+    }
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('saovang_user');
-    localStorage.removeItem('saovang_token');
+    try {
+      localStorage.removeItem('saovang_user');
+      localStorage.removeItem('saovang_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    } catch {}
   };
 
   const switchRole = (newRole: UserRole) => {
-    const targetUser = defaultDemoUsers[newRole];
+    const targetUser = defaultDemoUsers[newRole] || defaultDemoUsers.admin;
+    const finalToken = 'token-' + newRole;
     setUser(targetUser);
-    localStorage.setItem('saovang_user', JSON.stringify(targetUser));
+    setToken(finalToken);
+    try {
+      const str = JSON.stringify(targetUser);
+      localStorage.setItem('saovang_user', str);
+      localStorage.setItem('user', str);
+      localStorage.setItem('saovang_token', finalToken);
+      localStorage.setItem('token', finalToken);
+    } catch {}
   };
 
   return (

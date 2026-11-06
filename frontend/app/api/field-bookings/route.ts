@@ -11,6 +11,7 @@ export interface FieldBooking {
   slotLabel: string;
   price: number;
   isBooked: boolean;
+  status?: 'pending' | 'approved' | 'rejected' | 'available';
   customerName?: string | null;
   customerPhone?: string | null;
   teamName?: string | null;
@@ -30,6 +31,7 @@ function mapRow(r: any): FieldBooking {
     slotLabel: r.slot_label,
     price: Number(r.price) || 0,
     isBooked: Boolean(r.is_booked),
+    status: r.status || (r.is_booked ? 'approved' : 'pending'),
     customerName: r.customer_name || null,
     customerPhone: r.customer_phone || null,
     teamName: r.team_name || null,
@@ -118,10 +120,11 @@ export async function POST(request: NextRequest) {
           { status: 409 },
         );
       }
-      // Cập nhật slot khả dụng thành đã đặt
+      // Cập nhật slot khả dụng thành đang chờ nhân viên duyệt
       const updateResult = await query<any>(
         `UPDATE field_bookings
          SET is_booked = true,
+             status = 'pending',
              customer_name = $1,
              customer_phone = $2,
              team_name = $3,
@@ -134,23 +137,24 @@ export async function POST(request: NextRequest) {
       );
       savedRow = updateResult[0];
     } else {
-      // Tạo mới slot đã đặt
+      // Tạo mới slot ở trạng thái đang chờ duyệt
       const insertResult = await query<any>(
         `INSERT INTO field_bookings (
           id, field_id, field_name, booking_date, slot_id, slot_time, slot_label,
-          price, is_booked, customer_name, customer_phone, team_name, services, notes
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+          price, is_booked, status, customer_name, customer_phone, team_name, services, notes
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
         RETURNING *`,
         [
           bookingId,
           fieldId,
-          fieldName || 'Sân bóng Sao Vàng',
+          fieldName || 'Sân bóng C1',
           bookingDate,
           slotId || 'slot-custom',
           slotTime,
           slotLabel || 'Ca đặt theo yêu cầu',
           price || 400000,
           true,
+          'pending',
           customerName,
           customerPhone,
           teamName || '',
@@ -190,26 +194,73 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PUT /api/field-bookings - Phê duyệt hoặc từ chối đơn đặt sân
+export async function PUT(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id') || '';
+    const action = searchParams.get('action') || 'approve';
+    const fieldId = searchParams.get('fieldId') || '';
+    const date = searchParams.get('date') || '';
+    const slotTime = searchParams.get('slotTime') || '';
+
+    if (!id && !(fieldId && date && slotTime)) {
+      return NextResponse.json({ success: false, message: 'Thiếu id đơn đặt sân' }, { status: 400 });
+    }
+
+    if (action === 'approve') {
+      await query(
+        `UPDATE field_bookings
+         SET status = 'approved', is_booked = true
+         WHERE id = $1 OR slot_id = $1 OR (field_id = $2 AND booking_date = $3 AND slot_time = $4)`,
+        [id, fieldId, date, slotTime],
+      );
+      return NextResponse.json({
+        success: true,
+        message: 'Đã phê duyệt đơn đặt sân thành công! Ca sân đã được đưa lên lịch chính thức.',
+      });
+    } else {
+      await query(
+        `UPDATE field_bookings
+         SET status = 'rejected', is_booked = false, customer_name = NULL, customer_phone = NULL, team_name = NULL, services = NULL, notes = NULL
+         WHERE id = $1 OR slot_id = $1 OR (field_id = $2 AND booking_date = $3 AND slot_time = $4)`,
+        [id, fieldId, date, slotTime],
+      );
+      return NextResponse.json({
+        success: true,
+        message: 'Đã từ chối đơn đặt sân. Ca sân đã trở lại trạng thái khả dụng.',
+      });
+    }
+  } catch (error: any) {
+    console.error('Lỗi PUT /api/field-bookings:', error);
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
+
 // DELETE /api/field-bookings - Hủy đặt sân (trả lại trạng thái khả dụng)
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get('id') || '';
+    const fieldId = searchParams.get('fieldId') || '';
+    const date = searchParams.get('date') || '';
+    const slotTime = searchParams.get('slotTime') || '';
 
-    if (!id) {
-      return NextResponse.json({ success: false, message: 'Thiếu id ca đặt sân' }, { status: 400 });
+    if (!id && !(fieldId && date && slotTime)) {
+      return NextResponse.json({ success: false, message: 'Thiếu thông tin ca đặt sân cần hủy' }, { status: 400 });
     }
 
     await query(
       `UPDATE field_bookings
        SET is_booked = false,
+           status = 'available',
            customer_name = NULL,
            customer_phone = NULL,
            team_name = NULL,
            services = NULL,
            notes = NULL
-       WHERE id = $1`,
-      [id],
+       WHERE id = $1 OR slot_id = $1 OR (field_id = $2 AND booking_date = $3 AND slot_time = $4)`,
+      [id, fieldId, date, slotTime],
     );
 
     return NextResponse.json({

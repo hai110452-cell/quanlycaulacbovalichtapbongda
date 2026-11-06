@@ -26,7 +26,7 @@ const initialSchedules: TrainingSchedule[] = [
     date: '2026-10-27',
     startTime: '17:30',
     endTime: '19:30',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     status: 'Sắp diễn ra',
     notes: 'Khởi động kỹ, mang giày đinh dăm AG, tập chạy biến tốc.',
@@ -38,7 +38,7 @@ const initialSchedules: TrainingSchedule[] = [
     date: '2026-10-29',
     startTime: '18:00',
     endTime: '20:00',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     status: 'Sắp diễn ra',
     notes: 'Chia đội 7v7 tập phản công nhanh.',
@@ -50,7 +50,7 @@ const initialSchedules: TrainingSchedule[] = [
     date: '2026-10-31',
     startTime: '16:00',
     endTime: '18:30',
-    fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+    fieldName: 'Sân bóng C1 (Sân 2)',
     coach: 'HLV. Nguyễn Văn Huấn',
     status: 'Sắp diễn ra',
     notes: 'Mặc đồng phục thi đấu màu Đỏ, có mặt trước 45 phút.',
@@ -58,8 +58,8 @@ const initialSchedules: TrainingSchedule[] = [
 ];
 
 const availableFields = [
-  'Sân bóng Sao Vàng A (Sân 7)',
-  'Sân bóng Sao Vàng B (Sân 11)',
+  'Sân bóng C1 (Sân 1)',
+  'Sân bóng C1 (Sân 2)',
   'Sân trong nhà Futsal Arena',
 ];
 
@@ -72,14 +72,14 @@ export default function SchedulesPage() {
 
   const fetchSchedules = async () => {
     try {
-      const res = await fetch('/api/schedules');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/schedules');
       const data = await res.json();
       const list = data?.data || (Array.isArray(data) ? data : null);
       if (list && Array.isArray(list) && list.length > 0) {
         setSchedules(list);
       }
     } catch (err) {
-      console.warn('Lỗi kết nối API /api/schedules:', err);
+      console.warn('Lỗi kết nối API Wispbyte /api/schedules:', err);
     }
   };
 
@@ -97,7 +97,7 @@ export default function SchedulesPage() {
     date: '2026-10-27',
     startTime: '17:30',
     endTime: '19:30',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: '',
   });
@@ -156,7 +156,7 @@ export default function SchedulesPage() {
     }
 
     try {
-      const res = await fetch('/api/schedules', {
+      const res = await fetch('https://haiandbao.wispbyte.app/api/schedules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -196,7 +196,7 @@ export default function SchedulesPage() {
       date: '2026-11-02',
       startTime: '17:30',
       endTime: '19:30',
-      fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+      fieldName: 'Sân bóng C1 (Sân 1)',
       coach: 'HLV. Nguyễn Văn Huấn',
       notes: '',
     });
@@ -207,7 +207,7 @@ export default function SchedulesPage() {
     const target = schedules.find((s) => s.id === id);
     if (confirm('Bạn có chắc chắn muốn xóa lịch tập này?')) {
       try {
-        await fetch(`/api/schedules/${id}`, { method: 'DELETE' });
+        await fetch(`https://haiandbao.wispbyte.app/api/schedules/${id}`, { method: 'DELETE' });
         await fetchSchedules();
       } catch (err) {
         console.error('Lỗi khi xóa lịch tập khỏi database:', err);
@@ -258,13 +258,13 @@ export default function SchedulesPage() {
     ]);
     printReport({
       title: 'BÁO CÁO KẾ HOẠCH TẬP LUYỆN & THI ĐẤU',
-      subtitle: 'Kế hoạch phân bổ sân bãi, thời gian biểu và nội dung huấn luyện câu lạc bộ Sao Vàng FC',
+      subtitle: 'Kế hoạch phân bổ sân bãi, thời gian biểu và nội dung huấn luyện câu lạc bộ Sân Bóng C1',
       filterInfo: `Phân loại lọc: ${filterType} • Tổng số: ${filtered.length} buổi tập`,
       tableHeaders: headers,
       tableRows: rows,
       summary: [
         { label: 'Tổng số buổi tập', value: filtered.length },
-        { label: 'Sân sử dụng', value: 'Sân Sao Vàng A & B' },
+        { label: 'Sân sử dụng', value: 'Sân C1 (Sân 1 & Sân 2)' },
         { label: 'HLV Phụ trách', value: 'HLV. Nguyễn Văn Huấn' },
       ],
     });

@@ -45,7 +45,7 @@ export class TeamsService {
       headCoach: body.headCoach || body.head_coach || 'Chưa phân công',
       captain: body.captain || 'Chưa chỉ định',
       memberCount: Number(body.memberCount || body.member_count) || 0,
-      homePitch: body.homePitch || body.home_pitch || 'Sân bóng Sao Vàng',
+      homePitch: body.homePitch || body.home_pitch || 'Sân bóng C1',
       establishedYear: Number(body.establishedYear || body.established_year) || 2024,
       description: body.description || '',
       status: body.status || 'Hoạt động',

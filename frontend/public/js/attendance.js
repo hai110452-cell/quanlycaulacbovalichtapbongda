@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const rows = attendanceList.map((i) => [`#${i.jerseyNumber}`, i.name, i.position, i.status, i.note || '—']);
       printReport({
         title: 'BẢNG ĐIỂM DANH BUỔI TẬP BÓNG ĐÁ',
-        subtitle: 'Bản ghi nhận diện diện quân số tập luyện Sao Vàng FC',
+        subtitle: 'Bản ghi nhận diện diện quân số tập luyện CLB Sân Bóng C1',
         filterInfo: `Tổng quân số: ${attendanceList.length} cầu thủ`,
         tableHeaders: headers,
         tableRows: rows,
@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       printReport({
         title: 'BÁO CÁO THỐNG KÊ CHUYÊN CẦN CẦU THỦ',
-        subtitle: 'Báo cáo tổng hợp tỷ lệ tham gia tập luyện câu lạc bộ Sao Vàng FC',
+        subtitle: 'Báo cáo tổng hợp tỷ lệ tham gia tập luyện câu lạc bộ Sân Bóng C1',
         filterInfo: `Chu kỳ: ${currentPeriod === 'week' ? 'Tuần này' : currentPeriod === 'month' ? 'Tháng này' : 'Toàn bộ'}`,
         tableHeaders: headers,
         tableRows: rows,

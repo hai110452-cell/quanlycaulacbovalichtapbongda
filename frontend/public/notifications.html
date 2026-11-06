@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thông báo - Sao Vàng FC</title>
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/navbar.css">
+  <title>Thông báo - Sân Bóng C1</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navbar.css">
   <style>
     .notif-layout { display:grid; grid-template-columns:1fr 320px; gap:24px; }
     @media(max-width:1024px){ .notif-layout{grid-template-columns:1fr;} }
@@ -171,7 +171,7 @@
   </div>
 </div>
 
-<script src="/js/app.js"></script>
+<script src="js/app.js"></script>
 <script>
   if (!requireLogin()) {}
 
@@ -190,7 +190,7 @@
     { id:1, title:'📅 Lịch tập tuần mới đã cập nhật', type:'schedule', target:'all', body:'Lịch tập tuần 01-07/11 đã được cập nhật. Toàn bộ thành viên xem lịch chi tiết tại mục Lịch tập và xác nhận tham gia.', priority:'important', date:'2026-11-01', read:false, author:'Admin' },
     { id:2, title:'💰 Nhắc nhở đóng phí sinh hoạt tháng 11', type:'fee', target:'all', body:'Hạn đóng phí sinh hoạt tháng 11/2026 là ngày 05/11. Mức phí: 200.000đ/người. Vui lòng đóng đúng hạn để CLB duy trì hoạt động.', priority:'urgent', date:'2026-10-30', read:false, author:'Admin' },
     { id:3, title:'📋 HLV mới gia nhập đội C', type:'general', target:'all', body:'CLB trân trọng giới thiệu HLV. Trần Minh Khoa chính thức gia nhập đội C từ tháng 11/2026. HLV có chuyên môn chiến thuật tấn công với 6 năm kinh nghiệm.', priority:'normal', date:'2026-10-28', read:true, author:'Admin' },
-    { id:4, title:'🏆 Kết quả giao hữu tháng 10: Thắng 3-1', type:'result', target:'all', body:'Đội Sao Vàng FC vừa giành chiến thắng 3-1 trong trận giao hữu với CLB Phong Trào Hà Nội. Các bàn thắng: Công Phượng (2), Quang Hải (1).', priority:'normal', date:'2026-10-25', read:true, author:'HLV Huấn' },
+    { id:4, title:'🏆 Kết quả giao hữu tháng 10: Thắng 3-1', type:'result', target:'all', body:'Đội CLB Sân Bóng C1 vừa giành chiến thắng 3-1 trong trận giao hữu với CLB Phong Trào Hà Nội. Các bàn thắng: Công Phượng (2), Quang Hải (1).', priority:'normal', date:'2026-10-25', read:true, author:'HLV Huấn' },
     { id:5, title:'⚠️ Sân Mỹ Đình bảo trì – Đổi địa điểm', type:'warning', target:'Đội A', body:'Sân Mỹ Đình bảo trì từ 01-03/11. Các buổi tập Đội A trong thời gian này chuyển sang Sân Hàng Đẫy. Giờ tập giữ nguyên.', priority:'urgent', date:'2026-10-29', read:false, author:'Admin' },
     { id:6, title:'📅 Hủy buổi tập chiều 31/10', type:'schedule', target:'Đội B', body:'Buổi tập chiều thứ Sáu 31/10 của Đội B bị hủy do điều kiện thời tiết. Lịch bù sẽ được thông báo sau.', priority:'important', date:'2026-10-31', read:true, author:'HLV Minh' },
   ];
@@ -198,7 +198,7 @@
 
   async function loadNotifsFromDB() {
     try {
-      const res = await fetch('/api/notifications');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/notifications');
       if (res.ok) {
         const json = await res.json();
         if (json && Array.isArray(json.data) && json.data.length > 0) {
@@ -279,7 +279,7 @@
     if(n) n.read=true;
     filterNotifs(); updateStats();
     try {
-      await fetch(`/api/notifications/${id}`, { method: 'PUT' });
+      await fetch(`https://haiandbao.wispbyte.app/api/notifications/${id}`, { method: 'PUT' });
     } catch (e) {}
   }
 
@@ -288,7 +288,7 @@
     filterNotifs(); updateStats();
     showToast('Đã đánh dấu tất cả đã đọc');
     try {
-      await fetch('/api/notifications', {
+      await fetch('https://haiandbao.wispbyte.app/api/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markAllAsRead: true }),
@@ -301,7 +301,7 @@
     filterNotifs(); updateStats();
     showToast('Đã xóa thông báo khỏi Neon DB','warning');
     try {
-      await fetch(`/api/notifications/${id}`, { method: 'DELETE' });
+      await fetch(`https://haiandbao.wispbyte.app/api/notifications/${id}`, { method: 'DELETE' });
     } catch (e) {}
   }
 
@@ -329,7 +329,7 @@
     showToast('Gửi thông báo thành công! 📢');
 
     try {
-      await fetch('/api/notifications', {
+      await fetch('https://haiandbao.wispbyte.app/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

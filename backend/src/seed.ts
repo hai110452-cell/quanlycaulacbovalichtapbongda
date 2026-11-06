@@ -52,7 +52,7 @@ async function runSeed() {
     try {
       const res = await dataSource.query(`SELECT COUNT(*) as count FROM "${table}"`);
       console.log(` - ${table.padEnd(15)}: ${res[0].count} bản ghi`);
-    } catch (e) {
+    } catch {
       console.log(` - ${table.padEnd(15)}: (chưa có hoặc lỗi)`);
     }
   }

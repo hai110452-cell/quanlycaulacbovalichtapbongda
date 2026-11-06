@@ -3,81 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-
-// BỘ TÀI KHOẢN MẪU TẠO SẴN ĐỂ TEST ĐẦY ĐỦ 3 VAI TRÒ
-export interface TestAccount {
-  username: string;
-  password: string;
-  name: string;
-  role: 'admin' | 'coach' | 'player';
-  roleTitle: string;
-  desc: string;
-  avatar: string;
-}
-
-export const PRESET_TEST_ACCOUNTS: TestAccount[] = [
-  // 1. NHÓM ADMIN (QUẢN TRỊ VIÊN)
-  {
-    username: 'admin',
-    password: '123456',
-    name: 'Ban Quản Trị CLB (Admin)',
-    role: 'admin',
-    roleTitle: 'Quản Trị Viên (Admin)',
-    desc: 'Toàn quyền: Quản lý đội bóng, nhân sự, lịch tập, quỹ CLB, thông báo',
-    avatar: '🛡️',
-  },
-  {
-    username: 'admin01',
-    password: '123456',
-    name: 'Nguyễn Văn Admin',
-    role: 'admin',
-    roleTitle: 'Admin Cấp Cao',
-    desc: 'Tài khoản quản trị viên số 2 có quyền thao tác toàn hệ thống',
-    avatar: '👑',
-  },
-
-  // 2. NHÓM HUẤN LUYỆN VIÊN (COACH)
-  {
-    username: 'coach01',
-    password: '123456',
-    name: 'HLV. Nguyễn Văn Huấn',
-    role: 'coach',
-    roleTitle: 'Huấn Luyện Viên Trưởng',
-    desc: 'Quản lý lịch tập luyện, thực hiện điểm danh buổi tập & đăng thông báo',
-    avatar: '📋',
-  },
-  {
-    username: 'hlvtrong',
-    password: '123456',
-    name: 'HLV. Trần Đình Trọng',
-    role: 'coach',
-    roleTitle: 'HLV Tuyển Trẻ U21',
-    desc: 'Phụ trách chuyên môn huấn luyện và quản lý quân số U21',
-    avatar: '⚽',
-  },
-
-  // 3. NHÓM CẦU THỦ / THÀNH VIÊN (PLAYER)
-  {
-    username: 'quanghai19',
-    password: '123456',
-    name: 'Nguyễn Quang Hải (#19)',
-    role: 'player',
-    roleTitle: 'Đội Trưởng / Tiền Đạo',
-    desc: 'Xem lịch tập luyện, theo dõi điểm danh cá nhân & thông tin quỹ CLB',
-    avatar: '🏃',
-  },
-  {
-    username: 'cauthu01',
-    password: '123456',
-    name: 'Trần Minh Quân (#10)',
-    role: 'player',
-    roleTitle: 'Cầu Thủ Thành Viên',
-    desc: 'Thành viên đội bóng Sao Vàng FC',
-    avatar: '👟',
-  },
-];
+import { PRESET_TEST_ACCOUNTS } from '@/lib/auth-constants';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -92,6 +19,20 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   // Ref để tự động đặt con trỏ ở txtID khi load form
   const txtIDRef = useRef<HTMLInputElement>(null);
+
+  // Hàm chuyển hướng về trang chủ tương thích mọi môi trường (Next Dev & Static Export)
+  const navigateToHome = () => {
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    const target = basePath ? `${basePath}/` : '/';
+    try {
+      router.push(target);
+    } catch {}
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.location.href = target;
+      }
+    }, 250);
+  };
 
   useEffect(() => {
     // 1. Tự động đồng bộ các tài khoản test vào localStorage nếu chưa có
@@ -168,9 +109,7 @@ export default function LoginPage() {
           },
           'token-' + matchedPreset.role
         );
-        setTimeout(() => {
-          router.push('/');
-        }, 400);
+        navigateToHome();
         return;
       }
 
@@ -196,9 +135,7 @@ export default function LoginPage() {
             : 'Thành viên CLB';
         setSuccessMessage(`Đăng nhập thành công với vai trò ${roleLabel}!`);
         login(matchedRegistered, 'token-' + matchedRegistered.role);
-        setTimeout(() => {
-          router.push('/');
-        }, 400);
+        navigateToHome();
         return;
       }
 
@@ -230,9 +167,7 @@ export default function LoginPage() {
         { id: 'u-' + Date.now(), name: displayName, email: txtID + '@saovangfc.vn', role },
         'token-' + role
       );
-      setTimeout(() => {
-        router.push('/');
-      }, 400);
+      navigateToHome();
     } catch {
       setErrorMessage('Tài khoản hoặc mật khẩu không đúng!!!');
       txtIDRef.current?.focus();
@@ -259,7 +194,7 @@ export default function LoginPage() {
             Đăng Nhập Thành Viên
           </h1>
           <p className="text-emerald-100 text-xs mt-1.5 font-medium">
-            Hệ thống Quản lý Câu lạc bộ & Lịch tập Bóng đá Sao Vàng
+            Hệ thống Quản lý Sân bóng & Lịch tập C1
           </p>
           <div className="mt-2.5 text-[11px] text-emerald-200/90 bg-black/20 py-1.5 px-3 rounded-xl border border-white/10">
             Khách hàng (Customer) không cần đăng nhập, có thể xem trực tiếp tại{' '}
@@ -361,45 +296,87 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* TÀI KHOẢN MẪU TEST 3 VAI TRÒ NỘI BỘ */}
+          {/* TÀI KHOẢN MẪU TEST 3 VAI TRÒ CHUẨN PHÂN QUYỀN */}
           <div className="pt-3 border-t border-emerald-100">
             <div className="text-[11px] font-black uppercase text-emerald-900 tracking-wider mb-2 flex items-center justify-between">
-              <span>⚡ Chọn nhanh tài khoản test:</span>
-              <span className="text-[10px] text-slate-400 font-normal">MK: 123456</span>
+              <span>⚡ Chọn nhanh tài khoản test phân quyền:</span>
+              <span className="text-[10px] text-slate-500 font-semibold bg-emerald-100 px-2 py-0.5 rounded-md">Mật khẩu chung: 123456</span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-2">
+              {/* 1. ADMIN (Chủ Sân) */}
               <button
                 type="button"
                 onClick={() => {
                   setTxtID('admin');
                   setTxtPass('123456');
                 }}
-                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 text-[11px] font-bold text-center transition-all cursor-pointer"
+                className="w-full p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-left transition-all cursor-pointer flex items-center justify-between group"
               >
-                <span className="block text-sm">🛡️</span>
-                <span>Admin</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl shrink-0 p-1 bg-white rounded-lg border border-rose-200">👑</span>
+                  <div>
+                    <div className="text-xs font-black text-rose-900">ADMIN (Chủ sân) • admin</div>
+                    <div className="text-[10.5px] text-rose-700/90 line-clamp-1">Toàn quyền, doanh thu, tạo sân, nhân viên & KPI</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-1 bg-rose-500 text-white rounded-md shrink-0">Chọn</span>
               </button>
+
+              {/* 2. NHÂN VIÊN (Quản lý ca / CLB) */}
               <button
                 type="button"
                 onClick={() => {
-                  setTxtID('coach01');
+                  setTxtID('manager');
                   setTxtPass('123456');
                 }}
-                className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-[11px] font-bold text-center transition-all cursor-pointer"
+                className="w-full p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-left transition-all cursor-pointer flex items-center justify-between group"
               >
-                <span className="block text-sm">📋</span>
-                <span>HLV</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl shrink-0 p-1 bg-white rounded-lg border border-amber-200">📋</span>
+                  <div>
+                    <div className="text-xs font-black text-amber-900">NHÂN VIÊN (Quản lý ca / Quản lý CLB) • manager</div>
+                    <div className="text-[10.5px] text-amber-700/90 line-clamp-1">Duyệt/hủy đặt sân, xếp lịch đá tập, thanh toán & thiết bị thuê</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-1 bg-amber-500 text-white rounded-md shrink-0">Chọn</span>
               </button>
+
+              {/* 3. HUẤN LUYỆN VIÊN (Ban Huấn Luyện) */}
               <button
                 type="button"
                 onClick={() => {
-                  setTxtID('quanghai19');
+                  setTxtID('coach');
                   setTxtPass('123456');
                 }}
-                className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-[11px] font-bold text-center transition-all cursor-pointer"
+                className="w-full p-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-300 text-left transition-all cursor-pointer flex items-center justify-between group"
               >
-                <span className="block text-sm">🏃</span>
-                <span>Cầu Thủ</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl shrink-0 p-1 bg-white rounded-lg border border-sky-200">🧢</span>
+                  <div>
+                    <div className="text-xs font-black text-sky-950">HUẤN LUYỆN VIÊN (Ban Huấn Luyện) • coach</div>
+                    <div className="text-[10.5px] text-sky-800 line-clamp-1">Lịch tập: tạo/sửa/hủy lịch đội mình • Điểm danh: đánh dấu có mặt thành viên</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-1 bg-sky-600 text-white rounded-md shrink-0">Chọn</span>
+              </button>
+
+              {/* 4. USER (Khách Hàng / Cầu Thủ) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTxtID('user01');
+                  setTxtPass('123456');
+                }}
+                className="w-full p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-left transition-all cursor-pointer flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl shrink-0 p-1 bg-white rounded-lg border border-emerald-200">⚽</span>
+                  <div>
+                    <div className="text-xs font-black text-emerald-900">USER (Khách hàng / Cầu thủ) • user01</div>
+                    <div className="text-[10.5px] text-emerald-700/90 line-clamp-1">Xem lịch trống, đặt sân, xem lịch sử đá bóng & thông tin cá nhân</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-1 bg-emerald-600 text-white rounded-md shrink-0">Chọn</span>
               </button>
             </div>
           </div>

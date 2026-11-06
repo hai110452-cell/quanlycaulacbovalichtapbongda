@@ -3,23 +3,29 @@
 // ==========================================================================
 
 function getAuthUser() {
-  const str = localStorage.getItem('user');
-  if (!str || str === 'undefined') return null;
+  const str = localStorage.getItem('user') || localStorage.getItem('saovang_user');
+  if (!str || str === 'undefined' || str === 'null') return null;
   try { return JSON.parse(str); } catch { return null; }
 }
 
 function requireLogin() {
-  if (!getAuthUser()) {
-    window.location.href = '/login.html';
-    return false;
+  const user = getAuthUser();
+  if (user) return true;
+  // Trang chủ (index.html hoặc /) cho phép truy cập công khai không bắt đăng nhập
+  const path = window.location.pathname;
+  if (!path || path === '/' || path.endsWith('/') || path.endsWith('index.html')) {
+    return true;
   }
-  return true;
+  window.location.href = 'login.html';
+  return false;
 }
 
 function logout() {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
-  window.location.href = '/login.html';
+  localStorage.removeItem('saovang_user');
+  localStorage.removeItem('saovang_token');
+  window.location.href = 'login.html';
 }
 
 // ==========================================================================
@@ -38,18 +44,18 @@ function isCustomer() {
 
 const NAV_ITEMS = [
   { section: 'Tổng quan', items: [
-    { href: '/index.html',        icon: '📊', label: 'Tổng quan',          id: 'dashboard' },
+    { href: 'index.html',        icon: '📊', label: 'Tổng quan',          id: 'dashboard' },
   ]},
   { section: 'Quản lý CLB', items: [
-    { href: '/teams.html',        icon: '🏆', label: 'Quản lý đội',        id: 'teams' },
-    { href: '/members.html',      icon: '👥', label: 'Thành viên',         id: 'members' },
-    { href: '/coaches.html',      icon: '📋', label: 'Huấn luyện viên',    id: 'coaches' },
+    { href: 'teams.html',        icon: '🏆', label: 'Quản lý đội',        id: 'teams' },
+    { href: 'members.html',      icon: '👥', label: 'Thành viên',         id: 'members' },
+    { href: 'coaches.html',      icon: '📋', label: 'Huấn luyện viên',    id: 'coaches' },
   ]},
   { section: 'Hoạt động', items: [
-    { href: '/schedules.html',    icon: '📅', label: 'Lịch tập',           id: 'schedules' },
-    { href: '/attendance.html',   icon: '✅', label: 'Điểm danh',          id: 'attendance' },
-    { href: '/fees.html',         icon: '💰', label: 'Phí sinh hoạt',      id: 'fees' },
-    { href: '/notifications.html',icon: '📢', label: 'Thông báo',          id: 'notifications', badge: '3' },
+    { href: 'schedules.html',    icon: '📅', label: 'Lịch tập',           id: 'schedules' },
+    { href: 'attendance.html',   icon: '✅', label: 'Điểm danh',          id: 'attendance' },
+    { href: 'fees.html',         icon: '💰', label: 'Phí sinh hoạt',      id: 'fees' },
+    { href: 'notifications.html',icon: '📢', label: 'Thông báo',          id: 'notifications', badge: '3' },
   ]},
 ];
 
@@ -92,11 +98,11 @@ function renderSidebar(activeId) {
   const initials = (user.name || 'U').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
 
   el.innerHTML = `
-    <a href="/index.html" class="sidebar-brand">
+    <a href="index.html" class="sidebar-brand">
       <div class="brand-icon-wrap">⚽</div>
       <div class="brand-info">
-        <div class="brand-name">Sao Vàng FC</div>
-        <div class="brand-sub">Quản lý CLB Bóng đá</div>
+        <div class="brand-name">Sân Bóng C1</div>
+        <div class="brand-sub">Quản lý Sân bóng & Lịch tập</div>
       </div>
     </a>
     <nav class="sidebar-nav">${navHTML}</nav>
@@ -123,7 +129,7 @@ function renderSidebar(activeId) {
 // API CLIENT
 // ==========================================================================
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://haiandbao.wispbyte.app/api';
 
 async function apiGet(path) {
   try {

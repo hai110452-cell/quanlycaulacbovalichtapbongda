@@ -13,7 +13,7 @@ const initialMatchesData: MatchResult[] = [
     matchType: 'Giao hữu',
     date: '2026-10-24',
     time: '16:00',
-    fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+    fieldName: 'Sân bóng C1 (Sân 2)',
     homeScore: 3,
     awayScore: 1,
     status: 'Đã kết thúc',
@@ -33,7 +33,7 @@ const initialMatchesData: MatchResult[] = [
     matchType: 'Giải đấu',
     date: '2026-10-17',
     time: '17:30',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     homeScore: 2,
     awayScore: 2,
     status: 'Đã kết thúc',
@@ -52,7 +52,7 @@ const initialMatchesData: MatchResult[] = [
     matchType: 'Giao hữu',
     date: '2026-10-10',
     time: '16:30',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     homeScore: 4,
     awayScore: 0,
     status: 'Đã kết thúc',
@@ -73,7 +73,7 @@ const initialMatchesData: MatchResult[] = [
     matchType: 'Cúp Mở Rộng',
     date: '2026-11-05',
     time: '15:30',
-    fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+    fieldName: 'Sân bóng C1 (Sân 2)',
     homeScore: 0,
     awayScore: 0,
     status: 'Sắp diễn ra',
@@ -92,14 +92,14 @@ export default function MatchesPage() {
 
   const fetchMatches = async () => {
     try {
-      const res = await fetch('/api/matches');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/matches');
       const data = await res.json();
       const list = data?.data || (Array.isArray(data) ? data : null);
       if (list && Array.isArray(list) && list.length > 0) {
         setMatches(list);
       }
     } catch (err) {
-      console.warn('Lỗi kết nối /api/matches:', err);
+      console.warn('Lỗi kết nối Wispbyte /api/matches:', err);
     }
   };
 
@@ -117,7 +117,7 @@ export default function MatchesPage() {
     matchType: 'Giao hữu' as MatchResult['matchType'],
     date: '2026-11-01',
     time: '16:00',
-    fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+    fieldName: 'Sân bóng C1 (Sân 2)',
     homeScore: 0,
     awayScore: 0,
     status: 'Đã kết thúc' as MatchResult['status'],
@@ -216,7 +216,7 @@ export default function MatchesPage() {
     };
 
     try {
-      const res = await fetch('/api/matches', {
+      const res = await fetch('https://haiandbao.wispbyte.app/api/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(added),
@@ -234,7 +234,7 @@ export default function MatchesPage() {
 
     // Dispatch notification
     addNotification(
-      `Kết quả trận đấu mới: Sao Vàng FC ${added.homeScore} - ${added.awayScore} ${added.opponent}`,
+      `Kết quả trận đấu mới: Sân Bóng C1 ${added.homeScore} - ${added.awayScore} ${added.opponent}`,
       `Trận ${added.matchType} ngày ${added.date} tại ${added.fieldName}. MVP: ${added.mvp || 'Toàn đội'}`,
       'new',
       added.id
@@ -246,7 +246,7 @@ export default function MatchesPage() {
       matchType: 'Giao hữu',
       date: '2026-11-01',
       time: '16:00',
-      fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+      fieldName: 'Sân bóng C1 (Sân 2)',
       homeScore: 0,
       awayScore: 0,
       status: 'Đã kết thúc',
@@ -263,7 +263,7 @@ export default function MatchesPage() {
     const target = matches.find((m) => m.id === id);
     if (confirm(`Bạn có chắc muốn xóa kết quả trận gặp ${target?.opponent}?`)) {
       try {
-        await fetch(`/api/matches/${id}`, { method: 'DELETE' });
+        await fetch(`https://haiandbao.wispbyte.app/api/matches/${id}`, { method: 'DELETE' });
         await fetchMatches();
       } catch (err) {
         console.error('Lỗi khi xóa trận đấu khỏi database:', err);
@@ -298,7 +298,7 @@ export default function MatchesPage() {
     ];
     const rows = filtered.map((m, index) => [
       index + 1,
-      'Sao Vàng FC',
+      'CLB Sân Bóng C1',
       m.status === 'Đã kết thúc' ? `${m.homeScore} - ${m.awayScore}` : 'Chưa đấu',
       m.opponent,
       m.matchType,
@@ -316,7 +316,7 @@ export default function MatchesPage() {
   const handlePrintPDF = () => {
     const headers = ['Trận Đấu', 'Tỷ Số', 'Giải Đấu', 'Thời Gian & Sân', 'Cầu Thủ Ghi Bàn', 'MVP'];
     const rows = filtered.map((m) => [
-      `Sao Vàng FC vs ${m.opponent}`,
+      `CLB Sân Bóng C1 vs ${m.opponent}`,
       m.status === 'Đã kết thúc' ? `${m.homeScore} - ${m.awayScore}` : 'Sắp diễn ra',
       m.matchType,
       `${m.date} (${m.time}) • ${m.fieldName}`,
@@ -325,7 +325,7 @@ export default function MatchesPage() {
     ]);
     printReport({
       title: 'BÁO CÁO KẾT QUẢ THI ĐẤU & LỊCH SỬ TRẬN ĐẤU',
-      subtitle: 'Thống kê kết quả thi đấu, tỷ số, danh sách ghi bàn câu lạc bộ Sao Vàng FC',
+      subtitle: 'Thống kê kết quả thi đấu, tỷ số, danh sách ghi bàn câu lạc bộ Sân Bóng C1',
       filterInfo: `Tiêu chí: ${filterOutcome} • Tổng số trận hiển thị: ${filtered.length}`,
       tableHeaders: headers,
       tableRows: rows,
@@ -492,7 +492,7 @@ export default function MatchesPage() {
                 <div className="scoreboard">
                   <div className="team-box home">
                     <div>
-                      <div className="team-name">SAO VÀNG FC</div>
+                      <div className="team-name">SÂN BÓNG C1 FC</div>
                       <div className="team-sub">Đội Nhà • Áo Đỏ</div>
                     </div>
                     <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
@@ -627,8 +627,8 @@ export default function MatchesPage() {
                     onChange={(e) => setNewMatch({ ...newMatch, fieldName: e.target.value })}
                     className="form-control"
                   >
-                    <option value="Sân bóng Sao Vàng A (Sân 7)">Sân bóng Sao Vàng A (Sân 7)</option>
-                    <option value="Sân bóng Sao Vàng B (Sân 11)">Sân bóng Sao Vàng B (Sân 11)</option>
+                    <option value="Sân bóng C1 (Sân 1)">Sân bóng C1 (Sân 1)</option>
+                    <option value="Sân bóng C1 (Sân 2)">Sân bóng C1 (Sân 2)</option>
                     <option value="Sân vận động Mỹ Đình Mini">Sân vận động Mỹ Đình Mini</option>
                   </select>
                 </div>
@@ -639,7 +639,7 @@ export default function MatchesPage() {
                 <label className="form-label" style={{ marginBottom: '8px' }}>Tỷ số trận đấu:</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px' }}>
                   <div>
-                    <span style={{ fontSize: '12px', color: '#34d399', fontWeight: 600 }}>Sao Vàng FC</span>
+                    <span style={{ fontSize: '12px', color: '#34d399', fontWeight: 600 }}>CLB Sân Bóng C1</span>
                     <input
                       type="number"
                       min="0"
@@ -666,7 +666,7 @@ export default function MatchesPage() {
 
               {/* Nhập cầu thủ ghi bàn */}
               <div className="form-group">
-                <label className="form-label">Ghi nhận bàn thắng của Sao Vàng FC:</label>
+                <label className="form-label">Ghi nhận bàn thắng của CLB Sân Bóng C1:</label>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                   <input
                     type="text"

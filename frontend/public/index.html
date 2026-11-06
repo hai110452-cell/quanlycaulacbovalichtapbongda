@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tổng quan - Sao Vàng FC | Hệ thống quản lý CLB bóng đá</title>
-  <meta name="description" content="Tổng quan hệ thống quản lý câu lạc bộ Sao Vàng FC">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/navbar.css">
+  <title>Tổng quan - Sân Bóng C1 | Hệ thống quản lý Sân bóng & Lịch tập</title>
+  <meta name="description" content="Tổng quan hệ thống quản lý sân bóng và lịch tập Sân Bóng C1">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navbar.css">
   <style>
     /* DASHBOARD SPECIFIC */
     .hero-card {
@@ -263,8 +263,8 @@
           <span>🔍</span>
           <input type="text" placeholder="Tìm kiếm...">
         </div>
-        <a href="/notifications.html" class="icon-btn" title="Thông báo">🔔</a>
-        <a href="/members.html" class="icon-btn" title="Thành viên">👤</a>
+        <a href="notifications.html" class="icon-btn" title="Thông báo">🔔</a>
+        <a href="members.html" class="icon-btn" title="Thành viên">👤</a>
       </div>
     </header>
 
@@ -276,9 +276,9 @@
         <h1 class="hero-title">Chào mừng, <span id="heroName">Admin</span>! 👋</h1>
         <p class="hero-desc">Hệ thống đang hoạt động tốt. Bạn có 3 buổi tập sắp diễn ra và 2 thông báo mới cần xem.</p>
         <div class="hero-actions">
-          <a href="/schedules.html" class="hero-btn hero-btn-primary">📅 Xem lịch tập</a>
-          <a href="/attendance.html" class="hero-btn hero-btn-outline">✅ Điểm danh hôm nay</a>
-          <a href="/notifications.html" class="hero-btn hero-btn-outline">📢 Thông báo</a>
+          <a href="schedules.html" class="hero-btn hero-btn-primary">📅 Xem lịch tập</a>
+          <a href="attendance.html" class="hero-btn hero-btn-outline">✅ Điểm danh hôm nay</a>
+          <a href="notifications.html" class="hero-btn hero-btn-outline">📢 Thông báo</a>
         </div>
       </div>
 
@@ -348,32 +348,32 @@
 
       <!-- QUICK ACTIONS -->
       <div class="quick-grid">
-        <a href="/teams.html" class="quick-card">
+        <a href="teams.html" class="quick-card">
           <span class="quick-icon">🏆</span>
           <div class="quick-label">Thêm đội</div>
           <div class="quick-sub">Quản lý đội bóng</div>
         </a>
-        <a href="/members.html" class="quick-card">
+        <a href="members.html" class="quick-card">
           <span class="quick-icon">👤</span>
           <div class="quick-label">Thêm thành viên</div>
           <div class="quick-sub">Quản lý hồ sơ</div>
         </a>
-        <a href="/schedules.html" class="quick-card">
+        <a href="schedules.html" class="quick-card">
           <span class="quick-icon">📅</span>
           <div class="quick-label">Tạo lịch tập</div>
           <div class="quick-sub">Lên kế hoạch</div>
         </a>
-        <a href="/attendance.html" class="quick-card">
+        <a href="attendance.html" class="quick-card">
           <span class="quick-icon">✅</span>
           <div class="quick-label">Điểm danh</div>
           <div class="quick-sub">Buổi tập hôm nay</div>
         </a>
-        <a href="/fees.html" class="quick-card">
+        <a href="fees.html" class="quick-card">
           <span class="quick-icon">💰</span>
           <div class="quick-label">Thu phí</div>
           <div class="quick-sub">Ghi nhận thu chi</div>
         </a>
-        <a href="/notifications.html" class="quick-card">
+        <a href="notifications.html" class="quick-card">
           <span class="quick-icon">📢</span>
           <div class="quick-label">Gửi thông báo</div>
           <div class="quick-sub">Toàn bộ thành viên</div>
@@ -388,7 +388,7 @@
           <div class="card" style="margin-bottom:24px;">
             <div class="card-header">
               <div class="card-title">📅 Lịch tập sắp tới</div>
-              <a href="/schedules.html" class="btn btn-sm btn-outline">Xem tất cả →</a>
+              <a href="schedules.html" class="btn btn-sm btn-outline">Xem tất cả →</a>
             </div>
             <div class="card-body" style="padding: 0 24px;">
               <div class="schedule-item">
@@ -503,7 +503,7 @@
           <div class="card" style="margin-bottom:24px;">
             <div class="card-header">
               <div class="card-title">📢 Thông báo mới</div>
-              <a href="/notifications.html" class="btn btn-sm btn-outline">Xem tất cả →</a>
+              <a href="notifications.html" class="btn btn-sm btn-outline">Xem tất cả →</a>
             </div>
             <div class="card-body" style="padding: 12px 16px;">
               <div class="notif-item unread">
@@ -582,7 +582,7 @@
   </div>
 </div>
 
-<script src="/js/app.js"></script>
+<script src="js/app.js"></script>
 <script>
   // Require login
   if (!requireLogin()) { /* redirect handled */ }
@@ -602,13 +602,13 @@
     document.getElementById('heroGreeting').textContent =
       `Xin chào, hôm nay là ${days[now.getDay()]}, ${now.toLocaleDateString('vi-VN')}`;
 
-    // Auto-fetch real stats from Neon DB backend
-    fetch('http://localhost:5000/api/players').then(r=>r.json()).then(d=>{
+    // Auto-fetch real stats from Wispbyte backend
+    fetch('https://haiandbao.wispbyte.app/api/players').then(r=>r.json()).then(d=>{
       const list = d.data || d;
       if (Array.isArray(list) && list.length > 0) document.getElementById('statMembers').textContent = list.length;
     }).catch(()=>{});
 
-    fetch('http://localhost:5000/api/users').then(r=>r.json()).then(d=>{
+    fetch('https://haiandbao.wispbyte.app/api/users').then(r=>r.json()).then(d=>{
       const list = d.data || d;
       if (Array.isArray(list)) {
         const coaches = list.filter(u => u.role === 'coach');
@@ -616,7 +616,7 @@
       }
     }).catch(()=>{});
 
-    fetch('http://localhost:5000/api/schedules').then(r=>r.json()).then(d=>{
+    fetch('https://haiandbao.wispbyte.app/api/schedules').then(r=>r.json()).then(d=>{
       const list = d.data || d;
       if (Array.isArray(list) && list.length > 0) document.getElementById('statSchedules').textContent = list.length;
     }).catch(()=>{});

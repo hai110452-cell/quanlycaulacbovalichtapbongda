@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đăng nhập - Sao Vàng FC | Hệ thống quản lý CLB bóng đá</title>
-  <meta name="description" content="Đăng nhập hệ thống quản lý câu lạc bộ và lịch tập bóng đá Sao Vàng FC">
+  <title>Đăng nhập - Sân Bóng C1 | Hệ thống quản lý Sân bóng & Lịch tập</title>
+  <meta name="description" content="Đăng nhập hệ thống quản lý sân bóng và lịch tập Sân Bóng C1">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -371,7 +371,7 @@
     <div class="pitch-lines"></div>
     <div class="left-content">
       <div class="left-logo">⚽</div>
-      <h1 class="left-title">Sao Vàng <span>FC</span></h1>
+      <h1 class="left-title">Sân C1 <span>FC</span></h1>
       <p class="left-subtitle">Hệ thống quản lý câu lạc bộ & lịch tập bóng đá chuyên nghiệp. Nền tảng thể thao hiện đại, tối ưu và toàn diện.</p>
       
       <div class="feature-list">
@@ -420,8 +420,8 @@
       <div class="form-logo">
         <div class="form-logo-icon">⚽</div>
         <div class="form-logo-text">
-          Sao Vàng FC
-          <span>Quản lý CLB Bóng đá</span>
+          Sân Bóng C1
+          <span>Quản lý Sân bóng & Lịch tập</span>
         </div>
       </div>
 
@@ -516,7 +516,7 @@
         localStorage.setItem('user', JSON.stringify(userObj));
         localStorage.setItem('token', 'token-' + userRole + '-' + Date.now());
 
-        window.location.href = '/index.html';
+        window.location.href = 'index.html';
       }, 400);
     }
 
@@ -534,7 +534,7 @@
 
     // Nếu đã có phiên đăng nhập hợp lệ, chuyển thẳng tới index
     if (localStorage.getItem('user') && localStorage.getItem('token')) {
-      window.location.href = '/index.html';
+      window.location.href = 'index.html';
     }
   </script>
 </body>

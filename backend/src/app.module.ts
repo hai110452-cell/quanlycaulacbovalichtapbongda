@@ -11,6 +11,7 @@ import { MatchesModule } from './matches/matches.module';
 import { ClubsModule } from './clubs/clubs.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TeamsModule } from './teams/teams.module';
+import { FieldBookingsModule } from './field-bookings/field-bookings.module';
 import { AppController } from './app.controller';
 
 // Entities
@@ -23,6 +24,7 @@ import { Match } from './matches/match.entity';
 import { Club } from './clubs/club.entity';
 import { Notification } from './notifications/notification.entity';
 import { Team } from './teams/team.entity';
+import { FieldBooking } from './field-bookings/field-booking.entity';
 
 @Module({
   imports: [
@@ -41,7 +43,7 @@ import { Team } from './teams/team.entity';
         ssl: {
           rejectUnauthorized: false,
         },
-        entities: [User, Player, Field, Schedule, Attendance, Match, Club, Notification, Team],
+        entities: [User, Player, Field, Schedule, Attendance, Match, Club, Notification, Team, FieldBooking],
         synchronize: true, // Tự động tạo/cập nhật bảng (chỉ dùng development)
         logging: false,
       }),
@@ -59,6 +61,7 @@ import { Team } from './teams/team.entity';
     ClubsModule,
     NotificationsModule,
     TeamsModule,
+    FieldBookingsModule,
   ],
   controllers: [AppController],
 })

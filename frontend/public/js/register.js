@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         successAlert.style.display = 'flex';
         setAuthSession(res.user, res.token);
         setTimeout(() => {
-          window.location.href = '/index.html';
+          window.location.href = 'index.html';
         }, 800);
       } else {
         // Fallback lưu local nếu backend offline
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         successAlert.textContent = 'Đăng ký tài khoản thành công! Đang chuyển hướng...';
         successAlert.style.display = 'flex';
         setTimeout(() => {
-          window.location.href = '/index.html';
+          window.location.href = 'index.html';
         }, 700);
       }
     } catch (err) {

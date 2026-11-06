@@ -8,7 +8,7 @@ const mockSchedules = [
     date: 'Thứ Ba, 27/10/2026',
     time: '17:30 - 19:30',
     type: 'Tập thể lực',
-    field: 'Sân bóng Sao Vàng A (Sân 7)',
+    field: 'Sân bóng C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
   },
   {
@@ -16,7 +16,7 @@ const mockSchedules = [
     date: 'Thứ Năm, 29/10/2026',
     time: '18:00 - 20:00',
     type: 'Tập chiến thuật',
-    field: 'Sân bóng Sao Vàng A (Sân 7)',
+    field: 'Sân bóng C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
   },
   {
@@ -24,7 +24,7 @@ const mockSchedules = [
     date: 'Thứ Bảy, 31/10/2026',
     time: '16:00 - 18:30',
     type: 'Thi đấu giao hữu',
-    field: 'Sân bóng Sao Vàng B (Sân 11)',
+    field: 'Sân bóng C1 (Sân 2)',
     coach: 'HLV. Nguyễn Văn Huấn',
   },
 ];
@@ -60,7 +60,7 @@ async function loadDashboardData() {
         <div class="schedule-item-meta">
           <span>📅 ${item.date || 'Hôm nay'}</span>
           <span>⏰ ${item.startTime ? `${item.startTime} - ${item.endTime}` : item.time || '18:00 - 20:00'}</span>
-          <span>🏟️ ${item.fieldName || item.field || 'Sân Sao Vàng A'}</span>
+          <span>🏟️ ${item.fieldName || item.field || 'Sân C1 (Sân 1)'}</span>
           <span>👤 ${item.coach || 'HLV trưởng'}</span>
         </div>
       </div>

@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thành viên - Sao Vàng FC</title>
-  <meta name="description" content="Quản lý hồ sơ thành viên câu lạc bộ Sao Vàng FC">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/navbar.css">
+  <title>Thành viên - Sân Bóng C1</title>
+  <meta name="description" content="Quản lý hồ sơ thành viên tại Sân Bóng C1">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navbar.css">
   <style>
     .member-table-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:16px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
     .avatar-circle {
@@ -186,7 +186,7 @@
   </div>
 </div>
 
-<script src="/js/app.js"></script>
+<script src="js/app.js"></script>
 <script>
   if (!requireLogin()) {}
 
@@ -358,7 +358,7 @@
 
   async function loadDbMembers() {
     try {
-      const res = await fetch('http://localhost:5000/api/players');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/players');
       if (res.ok) {
         const json = await res.json();
         const players = json.data || json;

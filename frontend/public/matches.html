@@ -3,33 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kết Quả Trận Đấu & Lịch Sử Thi Đấu - Sao Vàng FC</title>
+  <title>Kết Quả Trận Đấu & Lịch Sử Thi Đấu - Sân Bóng C1</title>
   <!-- CSS tách biệt hoàn toàn -->
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/navbar.css">
-  <link rel="stylesheet" href="/css/matches.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navbar.css">
+  <link rel="stylesheet" href="css/matches.css">
 </head>
 <body>
   <div class="app-layout">
     <!-- Navbar -->
     <header class="app-navbar">
       <div class="navbar-container">
-        <a href="/index.html" class="brand-logo">
+        <a href="index.html" class="brand-logo">
           <div class="brand-icon">⚽</div>
           <div class="brand-text">
-            <span class="brand-title">SAO VÀNG FC <span class="brand-tag">Club Hub</span></span>
-            <span class="brand-subtitle">Quản lý câu lạc bộ & Lịch tập</span>
+            <span class="brand-title">SÂN BÓNG C1 <span class="brand-tag">CLB</span></span>
+            <span class="brand-subtitle">Quản lý sân bóng & Lịch tập</span>
           </div>
         </a>
 
         <nav>
           <ul class="nav-links">
-            <li class="nav-item"><a href="/index.html">📊 Tổng quan</a></li>
-            <li class="nav-item"><a href="/players.html">🏃 Cầu thủ</a></li>
-            <li class="nav-item"><a href="/schedules.html">📅 Lịch tập</a></li>
-            <li class="nav-item active"><a href="/matches.html">⚽ Trận đấu</a></li>
-            <li class="nav-item"><a href="/attendance.html">✅ Điểm danh & Thống kê</a></li>
-            <li class="nav-item"><a href="/fields.html">🏟️ Sân bóng</a></li>
+            <li class="nav-item"><a href="index.html">📊 Tổng quan</a></li>
+            <li class="nav-item"><a href="players.html">🏃 Cầu thủ</a></li>
+            <li class="nav-item"><a href="schedules.html">📅 Lịch tập</a></li>
+            <li class="nav-item active"><a href="matches.html">⚽ Trận đấu</a></li>
+            <li class="nav-item"><a href="attendance.html">✅ Điểm danh & Thống kê</a></li>
+            <li class="nav-item"><a href="fields.html">🏟️ Sân bóng</a></li>
           </ul>
         </nav>
 
@@ -128,8 +128,8 @@
             <div class="form-group">
               <label class="form-label">Sân thi đấu:</label>
               <select id="matchField" class="form-control">
-                <option value="Sân bóng Sao Vàng A (Sân 7)">Sân bóng Sao Vàng A (Sân 7)</option>
-                <option value="Sân bóng Sao Vàng B (Sân 11)">Sân bóng Sao Vàng B (Sân 11)</option>
+                <option value="Sân bóng C1 (Sân 1)">Sân bóng C1 (Sân 1)</option>
+                <option value="Sân bóng C1 (Sân 2)">Sân bóng C1 (Sân 2)</option>
                 <option value="Sân vận động Mỹ Đình Mini">Sân vận động Mỹ Đình Mini</option>
               </select>
             </div>
@@ -139,7 +139,7 @@
             <label class="form-label" style="margin-bottom: 8px;">Tỷ số trận đấu:</label>
             <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;">
               <div>
-                <span style="font-size: 12px; color: #34d399; font-weight: 600;">Sao Vàng FC</span>
+                <span style="font-size: 12px; color: #34d399; font-weight: 600;">CLB Sân Bóng C1</span>
                 <input type="number" id="matchHomeScore" min="0" value="0" class="form-control" style="font-size: 18px; text-align: center; font-weight: bold;">
               </div>
               <span style="font-size: 20px; font-weight: bold;">-</span>
@@ -188,9 +188,9 @@
     </footer>
   </div>
 
-  <script src="/js/api.js"></script>
-  <script src="/js/auth.js"></script>
-  <script src="/js/exportUtils.js"></script>
-  <script src="/js/matches.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/exportUtils.js"></script>
+  <script src="js/matches.js"></script>
 </body>
 </html>

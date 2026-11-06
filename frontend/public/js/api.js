@@ -1,8 +1,8 @@
 // ==========================================================================
-// API CLIENT - KẾT NỐI BACKEND (PORT 5000) HOẶC FALLBACK DỮ LIỆU
+// API CLIENT - KẾT NỐI BACKEND WISPBYTE (PORT 11569) HOẶC FALLBACK DỮ LIỆU
 // ==========================================================================
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://haiandbao.wispbyte.app/api';
 
 const apiClient = {
   getToken() {

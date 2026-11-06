@@ -10,13 +10,13 @@
 INSERT INTO clubs (id, name, short_name, established_year, coach, captain, home_stadium, description)
 VALUES (
   'default-club',
-  'Câu Lạc Bộ Sao Vàng FC',
+  'Câu Lạc Bộ CLB Sân Bóng C1',
   'SVF',
   2015,
   'HLV. Nguyễn Văn Huấn',
   'Trần Minh Tuấn',
-  'Sân Bóng Sao Vàng - Quận 9, TP.HCM',
-  'CLB Sao Vàng FC được thành lập năm 2015, là một trong những câu lạc bộ phong trào hàng đầu khu vực. Chúng tôi thi đấu với tinh thần đồng đội, công bằng và sự phát triển của từng cầu thủ.'
+  'Sân Bóng Sân C1 - Quận 9, TP.HCM',
+  'CLB Sân Bóng C1 được thành lập năm 2015, là một trong những câu lạc bộ phong trào hàng đầu khu vực. Chúng tôi thi đấu với tinh thần đồng đội, công bằng và sự phát triển của từng cầu thủ.'
 )
 ON CONFLICT (id) DO UPDATE
 SET name = EXCLUDED.name,
@@ -57,8 +57,8 @@ VALUES
   ('field-c1-1', 'Sân bóng C1 - Sân 1', '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 (Hotline: 0983 830 955 / 0906 424 006)', 'Sân mini cỏ nhân tạo', 'Cỏ nhân tạo cao cấp & Đèn cao áp (250k - 350k/h)', 'Khả dụng'),
   ('field-c1-2', 'Sân bóng C1 - Sân 2', '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 (Hotline: 0983 830 955 / 0906 424 006)', 'Sân mini cỏ nhân tạo', 'Cỏ nhân tạo cao cấp & Đèn cao áp (250k - 350k/h)', 'Khả dụng'),
   ('field-c1',   'Sân bóng C1 (Cụm 2 Sân)', '1B Y Ngông, Tân Tiến, Buôn Ma Thuột • Thứ 2 – CN: 24/24 (Hotline: 0983 830 955 / 0906 424 006)', 'Cụm 2 sân mini', 'Cỏ nhân tạo cao cấp & Đèn cao áp (250k - 350k/h)', 'Khả dụng'),
-  ('field-001', 'Sân Sao Vàng A', '123 Nguyễn Duy Trinh, Q.9, TP.HCM', 'Sân 7 người', 'Cỏ nhân tạo', 'Khả dụng'),
-  ('field-002', 'Sân Sao Vàng B', '123 Nguyễn Duy Trinh, Q.9, TP.HCM', 'Sân 7 người', 'Cỏ nhân tạo', 'Khả dụng'),
+  ('field-001', 'Sân C1 (Sân 1)', '123 Nguyễn Duy Trinh, Q.9, TP.HCM', 'Sân 7 người', 'Cỏ nhân tạo', 'Khả dụng'),
+  ('field-002', 'Sân C1 (Sân 2)', '123 Nguyễn Duy Trinh, Q.9, TP.HCM', 'Sân 7 người', 'Cỏ nhân tạo', 'Khả dụng'),
   ('field-003', 'Sân Thống Nhất', '138 Đường 3/2, Q.10, TP.HCM', 'Sân 11 người', 'Cỏ tự nhiên', 'Khả dụng'),
   ('field-004', 'Sân Futsal Olympic', '45 Đinh Tiên Hoàng, Q.Bình Thạnh, TP.HCM', 'Sân futsal', 'Sàn gỗ', 'Khả dụng'),
   ('field-005', 'Sân Phú Thọ', '1 Lữ Gia, Q.11, TP.HCM', 'Sân 11 người', 'Cỏ nhân tạo', 'Bảo trì'),
@@ -100,13 +100,13 @@ INSERT INTO schedules (id, title, type, date, start_time, end_time, field_id, fi
 VALUES
   ('sched-c1',  'Tập chiến thuật đêm tại Sân C1', 'Tập chiến thuật',   '2026-11-03', '19:00', '21:00', 'field-c1',  'Sân bóng C1',       'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Tập luyện ban đêm dưới dàn đèn cao áp Sân C1'),
   ('sched-001', 'Tập thể lực đầu tuần',          'Tập thể lực',       '2026-10-28', '18:00', '20:00', 'field-c1',  'Sân bóng C1',       'HLV. Nguyễn Văn Huấn', 'Đã hoàn thành', 'Chú trọng cardio và tốc độ'),
-  ('sched-002', 'Tập chiến thuật 4-3-3',          'Tập chiến thuật',   '2026-10-29', '17:30', '19:30', 'field-001', 'Sân Sao Vàng A',    'HLV. Nguyễn Văn Huấn', 'Đã hoàn thành', 'Luyện sơ đồ chiến thuật mới'),
-  ('sched-003', 'Đấu tập nội bộ thứ 4',          'Đấu tập nội bộ',   '2026-10-30', '18:00', '20:30', 'field-002', 'Sân Sao Vàng B',    'HLV. Nguyễn Văn Huấn', 'Đang diễn ra',  'Chia 2 đội: Đỏ vs Xanh'),
-  ('sched-004', 'Tập thể lực cuối tuần',          'Tập thể lực',       '2026-11-01', '07:00', '09:00', 'field-001', 'Sân Sao Vàng A',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Buổi tập sáng sớm, mang giày đinh'),
+  ('sched-002', 'Tập chiến thuật 4-3-3',          'Tập chiến thuật',   '2026-10-29', '17:30', '19:30', 'field-001', 'Sân C1 (Sân 1)',    'HLV. Nguyễn Văn Huấn', 'Đã hoàn thành', 'Luyện sơ đồ chiến thuật mới'),
+  ('sched-003', 'Đấu tập nội bộ thứ 4',          'Đấu tập nội bộ',   '2026-10-30', '18:00', '20:30', 'field-002', 'Sân C1 (Sân 2)',    'HLV. Nguyễn Văn Huấn', 'Đang diễn ra',  'Chia 2 đội: Đỏ vs Xanh'),
+  ('sched-004', 'Tập thể lực cuối tuần',          'Tập thể lực',       '2026-11-01', '07:00', '09:00', 'field-001', 'Sân C1 (Sân 1)',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Buổi tập sáng sớm, mang giày đinh'),
   ('sched-005', 'Tập kỹ thuật cá nhân',           'Tập chiến thuật',   '2026-11-02', '18:00', '20:00', 'field-006', 'Sân Mini Star',     'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Tập rê bóng và dứt điểm'),
   ('sched-006', 'Giao hữu vs FC Rồng Xanh',       'Thi đấu giao hữu', '2026-11-05', '16:00', '18:00', 'field-003', 'Sân Thống Nhất',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Trận giao hữu hàng tháng, toàn đội tham gia'),
-  ('sched-007', 'Đấu tập nội bộ chủ nhật',        'Đấu tập nội bộ',   '2026-11-08', '07:30', '10:00', 'field-002', 'Sân Sao Vàng B',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Luyện set-piece và phạt góc'),
-  ('sched-008', 'Tập thể lực - Bài tập sức mạnh', 'Tập thể lực',       '2026-11-10', '18:00', '20:00', 'field-001', 'Sân Sao Vàng A',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Gym + field training'),
+  ('sched-007', 'Đấu tập nội bộ chủ nhật',        'Đấu tập nội bộ',   '2026-11-08', '07:30', '10:00', 'field-002', 'Sân C1 (Sân 2)',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Luyện set-piece và phạt góc'),
+  ('sched-008', 'Tập thể lực - Bài tập sức mạnh', 'Tập thể lực',       '2026-11-10', '18:00', '20:00', 'field-001', 'Sân C1 (Sân 1)',    'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Gym + field training'),
   ('sched-009', 'Tập phòng thủ',                  'Tập chiến thuật',   '2026-11-12', '17:00', '19:00', 'field-007', 'Sân Rạch Miễu',     'HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Tập pressing cao và chuyển trạng thái'),
   ('sched-010', 'Giao hữu vs Hoàng Long FC',       'Thi đấu giao hữu', '2026-11-15', '15:30', '17:30', 'field-009', 'Sân Đại học Thể dục','HLV. Nguyễn Văn Huấn', 'Sắp diễn ra',  'Trận quan trọng chuẩn bị cho giải cuối năm')
 ON CONFLICT (id) DO NOTHING;
@@ -171,7 +171,7 @@ VALUES
    '[{"playerName":"Bùi Văn Kiên","minute":33}]',
    NULL, 1, 0, 'Thua rõ ràng, cần cải thiện phòng ngự'),
 
-  ('match-006', 'Sao Mai FC',        NULL, 'Giải đấu',    '2026-08-20', '16:30', 'Sân Sao Vàng A',     2, 1, 'Đã kết thúc',
+  ('match-006', 'Sao Mai FC',        NULL, 'Giải đấu',    '2026-08-20', '16:30', 'Sân C1 (Sân 1)',     2, 1, 'Đã kết thúc',
    '[{"playerName":"Võ Hoàng Nam","minute":20},{"playerName":"Hoàng Minh Huy","minute":75}]',
    'Võ Hoàng Nam', 1, 0, NULL),
 
@@ -198,15 +198,15 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO notifications (id, title, message, type, timestamp, read, schedule_id)
 VALUES
   ('notif-001', 'Lịch tập mới: Tập thể lực đầu tuần',
-   'Buổi tập thể lực sẽ diễn ra vào 18:00 ngày 28/10/2026 tại Sân Sao Vàng A. Mang đầy đủ đồ tập!',
+   'Buổi tập thể lực sẽ diễn ra vào 18:00 ngày 28/10/2026 tại Sân C1 (Sân 1). Mang đầy đủ đồ tập!',
    'new', '27/10/2026, 20:00:00', true, 'sched-001'),
 
   ('notif-002', 'Nhắc nhở: Đấu tập nội bộ tối nay',
-   'Đấu tập nội bộ diễn ra lúc 18:00 tối nay tại Sân Sao Vàng B. Toàn đội có mặt đúng giờ!',
+   'Đấu tập nội bộ diễn ra lúc 18:00 tối nay tại Sân C1 (Sân 2). Toàn đội có mặt đúng giờ!',
    'reminder', '30/10/2026, 08:00:00', true, 'sched-003'),
 
   ('notif-003', 'Thay đổi lịch: Giao hữu vs FC Rồng Xanh',
-   'Địa điểm thi đấu đã được thay đổi sang Sân Thống Nhất thay vì Sân Sao Vàng A.',
+   'Địa điểm thi đấu đã được thay đổi sang Sân Thống Nhất thay vì Sân C1 (Sân 1).',
    'change', '28/10/2026, 15:30:00', false, 'sched-006'),
 
   ('notif-004', 'Lịch tập mới: Tập kỹ thuật cá nhân',
@@ -218,7 +218,7 @@ VALUES
    'cancel', '25/10/2026, 10:00:00', true, NULL),
 
   ('notif-006', 'Nhắc nhở: Tập thể lực cuối tuần',
-   'Buổi tập sáng sớm 07:00 ngày 01/11 tại Sân Sao Vàng A. Mang giày đinh, đến đúng giờ!',
+   'Buổi tập sáng sớm 07:00 ngày 01/11 tại Sân C1 (Sân 1). Mang giày đinh, đến đúng giờ!',
    'reminder', '31/10/2026, 20:00:00', false, 'sched-004'),
 
   ('notif-007', 'Lịch tập mới: Giao hữu vs Hoàng Long FC',
@@ -243,10 +243,10 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 INSERT INTO teams (id, name, level, head_coach, captain, member_count, home_pitch, established_year, description, status)
 VALUES
-  ('team-1', 'Sao Vàng FC - Đội 1 (Tuyển Chính)', 'Đội hình 1 Chuyên nghiệp', 'HLV. Nguyễn Văn Huấn', 'Nguyễn Quang Hải (#19)', 22, 'Sân bóng Sao Vàng B (Sân 11)', 2021, 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.', 'Hoạt động'),
-  ('team-2', 'Sao Vàng FC - Tuyển Trẻ U21', 'Lứa tuổi U21 Đào tạo', 'HLV. Trần Đình Trọng', 'Lê Văn Đô (#7)', 18, 'Sân bóng Sao Vàng A (Sân 7)', 2023, 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.', 'Hoạt động'),
-  ('team-3', 'Sao Vàng FC - Đội Trẻ U17', 'Lứa tuổi U17 Học viện', 'HLV. Phạm Đức Huy', 'Trần Minh Quân (#10)', 16, 'Sân bóng Sao Vàng A (Sân 7)', 2024, 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.', 'Hoạt động'),
-  ('team-4', 'Sao Vàng FC - Futsal Team', 'Bóng đá trong nhà 5 người', 'HLV. Vũ Trọng Khôi', 'Đỗ Hùng Dũng (#8)', 12, 'Sân trong nhà Futsal Arena', 2023, 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.', 'Hoạt động')
+  ('team-1', 'CLB Sân C1 - Đội 1 (Tuyển Chính)', 'Đội hình 1 Chuyên nghiệp', 'HLV. Nguyễn Văn Huấn', 'Nguyễn Quang Hải (#19)', 22, 'Sân bóng C1 (Sân 2)', 2021, 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.', 'Hoạt động'),
+  ('team-2', 'CLB Sân C1 - Tuyến Trẻ U21', 'Lứa tuổi U21 Đào tạo', 'HLV. Trần Đình Trọng', 'Lê Văn Đô (#7)', 18, 'Sân bóng C1 (Sân 1)', 2023, 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.', 'Hoạt động'),
+  ('team-3', 'CLB Sân C1 - Đội Trẻ U17', 'Lứa tuổi U17 Học viện', 'HLV. Phạm Đức Huy', 'Trần Minh Quân (#10)', 16, 'Sân bóng C1 (Sân 1)', 2024, 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.', 'Hoạt động'),
+  ('team-4', 'CLB Sân C1 - Futsal Team', 'Bóng đá trong nhà 5 người', 'HLV. Vũ Trọng Khôi', 'Đỗ Hùng Dũng (#8)', 12, 'Sân trong nhà Futsal Arena', 2023, 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.', 'Hoạt động')
 ON CONFLICT (id) DO UPDATE
 SET name = EXCLUDED.name,
     level = EXCLUDED.level,
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS finances (
 INSERT INTO finances (id, date, title, category, amount, person_in_charge, notes)
 VALUES
   ('fin-1', '2026-10-01', 'Thu phí sinh hoạt tháng 10 của các thành viên', 'Thu', 6600000, 'Thủ quỹ CLB', '22 thành viên x 300.000 VNĐ'),
-  ('fin-2', '2026-10-03', 'Thanh toán tiền thuê sân tập tháng 10 (Sân Sao Vàng A)', 'Chi', 3500000, 'HLV Huấn', '8 buổi tập x 437.500 VNĐ'),
+  ('fin-2', '2026-10-03', 'Thanh toán tiền thuê sân tập tháng 10 (Sân C1 (Sân 1))', 'Chi', 3500000, 'HLV Huấn', '8 buổi tập x 437.500 VNĐ'),
   ('fin-3', '2026-10-10', 'Tiền tài trợ từ Công ty Thể thao Động Lực', 'Thu', 10000000, 'Ban Lãnh Đạo', 'Tài trợ trang phục & bóng thi đấu'),
   ('fin-4', '2026-10-15', 'Mua 10 quả bóng thi đấu tiêu chuẩn FIFA Quality Pro', 'Chi', 2400000, 'Ban Hậu Cần', 'Mua sắm trang bị tập luyện'),
   ('fin-5', '2026-10-24', 'Chi phí nước uống, y tế trận giao hữu với Hà Nội Star FC', 'Chi', 800000, 'Bác sĩ CLB', 'Nước khoáng, điện giải và băng gạc y tế'),

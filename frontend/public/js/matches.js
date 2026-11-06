@@ -9,7 +9,7 @@ let matches = [
     matchType: 'Giao hữu',
     date: '2026-10-24',
     time: '16:00',
-    fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+    fieldName: 'Sân bóng C1 (Sân 2)',
     homeScore: 3,
     awayScore: 1,
     status: 'Đã kết thúc',
@@ -27,7 +27,7 @@ let matches = [
     matchType: 'Giải đấu',
     date: '2026-10-17',
     time: '17:30',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     homeScore: 2,
     awayScore: 2,
     status: 'Đã kết thúc',
@@ -44,7 +44,7 @@ let matches = [
     matchType: 'Giao hữu',
     date: '2026-10-10',
     time: '16:30',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     homeScore: 4,
     awayScore: 0,
     status: 'Đã kết thúc',
@@ -63,7 +63,7 @@ let matches = [
     matchType: 'Cúp Mở Rộng',
     date: '2026-11-05',
     time: '15:30',
-    fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+    fieldName: 'Sân bóng C1 (Sân 2)',
     homeScore: 0,
     awayScore: 0,
     status: 'Sắp diễn ra',
@@ -204,7 +204,7 @@ function renderMatches() {
         <div class="scoreboard">
           <div class="team-box home">
             <div>
-              <div class="team-name">SAO VÀNG FC</div>
+              <div class="team-name">SÂN BÓNG C1 FC</div>
               <div class="team-sub">Đội Nhà • Áo Đỏ</div>
             </div>
             <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; font-size: 20px;">⭐</div>
@@ -346,7 +346,7 @@ function setupEventListeners() {
       const headers = ['STT', 'Đội Nhà', 'Tỷ Số', 'Đội Khách', 'Giải Đấu', 'Ngày', 'Sân', 'Bàn Thắng', 'MVP'];
       const rows = matches.map((m, idx) => [
         idx + 1,
-        'Sao Vàng FC',
+        'CLB Sân Bóng C1',
         m.status === 'Đã kết thúc' ? `${m.homeScore} - ${m.awayScore}` : 'Chưa đấu',
         m.opponent,
         m.matchType,
@@ -365,7 +365,7 @@ function setupEventListeners() {
     btnPdf.addEventListener('click', () => {
       const headers = ['Trận Đấu', 'Tỷ Số', 'Giải Đấu', 'Thời Gian & Sân', 'Cầu Thủ Ghi Bàn', 'MVP'];
       const rows = matches.map(m => [
-        `Sao Vàng FC vs ${m.opponent}`,
+        `CLB Sân Bóng C1 vs ${m.opponent}`,
         m.status === 'Đã kết thúc' ? `${m.homeScore} - ${m.awayScore}` : 'Sắp diễn ra',
         m.matchType,
         `${m.date} • ${m.fieldName}`,
@@ -374,13 +374,13 @@ function setupEventListeners() {
       ]);
       printReport({
         title: 'BÁO CÁO KẾT QUẢ THI ĐẤU & LỊCH SỬ TRẬN ĐẤU',
-        subtitle: 'Thống kê kết quả thi đấu câu lạc bộ bóng đá Sao Vàng FC',
+        subtitle: 'Thống kê kết quả thi đấu câu lạc bộ bóng đá CLB Sân Bóng C1',
         filterInfo: `Tổng số trận: ${matches.length}`,
         tableHeaders: headers,
         tableRows: rows,
         summary: [
           { label: 'Số trận', value: matches.length },
-          { label: 'Đội bóng', value: 'Sao Vàng FC' },
+          { label: 'Đội bóng', value: 'CLB Sân Bóng C1' },
         ],
       });
     });

@@ -68,7 +68,7 @@ function printReport({ title, subtitle, filterInfo, tableHeaders, tableRows, sum
     <html lang="vi">
     <head>
       <meta charset="UTF-8">
-      <title>${title} - Sao Vàng FC</title>
+      <title>${title} - CLB Sân Bóng C1</title>
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0f172a; margin: 40px; }
         @media print { body { margin: 20px; } .no-print { display: none; } }
@@ -79,7 +79,7 @@ function printReport({ title, subtitle, filterInfo, tableHeaders, tableRows, sum
         <div style="display: flex; align-items: center; gap: 14px;">
           <div style="width: 50px; height: 50px; background: #059669; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px;">⚽</div>
           <div>
-            <h1 style="margin: 0; font-size: 19px; color: #065f46;">CÂU LẠC BỘ BÓNG ĐÁ SAO VÀNG FC</h1>
+            <h1 style="margin: 0; font-size: 19px; color: #065f46;">CÂU LẠC BỘ & SÂN BÓNG C1</h1>
             <p style="margin: 2px 0 0; font-size: 12px; color: #64748b;">Hệ Thống Quản Lý Câu Lạc Bộ & Lịch Tập Bóng Đá Chuyên Nghiệp</p>
           </div>
         </div>

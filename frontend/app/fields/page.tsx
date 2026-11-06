@@ -37,7 +37,7 @@ export default function FieldsPage() {
   const [fields, setFields] = useState<FootballField[]>(defaultFields);
 
   useEffect(() => {
-    fetch('/api/fields')
+    fetch('https://haiandbao.wispbyte.app/api/fields')
       .then((res) => res.json())
       .then((res) => {
         const list = res?.data || (Array.isArray(res) ? res : null);
@@ -45,7 +45,7 @@ export default function FieldsPage() {
           setFields(list);
         }
       })
-      .catch((err) => console.warn('Lỗi kết nối /api/fields:', err));
+      .catch((err) => console.warn('Lỗi kết nối Wispbyte /api/fields:', err));
   }, []);
 
   return (

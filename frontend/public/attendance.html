@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Điểm danh - Sao Vàng FC</title>
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/navbar.css">
+  <title>Điểm danh - CLB Sân Bóng C1</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/navbar.css">
   <style>
     .session-select-bar {
       background:#fff; border:1px solid #e5e7eb; border-radius:14px;
@@ -211,7 +211,7 @@
   </div>
 </div>
 
-<script src="/js/app.js"></script>
+<script src="js/app.js"></script>
 <script>
   if (!requireLogin()) {}
 
@@ -316,7 +316,7 @@
         scheduleId: 'sched-today',
         status: attendance[m.id] === 'present' ? 'Có mặt' : attendance[m.id] === 'late' ? 'Đến muộn' : 'Vắng mặt',
       }));
-      await fetch('http://localhost:5000/api/attendances', {
+      await fetch('https://haiandbao.wispbyte.app/api/attendances', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduleId: 'sched-today', attendances: records }),
@@ -329,7 +329,7 @@
 
   async function loadDbAttendanceMembers() {
     try {
-      const res = await fetch('http://localhost:5000/api/players');
+      const res = await fetch('https://haiandbao.wispbyte.app/api/players');
       if (res.ok) {
         const json = await res.json();
         const players = json.data || json;

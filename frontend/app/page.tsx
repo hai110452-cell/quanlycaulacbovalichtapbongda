@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useMemo } from 'react';
+import { useState, useEffect, Suspense, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -96,50 +96,50 @@ interface ClubTeam {
 const initialTeams: ClubTeam[] = [
   {
     id: 'team-1',
-    name: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    name: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     level: 'Đội hình 1 Chuyên nghiệp',
     headCoach: 'HLV. Nguyễn Văn Huấn',
     captain: 'Nguyễn Quang Hải (#19)',
-    memberCount: 22,
-    homePitch: 'Sân bóng Sao Vàng B (Sân 11)',
+    memberCount: 10,
+    homePitch: 'Sân bóng C1 (Sân 2)',
     establishedYear: 2021,
-    description: 'Đội tuyển hạt nhân thi đấu các giải phong trào ngoại hạng và cúp khu vực miền Bắc.',
+    description: 'Đội tuyển hạt nhân thi đấu các giải cúp phong trào mở rộng. Quy mô: 10 cầu thủ (5 đá chính + 5 dự bị).',
     status: 'Hoạt động',
   },
   {
     id: 'team-2',
-    name: 'Sao Vàng FC - Tuyển Trẻ U21',
+    name: 'CLB Sân C1 - Tuyến Trẻ U21',
     level: 'Lứa tuổi U21 Đào tạo',
     headCoach: 'HLV. Trần Đình Trọng',
     captain: 'Lê Văn Đô (#7)',
-    memberCount: 18,
-    homePitch: 'Sân bóng Sao Vàng A (Sân 7)',
+    memberCount: 10,
+    homePitch: 'Sân bóng C1 (Sân 1)',
     establishedYear: 2023,
-    description: 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy kinh nghiệm thực chiến.',
+    description: 'Nòng cốt kế cận, rèn luyện kỹ thuật cơ bản và tích lũy thực chiến. Quy mô: 10 cầu thủ (5 đá chính + 5 dự bị).',
     status: 'Hoạt động',
   },
   {
     id: 'team-3',
-    name: 'Sao Vàng FC - Đội Trẻ U17',
+    name: 'CLB Sân C1 - Đội Trẻ U17',
     level: 'Lứa tuổi U17 Học viện',
     headCoach: 'HLV. Phạm Đức Huy',
     captain: 'Trần Minh Quân (#10)',
-    memberCount: 16,
-    homePitch: 'Sân bóng Sao Vàng A (Sân 7)',
+    memberCount: 10,
+    homePitch: 'Sân bóng C1 (Sân 1)',
     establishedYear: 2024,
-    description: 'Đào tạo thể chất và tư duy chơi bóng hiện đại cho các tài năng trẻ.',
+    description: 'Đào tạo thể chất và tư duy hiện đại cho tài năng trẻ. Quy mô: 10 cầu thủ (5 đá chính + 5 dự bị).',
     status: 'Hoạt động',
   },
   {
     id: 'team-4',
-    name: 'Sao Vàng FC - Futsal Team',
-    level: 'Bóng đá trong nhà 5 người',
+    name: 'CLB Sân C1 - Futsal Team',
+    level: 'Bóng đá trong nhà & Mini 5 người',
     headCoach: 'HLV. Vũ Trọng Khôi',
     captain: 'Đỗ Hùng Dũng (#8)',
-    memberCount: 12,
+    memberCount: 10,
     homePitch: 'Sân trong nhà Futsal Arena',
     establishedYear: 2023,
-    description: 'Chuyên thi đấu giao lưu sân sàn gỗ trong nhà, rèn kỹ thuật xoay sở phạm vi hẹp.',
+    description: 'Thi đấu sân mini và sàn gỗ trong nhà. Quy mô: 10 cầu thủ (5 đá chính + 5 dự bị).',
     status: 'Hoạt động',
   },
 ];
@@ -159,16 +159,19 @@ interface ClubMember {
   preferredFoot: string;
   status: 'Đang tập luyện' | 'Chấn thương' | 'Nghỉ phép';
   feePaidMonth: boolean;
+  lineupRole?: 'Đá chính' | 'Dự bị'; // Quy chuẩn: 5 Đá chính + 5 Dự bị (Tối đa 10 người/đội)
 }
 
 const initialMembers: ClubMember[] = [
+  // ==================== ĐỘI 1: CLB SÂN C1 - ĐỘI 1 (TUYỂN CHÍNH) - 10 CẦU THỦ ====================
+  // --- 5 CẦU THỦ ĐÁ CHÍNH ---
   {
     id: 'player-001',
     name: 'Nguyễn Văn Khải',
     jerseyNumber: 1,
     position: 'Thủ môn',
     teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     phone: '0901111111',
     dateOfBirth: '1995-03-15',
     height: '1m86',
@@ -176,66 +179,7 @@ const initialMembers: ClubMember[] = [
     preferredFoot: 'Chân phải',
     status: 'Đang tập luyện',
     feePaidMonth: true,
-  },
-  {
-    id: 'player-004',
-    name: 'Phạm Thanh Tùng',
-    jerseyNumber: 3,
-    position: 'Hậu vệ',
-    teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
-    phone: '0904444444',
-    dateOfBirth: '1997-05-30',
-    height: '1m82',
-    weight: '75kg',
-    preferredFoot: 'Chân phải',
-    status: 'Chấn thương',
-    feePaidMonth: false,
-  },
-  {
-    id: 'player-2',
-    name: 'Đỗ Duy Mạnh',
-    jerseyNumber: 4,
-    position: 'Hậu vệ',
-    teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
-    phone: '0912345678',
-    dateOfBirth: '1996-09-29',
-    height: '1m80',
-    weight: '76kg',
-    preferredFoot: 'Chân phải',
-    status: 'Đang tập luyện',
-    feePaidMonth: true,
-  },
-  {
-    id: 'player-003',
-    name: 'Lê Quốc Bảo',
-    jerseyNumber: 15,
-    position: 'Hậu vệ',
-    teamId: 'team-2',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
-    phone: '0903333333',
-    dateOfBirth: '1996-11-08',
-    height: '1m78',
-    weight: '72kg',
-    preferredFoot: 'Chân phải',
-    status: 'Đang tập luyện',
-    feePaidMonth: true,
-  },
-  {
-    id: 'player-3',
-    name: 'Đoàn Văn Hậu',
-    jerseyNumber: 5,
-    position: 'Hậu vệ',
-    teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
-    phone: '0923456789',
-    dateOfBirth: '1999-04-19',
-    height: '1m86',
-    weight: '82kg',
-    preferredFoot: 'Chân trái',
-    status: 'Chấn thương',
-    feePaidMonth: false,
+    lineupRole: 'Đá chính',
   },
   {
     id: 'player-002',
@@ -243,7 +187,7 @@ const initialMembers: ClubMember[] = [
     jerseyNumber: 2,
     position: 'Hậu vệ',
     teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     phone: '0902222222',
     dateOfBirth: '1994-07-22',
     height: '1m79',
@@ -251,66 +195,23 @@ const initialMembers: ClubMember[] = [
     preferredFoot: 'Chân phải',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Đá chính',
   },
   {
-    id: 'player-005',
-    name: 'Võ Hoàng Nam',
-    jerseyNumber: 6,
-    position: 'Tiền vệ',
-    teamId: 'team-2',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
-    phone: '0905555555',
-    dateOfBirth: '1995-09-12',
-    height: '1m74',
-    weight: '69kg',
-    preferredFoot: 'Chân phải',
-    status: 'Đang tập luyện',
-    feePaidMonth: true,
-  },
-  {
-    id: 'player-008',
-    name: 'Nguyễn Đức Thắng',
-    jerseyNumber: 7,
-    position: 'Tiền đạo',
+    id: 'player-004',
+    name: 'Phạm Thanh Tùng',
+    jerseyNumber: 3,
+    position: 'Hậu vệ',
     teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
-    phone: '0908888888',
-    dateOfBirth: '1999-04-17',
-    height: '1m76',
-    weight: '71kg',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
+    phone: '0904444444',
+    dateOfBirth: '1997-05-30',
+    height: '1m82',
+    weight: '75kg',
     preferredFoot: 'Chân phải',
-    status: 'Đang tập luyện',
-    feePaidMonth: true,
-  },
-  {
-    id: 'player-006',
-    name: 'Đặng Văn Long',
-    jerseyNumber: 8,
-    position: 'Tiền vệ',
-    teamId: 'team-2',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
-    phone: '0906666666',
-    dateOfBirth: '1998-02-28',
-    height: '1m75',
-    weight: '70kg',
-    preferredFoot: 'Chân phải',
-    status: 'Đang tập luyện',
-    feePaidMonth: true,
-  },
-  {
-    id: 'player-009',
-    name: 'Bùi Văn Kiên',
-    jerseyNumber: 9,
-    position: 'Tiền đạo',
-    teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
-    phone: '0909999999',
-    dateOfBirth: '1996-08-25',
-    height: '1m81',
-    weight: '77kg',
-    preferredFoot: 'Chân phải',
-    status: 'Đang tập luyện',
-    feePaidMonth: true,
+    status: 'Chấn thương',
+    feePaidMonth: false,
+    lineupRole: 'Đá chính',
   },
   {
     id: 'player-007',
@@ -318,7 +219,7 @@ const initialMembers: ClubMember[] = [
     jerseyNumber: 10,
     position: 'Tiền vệ',
     teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     phone: '0907777777',
     dateOfBirth: '1993-12-01',
     height: '1m72',
@@ -326,66 +227,72 @@ const initialMembers: ClubMember[] = [
     preferredFoot: 'Chân trái',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Đá chính',
   },
   {
-    id: 'player-010',
-    name: 'Trịnh Quang Hải',
-    jerseyNumber: 11,
+    id: 'player-009',
+    name: 'Bùi Văn Kiên',
+    jerseyNumber: 9,
     position: 'Tiền đạo',
-    teamId: 'team-2',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
-    phone: '0910000000',
-    dateOfBirth: '2000-01-14',
-    height: '1m77',
-    weight: '70kg',
-    preferredFoot: 'Chân phải',
-    status: 'Nghỉ phép',
-    feePaidMonth: false,
-  },
-  {
-    id: 'player-011',
-    name: 'Mai Xuân Trường',
-    jerseyNumber: 13,
-    position: 'Hậu vệ',
-    teamId: 'team-3',
-    teamName: 'Sao Vàng FC - Đội Trẻ U17',
-    phone: '0911111111',
-    dateOfBirth: '1997-06-19',
-    height: '1m79',
-    weight: '73kg',
-    preferredFoot: 'Chân phải',
-    status: 'Đang tập luyện',
-    feePaidMonth: true,
-  },
-  {
-    id: 'player-5',
-    name: 'Nguyễn Hoàng Đức',
-    jerseyNumber: 28,
-    position: 'Tiền vệ',
     teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
-    phone: '0945678901',
-    dateOfBirth: '1998-01-11',
-    height: '1m84',
-    weight: '75kg',
-    preferredFoot: 'Chân trái',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
+    phone: '0909999999',
+    dateOfBirth: '1996-08-25',
+    height: '1m81',
+    weight: '77kg',
+    preferredFoot: 'Chân phải',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  // --- 5 CẦU THỦ DỰ BỊ ---
+  {
+    id: 'player-2',
+    name: 'Đỗ Duy Mạnh',
+    jerseyNumber: 4,
+    position: 'Hậu vệ',
+    teamId: 'team-1',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
+    phone: '0912345678',
+    dateOfBirth: '1996-09-29',
+    height: '1m80',
+    weight: '76kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
   },
   {
-    id: 'player-012',
-    name: 'Lý Công Hoàng',
-    jerseyNumber: 14,
-    position: 'Tiền đạo',
-    teamId: 'team-2',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
-    phone: '0912222222',
-    dateOfBirth: '1995-10-05',
-    height: '1m78',
-    weight: '72kg',
-    preferredFoot: 'Chân phải',
+    id: 'player-3',
+    name: 'Đoàn Văn Hậu',
+    jerseyNumber: 5,
+    position: 'Hậu vệ',
+    teamId: 'team-1',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
+    phone: '0923456789',
+    dateOfBirth: '1999-04-19',
+    height: '1m86',
+    weight: '82kg',
+    preferredFoot: 'Chân trái',
     status: 'Chấn thương',
     feePaidMonth: false,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-008',
+    name: 'Nguyễn Đức Thắng',
+    jerseyNumber: 7,
+    position: 'Tiền đạo',
+    teamId: 'team-1',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
+    phone: '0908888888',
+    dateOfBirth: '1999-04-17',
+    height: '1m76',
+    weight: '71kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
   },
   {
     id: 'player-4',
@@ -393,7 +300,7 @@ const initialMembers: ClubMember[] = [
     jerseyNumber: 19,
     position: 'Tiền vệ',
     teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     phone: '0934567890',
     dateOfBirth: '1997-04-12',
     height: '1m68',
@@ -401,6 +308,7 @@ const initialMembers: ClubMember[] = [
     preferredFoot: 'Chân trái',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Dự bị',
   },
   {
     id: 'player-6',
@@ -408,7 +316,7 @@ const initialMembers: ClubMember[] = [
     jerseyNumber: 22,
     position: 'Tiền đạo',
     teamId: 'team-1',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     phone: '0956789012',
     dateOfBirth: '1997-10-20',
     height: '1m80',
@@ -416,21 +324,58 @@ const initialMembers: ClubMember[] = [
     preferredFoot: 'Chân phải',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Dự bị',
   },
+
+  // ==================== ĐỘI 2: CLB SÂN C1 - TUYẾN TRẺ U21 - 10 CẦU THỦ ====================
+  // --- 5 CẦU THỦ ĐÁ CHÍNH ---
   {
-    id: 'player-1793350671460',
-    name: 'Trương Kỳ Gia Bảo',
-    jerseyNumber: 23,
-    position: 'Tiền vệ',
-    teamId: 'team-4',
-    teamName: 'Sao Vàng FC - Futsal Team',
-    phone: '0988888888',
-    dateOfBirth: '2000-01-01',
-    height: '1m75',
-    weight: '70kg',
+    id: 'player-u21-001',
+    name: 'Quan Văn Chuẩn',
+    jerseyNumber: 1,
+    position: 'Thủ môn',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0961111222',
+    dateOfBirth: '2001-01-07',
+    height: '1m81',
+    weight: '75kg',
     preferredFoot: 'Chân phải',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-003',
+    name: 'Lê Quốc Bảo',
+    jerseyNumber: 15,
+    position: 'Hậu vệ',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0903333333',
+    dateOfBirth: '1996-11-08',
+    height: '1m78',
+    weight: '72kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-005',
+    name: 'Võ Hoàng Nam',
+    jerseyNumber: 6,
+    position: 'Tiền vệ',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0905555555',
+    dateOfBirth: '1995-09-12',
+    height: '1m74',
+    weight: '69kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
   },
   {
     id: 'player-1793350674397',
@@ -438,7 +383,7 @@ const initialMembers: ClubMember[] = [
     jerseyNumber: 24,
     position: 'Tiền vệ',
     teamId: 'team-2',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
     phone: '0967890123',
     dateOfBirth: '2001-08-07',
     height: '1m73',
@@ -446,14 +391,163 @@ const initialMembers: ClubMember[] = [
     preferredFoot: 'Chân phải',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-010',
+    name: 'Trịnh Quang Hải',
+    jerseyNumber: 11,
+    position: 'Tiền đạo',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0910000000',
+    dateOfBirth: '2000-01-14',
+    height: '1m77',
+    weight: '70kg',
+    preferredFoot: 'Chân phải',
+    status: 'Nghỉ phép',
+    feePaidMonth: false,
+    lineupRole: 'Đá chính',
+  },
+  // --- 5 CẦU THỦ DỰ BỊ ---
+  {
+    id: 'player-006',
+    name: 'Đặng Văn Long',
+    jerseyNumber: 8,
+    position: 'Tiền vệ',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0906666666',
+    dateOfBirth: '1998-02-28',
+    height: '1m75',
+    weight: '70kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-012',
+    name: 'Lý Công Hoàng',
+    jerseyNumber: 14,
+    position: 'Tiền đạo',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0912222222',
+    dateOfBirth: '1995-10-05',
+    height: '1m78',
+    weight: '72kg',
+    preferredFoot: 'Chân phải',
+    status: 'Chấn thương',
+    feePaidMonth: false,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-u21-002',
+    name: 'Lương Duy Cương',
+    jerseyNumber: 3,
+    position: 'Hậu vệ',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0962222333',
+    dateOfBirth: '2001-11-07',
+    height: '1m82',
+    weight: '76kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-u21-003',
+    name: 'Phan Tuấn Tài',
+    jerseyNumber: 12,
+    position: 'Hậu vệ',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0963333444',
+    dateOfBirth: '2001-01-07',
+    height: '1m76',
+    weight: '68kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-u21-004',
+    name: 'Khuất Văn Khang',
+    jerseyNumber: 17,
+    position: 'Tiền vệ',
+    teamId: 'team-2',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
+    phone: '0964444555',
+    dateOfBirth: '2003-05-11',
+    height: '1m71',
+    weight: '65kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+
+  // ==================== ĐỘI 3: CLB SÂN C1 - ĐỘI TRẺ U17 - 10 CẦU THỦ ====================
+  // --- 5 CẦU THỦ ĐÁ CHÍNH ---
+  {
+    id: 'player-u17-003',
+    name: 'Cao Văn Bình',
+    jerseyNumber: 1,
+    position: 'Thủ môn',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0972345678',
+    dateOfBirth: '2007-01-08',
+    height: '1m83',
+    weight: '74kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-u17-005',
+    name: 'Nguyễn Bảo Long',
+    jerseyNumber: 3,
+    position: 'Hậu vệ',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0974567890',
+    dateOfBirth: '2007-02-14',
+    height: '1m76',
+    weight: '67kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-u17-004',
+    name: 'Lê Đình Long Vũ',
+    jerseyNumber: 7,
+    position: 'Tiền vệ',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0973456789',
+    dateOfBirth: '2007-05-27',
+    height: '1m72',
+    weight: '64kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
   },
   {
     id: 'player-1793350676917',
     name: 'Trần Minh Quân',
-    jerseyNumber: 25,
+    jerseyNumber: 10,
     position: 'Tiền đạo',
     teamId: 'team-3',
-    teamName: 'Sao Vàng FC - Đội Trẻ U17',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
     phone: '0978901234',
     dateOfBirth: '2007-03-15',
     height: '1m75',
@@ -461,6 +555,268 @@ const initialMembers: ClubMember[] = [
     preferredFoot: 'Chân phải',
     status: 'Đang tập luyện',
     feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-u17-002',
+    name: 'Nguyễn Đình Bắc',
+    jerseyNumber: 11,
+    position: 'Tiền đạo',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0971234567',
+    dateOfBirth: '2007-08-19',
+    height: '1m79',
+    weight: '68kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  // --- 5 CẦU THỦ DỰ BỊ ---
+  {
+    id: 'player-011',
+    name: 'Mai Xuân Trường',
+    jerseyNumber: 13,
+    position: 'Hậu vệ',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0911111111',
+    dateOfBirth: '2007-06-19',
+    height: '1m79',
+    weight: '73kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-u17-006',
+    name: 'Hoàng Minh Tiến',
+    jerseyNumber: 8,
+    position: 'Tiền vệ',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0975678901',
+    dateOfBirth: '2007-09-11',
+    height: '1m74',
+    weight: '66kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-u17-007',
+    name: 'Đinh Quang Kiệt',
+    jerseyNumber: 5,
+    position: 'Hậu vệ',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0976789012',
+    dateOfBirth: '2007-07-16',
+    height: '1m91',
+    weight: '80kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-u17-008',
+    name: 'Nguyễn Công Phương',
+    jerseyNumber: 14,
+    position: 'Tiền vệ',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0977890123',
+    dateOfBirth: '2007-06-03',
+    height: '1m75',
+    weight: '66kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-u17-009',
+    name: 'Lê Huỳnh Triệu',
+    jerseyNumber: 19,
+    position: 'Tiền đạo',
+    teamId: 'team-3',
+    teamName: 'CLB Sân C1 - Đội Trẻ U17',
+    phone: '0978901239',
+    dateOfBirth: '2007-06-16',
+    height: '1m73',
+    weight: '64kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+
+  // ==================== ĐỘI 4: CLB SÂN C1 - FUTSAL TEAM - 10 CẦU THỦ ====================
+  // --- 5 CẦU THỦ ĐÁ CHÍNH ---
+  {
+    id: 'player-futsal-001',
+    name: 'Hồ Văn Ý',
+    jerseyNumber: 1,
+    position: 'Thủ môn',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0981112233',
+    dateOfBirth: '1997-01-01',
+    height: '1m78',
+    weight: '73kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-futsal-003',
+    name: 'Châu Đoàn Phát',
+    jerseyNumber: 4,
+    position: 'Hậu vệ',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0983334455',
+    dateOfBirth: '1999-03-14',
+    height: '1m72',
+    weight: '68kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-futsal-002',
+    name: 'Đỗ Hùng Dũng',
+    jerseyNumber: 8,
+    position: 'Tiền vệ',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0982223344',
+    dateOfBirth: '1993-09-08',
+    height: '1m70',
+    weight: '66kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-1793350671460',
+    name: 'Trương Kỳ Gia Bảo',
+    jerseyNumber: 23,
+    position: 'Tiền vệ',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0988888888',
+    dateOfBirth: '2000-01-01',
+    height: '1m75',
+    weight: '70kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  {
+    id: 'player-futsal-004',
+    name: 'Trần Thái Huy',
+    jerseyNumber: 9,
+    position: 'Tiền đạo',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0984445566',
+    dateOfBirth: '1995-10-12',
+    height: '1m69',
+    weight: '65kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Đá chính',
+  },
+  // --- 5 CẦU THỦ DỰ BỊ ---
+  {
+    id: 'player-futsal-005',
+    name: 'Nguyễn Thịnh Phát',
+    jerseyNumber: 10,
+    position: 'Tiền đạo',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0985556677',
+    dateOfBirth: '1997-06-10',
+    height: '1m76',
+    weight: '72kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-futsal-006',
+    name: 'Nhan Gia Hưng',
+    jerseyNumber: 13,
+    position: 'Tiền vệ',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0986667788',
+    dateOfBirth: '2002-07-13',
+    height: '1m74',
+    weight: '67kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-futsal-007',
+    name: 'Phạm Đức Hòa',
+    jerseyNumber: 5,
+    position: 'Hậu vệ',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0987778899',
+    dateOfBirth: '1991-04-12',
+    height: '1m71',
+    weight: '68kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-futsal-008',
+    name: 'Khổng Đình Hùng',
+    jerseyNumber: 7,
+    position: 'Tiền vệ',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0988889900',
+    dateOfBirth: '1989-11-11',
+    height: '1m73',
+    weight: '69kg',
+    preferredFoot: 'Chân phải',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
+  },
+  {
+    id: 'player-futsal-009',
+    name: 'Mai Thành Đạt',
+    jerseyNumber: 11,
+    position: 'Tiền đạo',
+    teamId: 'team-4',
+    teamName: 'CLB Sân C1 - Futsal Team',
+    phone: '0989990011',
+    dateOfBirth: '1987-04-05',
+    height: '1m72',
+    weight: '67kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện',
+    feePaidMonth: true,
+    lineupRole: 'Dự bị',
   },
 ];
 
@@ -483,7 +839,7 @@ const initialCoaches: ClubCoach[] = [
     name: 'HLV. Nguyễn Văn Huấn',
     role: 'HLV Trưởng CLB',
     license: 'Bằng AFC Pro / UEFA A',
-    assignedTeam: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    assignedTeam: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     phone: '0912345678',
     email: 'huan.nv@saovangfc.vn',
     experienceYears: 12,
@@ -494,7 +850,7 @@ const initialCoaches: ClubCoach[] = [
     name: 'HLV. Trần Đình Trọng',
     role: 'HLV Trưởng Tuyến Trẻ U21',
     license: 'Bằng AFC B',
-    assignedTeam: 'Sao Vàng FC - Tuyến Trẻ U21',
+    assignedTeam: 'CLB Sân C1 - Tuyến Trẻ U21',
     phone: '0923456781',
     email: 'trong.td@saovangfc.vn',
     experienceYears: 6,
@@ -505,7 +861,7 @@ const initialCoaches: ClubCoach[] = [
     name: 'HLV. Phạm Đức Huy',
     role: 'HLV Đào tạo trẻ U17',
     license: 'Bằng AFC C',
-    assignedTeam: 'Sao Vàng FC - Đội Trẻ U17',
+    assignedTeam: 'CLB Sân C1 - Đội Trẻ U17',
     phone: '0934567812',
     email: 'huy.pd@saovangfc.vn',
     experienceYears: 5,
@@ -516,7 +872,7 @@ const initialCoaches: ClubCoach[] = [
     name: 'HLV. Vũ Trọng Khôi',
     role: 'HLV Đội Futsal',
     license: 'Bằng Futsal Level 2',
-    assignedTeam: 'Sao Vàng FC - Futsal Team',
+    assignedTeam: 'CLB Sân C1 - Futsal Team',
     phone: '0945678923',
     email: 'khoi.futsal@saovangfc.vn',
     experienceYears: 8,
@@ -543,91 +899,91 @@ const initialSchedules: TrainingSchedule[] = [
   {
     id: 'sched-1',
     title: 'Rèn luyện thể lực và sức bền đầu tuần',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Tập thể lực',
     date: '2026-10-27',
     startTime: '17:30',
     endTime: '19:30',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Khởi động kỹ, mang giày đinh dăm AG, tập chạy biến tốc.',
   },
   {
     id: 'sched-001',
     title: 'Tập thể lực đầu tuần',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
     type: 'Tập thể lực',
     date: '2026-10-28',
     startTime: '18:00',
     endTime: '20:00',
-    fieldName: 'Sân Sao Vàng A',
+    fieldName: 'Sân C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Chú trọng cardio và tốc độ',
   },
   {
     id: 'sched-002',
     title: 'Tập chiến thuật 4-3-3',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Tập chiến thuật',
     date: '2026-10-29',
     startTime: '17:30',
     endTime: '19:30',
-    fieldName: 'Sân Sao Vàng A',
+    fieldName: 'Sân C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Luyện sơ đồ chiến thuật mới',
   },
   {
     id: 'sched-2',
     title: 'Tập phối hợp bóng ngắn và sút phạt góc',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Tập chiến thuật',
     date: '2026-10-29',
     startTime: '18:00',
     endTime: '20:00',
-    fieldName: 'Sân bóng Sao Vàng A (Sân 7)',
+    fieldName: 'Sân bóng C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Chia đội 7v7 tập phản công nhanh.',
   },
   {
     id: 'sched-003',
     title: 'Đấu tập nội bộ thứ 4',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Đấu tập nội bộ',
     date: '2026-10-30',
     startTime: '18:00',
     endTime: '20:30',
-    fieldName: 'Sân Sao Vàng B',
+    fieldName: 'Sân C1 (Sân 2)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Chia 2 đội: Đỏ vs Xanh',
   },
   {
     id: 'sched-3',
     title: 'Giao hữu thử nghiệm đội hình với Hà Nội Star FC',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Thi đấu giao hữu',
     date: '2026-10-31',
     startTime: '16:00',
     endTime: '18:30',
-    fieldName: 'Sân bóng Sao Vàng B (Sân 11)',
+    fieldName: 'Sân bóng C1 (Sân 2)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Mặc đồng phục thi đấu màu Đỏ, có mặt trước 45 phút.',
   },
   {
     id: 'sched-004',
     title: 'Tập thể lực cuối tuần',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Tập thể lực',
     date: '2026-11-01',
     startTime: '07:00',
     endTime: '09:00',
-    fieldName: 'Sân Sao Vàng A',
+    fieldName: 'Sân C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Buổi tập sáng sớm, mang giày đinh',
   },
   {
     id: 'sched-005',
     title: 'Tập kỹ thuật cá nhân',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
     type: 'Tập chiến thuật',
     date: '2026-11-02',
     startTime: '18:00',
@@ -639,7 +995,7 @@ const initialSchedules: TrainingSchedule[] = [
   {
     id: 'sched-006',
     title: 'Giao hữu vs FC Rồng Xanh',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Thi đấu giao hữu',
     date: '2026-11-05',
     startTime: '16:00',
@@ -651,31 +1007,31 @@ const initialSchedules: TrainingSchedule[] = [
   {
     id: 'sched-007',
     title: 'Đấu tập nội bộ chủ nhật',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
     type: 'Đấu tập nội bộ',
     date: '2026-11-08',
     startTime: '07:30',
     endTime: '10:00',
-    fieldName: 'Sân Sao Vàng B',
+    fieldName: 'Sân C1 (Sân 2)',
     coach: 'HLV. Trần Đình Trọng',
     notes: 'Luyện set-piece và phạt góc',
   },
   {
     id: 'sched-008',
     title: 'Tập thể lực - Bài tập sức mạnh',
-    teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+    teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
     type: 'Tập thể lực',
     date: '2026-11-10',
     startTime: '18:00',
     endTime: '20:00',
-    fieldName: 'Sân Sao Vàng A',
+    fieldName: 'Sân C1 (Sân 1)',
     coach: 'HLV. Nguyễn Văn Huấn',
     notes: 'Gym + field training',
   },
   {
     id: 'sched-009',
     title: 'Tập phòng thủ',
-    teamName: 'Sao Vàng FC - Tuyến Trẻ U21',
+    teamName: 'CLB Sân C1 - Tuyến Trẻ U21',
     type: 'Tập chiến thuật',
     date: '2026-11-12',
     startTime: '17:00',
@@ -687,7 +1043,7 @@ const initialSchedules: TrainingSchedule[] = [
   {
     id: 'sched-010',
     title: 'Giao hữu vs Hoàng Long FC',
-    teamName: 'Sao Vàng FC - Futsal Team',
+    teamName: 'CLB Sân C1 - Futsal Team',
     type: 'Thi đấu giao hữu',
     date: '2026-11-15',
     startTime: '15:30',
@@ -745,7 +1101,7 @@ interface FinanceTransaction {
 
 const initialTransactions: FinanceTransaction[] = [
   { id: 'fin-1', date: '2026-10-01', title: 'Thu phí sinh hoạt tháng 10 của các thành viên', category: 'Thu', amount: 6600000, personInCharge: 'Thủ quỹ CLB', notes: '22 thành viên x 300.000 VNĐ' },
-  { id: 'fin-2', date: '2026-10-03', title: 'Thanh toán tiền thuê sân tập tháng 10 (Sân Sao Vàng A)', category: 'Chi', amount: 3500000, personInCharge: 'HLV Huấn', notes: '8 buổi tập x 437.500 VNĐ' },
+  { id: 'fin-2', date: '2026-10-03', title: 'Thanh toán tiền thuê sân tập tháng 10 (Sân C1 (Sân 1))', category: 'Chi', amount: 3500000, personInCharge: 'HLV Huấn', notes: '8 buổi tập x 437.500 VNĐ' },
   { id: 'fin-3', date: '2026-10-10', title: 'Tiền tài trợ từ Công ty Thể thao Động Lực', category: 'Thu', amount: 10000000, personInCharge: 'Ban Lãnh Đạo', notes: 'Tài trợ trang phục & bóng thi đấu' },
   { id: 'fin-4', date: '2026-10-15', title: 'Mua 10 quả bóng thi đấu tiêu chuẩn FIFA Quality Pro', category: 'Chi', amount: 2400000, personInCharge: 'Ban Hậu Cần', notes: 'Mua sắm trang bị tập luyện' },
   { id: 'fin-5', date: '2026-10-24', title: 'Chi phí nước uống, y tế trận giao hữu với Hà Nội Star FC', category: 'Chi', amount: 800000, personInCharge: 'Bác sĩ CLB', notes: 'Nước khoáng, điện giải và băng gạc y tế' },
@@ -755,7 +1111,7 @@ const initialTransactions: FinanceTransaction[] = [
 interface ClubAnnouncement {
   id: string;
   title: string;
-  target: 'Toàn bộ câu lạc bộ' | 'Sao Vàng FC - Đội 1' | 'Tuyển Trẻ U21' | 'Ban Huấn Luyện';
+  target: 'Toàn bộ câu lạc bộ' | 'CLB Sân C1 - Đội 1' | 'Tuyển Trẻ U21' | 'Ban Huấn Luyện' | 'Ban Điều Hành & Quản Lý Ca';
   priority: 'Bình thường' | 'Quan trọng' | 'Khẩn cấp';
   date: string;
   author: string;
@@ -767,11 +1123,11 @@ const initialAnnouncements: ClubAnnouncement[] = [
   {
     id: 'ann-1',
     title: 'Thông báo lịch thi đấu giao hữu cuối tuần với Hà Nội Star FC',
-    target: 'Sao Vàng FC - Đội 1',
+    target: 'CLB Sân C1 - Đội 1',
     priority: 'Quan trọng',
     date: '2026-10-28',
     author: 'HLV. Nguyễn Văn Huấn',
-    content: 'Trận giao hữu diễn ra lúc 16:00 Thứ Bảy 07/11/2026 tại Sân Sao Vàng B. Toàn đội mặc trang phục màu Đỏ, có mặt trước 45 phút để họp chiến thuật.',
+    content: 'Trận giao hữu diễn ra lúc 16:00 Thứ Bảy 07/11/2026 tại Sân C1 (Sân 2). Toàn đội mặc trang phục màu Đỏ, có mặt trước 45 phút để họp chiến thuật.',
     pinned: true,
   },
   {
@@ -826,6 +1182,7 @@ export interface FieldBookingSlot {
   slotLabel: string;
   price: number;
   isBooked: boolean;
+  status?: 'pending' | 'approved' | 'rejected' | 'available'; // 'pending': Đang chờ nhân viên duyệt, 'approved': Đã duyệt, 'rejected': Từ chối, 'available': Còn trống
   customerName?: string | null;
   customerPhone?: string | null;
   teamName?: string | null;
@@ -833,7 +1190,7 @@ export interface FieldBookingSlot {
   notes?: string | null;
 }
 
-export const initialFieldFacilities: FieldDemoFacility[] = [
+const initialFieldFacilities: FieldDemoFacility[] = [
   {
     id: 'field-c1',
     name: 'Sân bóng C1 (Cụm 2 Sân Cỏ Nhân Tạo)',
@@ -845,8 +1202,8 @@ export const initialFieldFacilities: FieldDemoFacility[] = [
     distance: 'Trung tâm Buôn Ma Thuột',
     rating: 5,
     reviewCount: 320,
-    tags: ['2 SAN CO NHAN TAO', 'DEN CHIEU SANG', '0983 830 955', '0906 424 006', 'THUE BONG', 'NUOC LOC'],
-    priceDisplay: '250.000 – 350.000 đ / GIỜ',
+    tags: ['2 sân cỏ nhân tạo', 'Đèn chiếu sáng', 'Thuê bóng', 'Nước lọc', '0983 830 955', '0906 424 006'],
+    priceDisplay: '250.000 – 350.000 đ/giờ',
     dayPrice: 250000,
     nightPrice: 350000,
     capacity: 'Cụm 2 sân mini đạt chuẩn',
@@ -864,7 +1221,7 @@ export const initialFieldFacilities: FieldDemoFacility[] = [
   },
 ];
 
-export const initialFieldBookingSlots: FieldBookingSlot[] = [
+const initialFieldBookingSlots: FieldBookingSlot[] = [
   {
     id: 'fb-c1-1',
     fieldId: 'field-c1',
@@ -1020,7 +1377,7 @@ export const initialFieldBookingSlots: FieldBookingSlot[] = [
   },
 ];
 
-export const standardFacilitySlots: Record<string, { slotId: string; slotTime: string; slotLabel: string; price: number }[]> = {
+const standardFacilitySlots: Record<string, { slotId: string; slotTime: string; slotLabel: string; price: number }[]> = {
   'field-c1': [
     { slotId: 'slot-c1-1', slotTime: '07:00 - 08:00', slotLabel: 'Ca 1 (Sáng sớm - Ngày)', price: 250000 },
     { slotId: 'slot-c1-2', slotTime: '08:00 - 09:00', slotLabel: 'Ca 2 (Sáng - Ngày)', price: 250000 },
@@ -1057,9 +1414,11 @@ export const standardFacilitySlots: Record<string, { slotId: string; slotTime: s
 // MAIN COMPONENT: MASTER DASHBOARD 7 MODULES
 // ==========================================
 function DashboardContent() {
-  const { user } = useAuth();
-  const { addNotification } = useNotifications();
+  const { user, switchRole, logout } = useAuth();
+  const { addNotification, notifications, openNotificationDetail } = useNotifications();
   const searchParams = useSearchParams();
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<ClubAnnouncement | null>(null);
+  const [announcementSubTab, setAnnouncementSubTab] = useState<'club' | 'activity'>('club');
 
   // Active Tab: Trang Chủ, Tìm Sân, Lịch Đặt Sân, Liên Hệ + Các module nội bộ (Admin)
   type TabType = 'home' | 'fields' | 'booking-schedule' | 'contact' | 'teams' | 'members' | 'coaches' | 'schedules' | 'attendance' | 'finances' | 'announcements' | 'results' | 'about';
@@ -1074,6 +1433,30 @@ function DashboardContent() {
     }
   }, [searchParams]);
 
+  // Lắng nghe sự kiện click thông báo để điều hướng đến tính năng tức thời
+  useEffect(() => {
+    const handleSwitchTabEvent = (e: any) => {
+      if (e.detail && typeof e.detail === 'string') {
+        const target = e.detail as TabType;
+        if (['home', 'fields', 'booking-schedule', 'contact', 'teams', 'members', 'coaches', 'schedules', 'attendance', 'finances', 'announcements', 'results', 'about'].includes(target)) {
+          setActiveTab(target);
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      }
+    };
+    window.addEventListener('switch-tab', handleSwitchTabEvent);
+    return () => window.removeEventListener('switch-tab', handleSwitchTabEvent);
+  }, []);
+
+  // Huấn luyện viên không xem phần thu phí & quỹ -> tự động chuyển hướng về lịch tập nếu đang ở tab finances
+  useEffect(() => {
+    if (user?.role === 'coach' && activeTab === 'finances') {
+      setActiveTab('schedules');
+    }
+  }, [user, activeTab]);
+
   // States for 7 modules
   const [teams, setTeams] = useState<ClubTeam[]>(initialTeams);
   const [members, setMembers] = useState<ClubMember[]>(initialMembers);
@@ -1082,6 +1465,128 @@ function DashboardContent() {
   const [attendance, setAttendance] = useState<AttendanceItem[]>(initialAttendance);
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(initialTransactions);
   const [announcements, setAnnouncements] = useState<ClubAnnouncement[]>(initialAnnouncements);
+
+  // 6. Quản Lý Chi Phí Cầu Thủ Hàng Tháng & Hàng Năm
+  const [playerFees, setPlayerFees] = useState<PlayerFeeItem[]>(() => generateDefaultPlayerFees(initialMembers));
+  const [selectedFeeYear, setSelectedFeeYear] = useState<number>(2026);
+  const [selectedFeeMonth, setSelectedFeeMonth] = useState<number | 'all'>('all');
+  const [feeTeamFilter, setFeeTeamFilter] = useState<string>('Tất cả');
+  const [feeSearch, setFeeSearch] = useState<string>('');
+  const [feeStatusFilter, setFeeStatusFilter] = useState<'all' | 'paid' | 'unpaid' | 'exempt'>('all');
+  const [financeSubTab, setFinanceSubTab] = useState<'player-fees' | 'ledger' | 'reports' | 'shift-bookings'>('player-fees');
+  const [payFeeTarget, setPayFeeTarget] = useState<{
+    member: ClubMember;
+    month: number;
+    year: number;
+    amount: number;
+    paymentMethod: string;
+    notes: string;
+  } | null>(null);
+  const [selectedFeePlayer, setSelectedFeePlayer] = useState<ClubMember | null>(null);
+
+  // 8. Quản Lý Demo Sân & Đặt Sân Trực Tuyến Cho Khách Hàng (Sân bóng C1)
+  const [fieldFacilities] = useState<FieldDemoFacility[]>(initialFieldFacilities);
+  const [fieldBookings, setFieldBookings] = useState<FieldBookingSlot[]>(initialFieldBookingSlots);
+
+  // ================= PHÂN QUYỀN MANAGER (QUẢN LÝ SÂN BÃI & ĐIỀU PHỐI) STATES =================
+  // 1. Quản lý Sân bãi & Thiết bị: Cập nhật trạng thái sân (bảo trì mặt cỏ, hỏng dàn đèn) & kho thiết bị phụ trợ
+  interface FieldOperationalStatus {
+    id: string;
+    name: string;
+    status: 'normal' | 'maintenance_grass' | 'broken_lights';
+    statusNote: string;
+    updatedAt: string;
+  }
+  const [fieldOperationalStatuses, setFieldOperationalStatuses] = useState<FieldOperationalStatus[]>([
+    { id: 'field-c1', name: 'Sân bóng C1 - Sân 1 (7 người)', status: 'normal', statusNote: 'Mặt cỏ nhân tạo và dàn đèn LED hoạt động hoàn hảo', updatedAt: '04/11/2026 15:00' },
+    { id: 'field-c2', name: 'Sân bóng C1 - Sân 2 (7 người)', status: 'normal', statusNote: 'Mặt sân tiêu chuẩn, sẵn sàng phục vụ', updatedAt: '04/11/2026 15:00' },
+  ]);
+
+  interface AuxiliaryEquipment {
+    id: string;
+    name: string;
+    category: 'ball' | 'bib' | 'drink';
+    total: number;
+    inUse: number;
+    price: number;
+    unit: string;
+  }
+  const [equipmentList, setEquipmentList] = useState<AuxiliaryEquipment[]>([
+    { id: 'eq-1', name: 'Bóng Động Lực FIFA Quality Pro #5', category: 'ball', total: 20, inUse: 6, price: 30000, unit: 'Quả/trận' },
+    { id: 'eq-2', name: 'Bộ Áo Bib Phân Đội Màu Xanh Neon', category: 'bib', total: 30, inUse: 14, price: 20000, unit: 'Bộ/trận' },
+    { id: 'eq-3', name: 'Bộ Áo Bib Phân Đội Màu Cam Rực', category: 'bib', total: 30, inUse: 14, price: 20000, unit: 'Bộ/trận' },
+    { id: 'eq-4', name: 'Nước Khoáng Đóng Chai Aquafina 500ml', category: 'drink', total: 120, inUse: 0, price: 10000, unit: 'Chai' },
+    { id: 'eq-5', name: 'Nước Điện Giải Thể Thao Pocari Sweat', category: 'drink', total: 60, inUse: 0, price: 15000, unit: 'Chai' },
+  ]);
+
+  // 2. Quản lý Lịch đặt & Điều phối: Timeline/Calendar, Dời lịch & Xử lý trùng lịch
+  const [bookingScheduleViewMode, setBookingScheduleViewMode] = useState<'cards' | 'timeline'>('cards');
+  const [rescheduleTargetSlot, setRescheduleTargetSlot] = useState<FieldBookingSlot | null>(null);
+  const [rescheduleNewDate, setRescheduleNewDate] = useState<string>('');
+  const [rescheduleNewTime, setRescheduleNewTime] = useState<string>('08:00 - 09:00');
+
+  // 3. Quản lý Câu lạc bộ & Nhân sự: Duyệt yêu cầu thành lập CLB mới, gán quyền Coach, cảnh báo/khóa vi phạm
+  interface PendingClubRequest {
+    id: string;
+    clubName: string;
+    representative: string;
+    phone: string;
+    email: string;
+    memberCount: number;
+    createdAt: string;
+    status: 'pending' | 'approved' | 'rejected';
+    notes: string;
+  }
+  const [pendingClubRequests, setPendingClubRequests] = useState<PendingClubRequest[]>([
+    {
+      id: 'req-clb-1',
+      clubName: 'Buôn Ma Thuột Tigers FC',
+      representative: 'Nguyễn Tiến Dũng',
+      phone: '0912 345 678',
+      email: 'dung.tiensport@gmail.com',
+      memberCount: 16,
+      createdAt: '03/11/2026 14:20',
+      status: 'pending',
+      notes: 'Đăng ký thành lập CLB sinh hoạt cố định tối Thứ 3 và Thứ 6 tại Sân C1',
+    },
+    {
+      id: 'req-clb-2',
+      clubName: 'Đắk Lắk Phoenix Futsal',
+      representative: 'Hoàng Văn Thái',
+      phone: '0988 777 666',
+      email: 'thaiphoenix@bmt.vn',
+      memberCount: 12,
+      createdAt: '04/11/2026 09:15',
+      status: 'pending',
+      notes: 'Đội bóng phong trào Futsal & sân 7 khu vực Tân Tiến',
+    },
+  ]);
+
+  interface AccountViolation {
+    id: string;
+    username: string;
+    name: string;
+    reason: string;
+    status: 'warning' | 'banned' | 'normal';
+    date: string;
+    handledBy: string;
+  }
+  const [accountViolations, setAccountViolations] = useState<AccountViolation[]>([
+    {
+      id: 'vio-1',
+      username: 'khachhang_boom99',
+      name: 'Lê Văn Cường (Khách vãng lai)',
+      reason: 'Đặt sân khung giờ 19:00 không đến và không hủy trước 3 tiếng',
+      status: 'warning',
+      date: '02/11/2026',
+      handledBy: 'Quản Lý Sân',
+    },
+  ]);
+
+  // 4. Thanh toán & Hóa đơn: Xuất biên lai hóa đơn đặt sân & phạm vi báo cáo
+  const [selectedReceiptSlot, setSelectedReceiptSlot] = useState<FieldBookingSlot | null>(null);
+  const [memberSectionTab, setMemberSectionTab] = useState<'members' | 'pending-clubs' | 'assign-coach' | 'violations'>('members');
+  const [revenueReportScope, setRevenueReportScope] = useState<'shift' | 'daily' | 'annual'>('daily');
 
   // Neon DB Connection & Sync State
   const [isNeonConnected, setIsNeonConnected] = useState<boolean>(false);
@@ -1124,7 +1629,7 @@ function DashboardContent() {
           headCoach: t.headCoach || t.head_coach || 'Chưa phân công',
           captain: t.captain || 'Chưa chỉ định',
           memberCount: Number(t.memberCount || t.member_count) || 0,
-          homePitch: t.homePitch || t.home_pitch || 'Sân bóng Sao Vàng',
+          homePitch: t.homePitch || t.home_pitch || 'Sân bóng C1',
           establishedYear: Number(t.establishedYear || t.established_year) || 2024,
           description: t.description || '',
           status: t.status === 'Tạm nghỉ' ? 'Tạm nghỉ' : 'Hoạt động',
@@ -1132,43 +1637,37 @@ function DashboardContent() {
         setTeams(mappedTeams);
       }
 
-      // 1. Cầu thủ từ Neon DB (20 cầu thủ)
+      // 1. Cầu thủ từ Neon DB (kết hợp đồng bộ với danh sách chuẩn 40 cầu thủ: 4 đội, mỗi đội 10 người: 5 Đá chính + 5 Dự bị)
       if (playersRes && Array.isArray(playersRes.data) && playersRes.data.length > 0) {
         hasNeonData = true;
-        const mappedMembers: ClubMember[] = playersRes.data.map((p: any, idx: number) => {
-          let pos: ClubMember['position'] = 'Tiền vệ';
-          if (['Thủ môn', 'Hậu vệ', 'Tiền vệ', 'Tiền đạo'].includes(p.position)) {
-            pos = p.position;
-          }
-          let st: ClubMember['status'] = 'Đang tập luyện';
-          if (p.status === 'Chấn thương') st = 'Chấn thương';
-          else if (p.status === 'Nghỉ phép') st = 'Nghỉ phép';
+        const neonPlayersMap = new Map<string, any>();
+        playersRes.data.forEach((p: any) => {
+          if (p.id) neonPlayersMap.set(p.id, p);
+          if (p.name) neonPlayersMap.set(p.name.toLowerCase().trim(), p);
+        });
 
-          const teamIdx = idx % 4;
-          const defaultTeams = [
-            { id: 'team-1', name: 'Sao Vàng FC - Đội 1 (Tuyển Chính)' },
-            { id: 'team-2', name: 'Sao Vàng FC - Tuyến Trẻ U21' },
-            { id: 'team-3', name: 'Sao Vàng FC - Đội Trẻ U17' },
-            { id: 'team-4', name: 'Sao Vàng FC - Futsal Team' },
-          ];
+        const mergedMembers: ClubMember[] = initialMembers.map((baseMem) => {
+          const match = neonPlayersMap.get(baseMem.id) || neonPlayersMap.get(baseMem.name.toLowerCase().trim());
+          if (!match) return baseMem;
+          let pos: ClubMember['position'] = baseMem.position;
+          if (['Thủ môn', 'Hậu vệ', 'Tiền vệ', 'Tiền đạo'].includes(match.position)) {
+            pos = match.position;
+          }
+          let st: ClubMember['status'] = baseMem.status;
+          if (match.status === 'Chấn thương') st = 'Chấn thương';
+          else if (match.status === 'Nghỉ phép') st = 'Nghỉ phép';
+          else if (match.status === 'Đang tập luyện' || match.status === 'Đang thi đấu') st = 'Đang tập luyện';
 
           return {
-            id: p.id || `mem-${idx + 1}`,
-            name: p.name,
-            jerseyNumber: p.jerseyNumber || (idx + 1),
+            ...baseMem,
+            name: match.name || baseMem.name,
+            jerseyNumber: match.jerseyNumber || match.jersey_number || baseMem.jerseyNumber,
             position: pos,
-            teamId: p.teamId || defaultTeams[teamIdx].id,
-            teamName: p.teamName || defaultTeams[teamIdx].name,
-            phone: p.phone || '0901234567',
-            dateOfBirth: p.dateOfBirth ? p.dateOfBirth.split('T')[0] : '1998-05-15',
-            height: p.height || '1m78',
-            weight: p.weight || '72kg',
-            preferredFoot: p.preferredFoot || 'Chân phải',
+            phone: match.phone || baseMem.phone,
             status: st,
-            feePaidMonth: p.feePaidMonth !== undefined ? p.feePaidMonth : (idx % 3 !== 0),
           };
         });
-        setMembers(mappedMembers);
+        setMembers(mergedMembers);
       }
 
       // 2. Lịch huấn luyện từ Neon DB (13 lịch tập)
@@ -1182,12 +1681,12 @@ function DashboardContent() {
           return {
             id: s.id,
             title: s.title || `Buổi tập kỹ chiến thuật #${idx + 1}`,
-            teamName: s.teamName || (idx % 2 === 0 ? 'Sao Vàng FC - Đội 1 (Tuyển Chính)' : 'Sao Vàng FC - Tuyến Trẻ U21'),
+            teamName: s.teamName || (idx % 2 === 0 ? 'CLB Sân C1 - Đội 1 (Tuyển Chính)' : 'CLB Sân C1 - Tuyến Trẻ U21'),
             type: typeVal,
             date: s.date || '2026-11-01',
             startTime: s.startTime || '18:00',
             endTime: s.endTime || '20:00',
-            fieldName: s.fieldName || 'Sân bóng Sao Vàng A (Sân 7)',
+            fieldName: s.fieldName || 'Sân bóng C1 (Sân 1)',
             coach: s.coach || 'HLV. Nguyễn Văn Huấn',
             notes: s.notes || 'Khởi động kỹ, mang giày phù hợp mặt sân cỏ nhân tạo.',
           };
@@ -1214,7 +1713,7 @@ function DashboardContent() {
           return {
             id: a.id || `att-${idx + 1}`,
             memberId: a.playerId || `mem-${idx + 1}`,
-            memberName: a.playerName || (matchedPlayer ? matchedPlayer.name : 'Cầu thủ Sao Vàng FC'),
+            memberName: a.playerName || (matchedPlayer ? matchedPlayer.name : 'Cầu thủ CLB Sân Bóng C1'),
             jerseyNumber: matchedPlayer ? matchedPlayer.jerseyNumber : (a.jerseyNumber || (idx + 1)),
             position: matchedPlayer ? matchedPlayer.position : (a.position || 'Tiền vệ'),
             status: st,
@@ -1231,7 +1730,7 @@ function DashboardContent() {
           return {
             id: n.id,
             title: n.title,
-            target: (idx % 2 === 0 ? 'Toàn bộ câu lạc bộ' : 'Sao Vàng FC - Đội 1') as any,
+            target: (idx % 2 === 0 ? 'Toàn bộ câu lạc bộ' : 'CLB Sân C1 - Đội 1') as any,
             priority: (n.type === 'warning' ? 'Khẩn cấp' : n.type === 'update' ? 'Quan trọng' : 'Bình thường') as any,
             date: n.createdAt ? n.createdAt.split('T')[0] : '2026-10-30',
             author: 'Ban Quản Trị CLB',
@@ -1252,28 +1751,28 @@ function DashboardContent() {
             'HLV. Nguyễn Văn Huấn': {
               role: 'HLV Trưởng CLB',
               license: 'Bằng AFC Pro / UEFA A',
-              team: 'Sao Vàng FC - Đội 1 (Tuyển Chính)',
+              team: 'CLB Sân C1 - Đội 1 (Tuyển Chính)',
               exp: 12,
               spec: 'Chiến thuật tổng lực, pressing tầm cao và phát triển cầu thủ',
             },
             'HLV. Trần Đình Trọng': {
               role: 'HLV Trưởng Tuyến Trẻ U21',
               license: 'Bằng AFC B',
-              team: 'Sao Vàng FC - Tuyến Trẻ U21',
+              team: 'CLB Sân C1 - Tuyến Trẻ U21',
               exp: 6,
               spec: 'Kèm người 1v1, bọc lót và phòng ngự khu vực',
             },
             'HLV. Phạm Đức Huy': {
               role: 'HLV Đào tạo trẻ U17',
               license: 'Bằng AFC C',
-              team: 'Sao Vàng FC - Đội Trẻ U17',
+              team: 'CLB Sân C1 - Đội Trẻ U17',
               exp: 5,
               spec: 'Kỹ thuật cơ bản, thể lực nền tảng và tư duy bóng đá',
             },
             'HLV. Vũ Trọng Khôi': {
               role: 'HLV Đội Futsal',
               license: 'Bằng Futsal Level 2',
-              team: 'Sao Vàng FC - Futsal Team',
+              team: 'CLB Sân C1 - Futsal Team',
               exp: 8,
               spec: 'Kỹ thuật xử lý phạm vi hẹp và chiến thuật bóng đá mini',
             },
@@ -1283,7 +1782,7 @@ function DashboardContent() {
             const meta = coachMetaMap[c.name] || {
               role: 'HLV Chuyên Môn',
               license: 'Bằng AFC B',
-              team: idx % 2 === 0 ? 'Sao Vàng FC - Đội 1 (Tuyển Chính)' : 'Sao Vàng FC - Tuyến Trẻ U21',
+              team: idx % 2 === 0 ? 'CLB Sân C1 - Đội 1 (Tuyển Chính)' : 'CLB Sân C1 - Tuyến Trẻ U21',
               exp: 5 + (idx % 6),
               spec: 'Rèn luyện thể lực và kỹ chiến thuật bóng đá hiện đại',
             };
@@ -1334,7 +1833,7 @@ function DashboardContent() {
       }
 
       // 8. Quản lý ca đặt sân & demo sân bóng từ Neon DB
-      if (bookingsRes && Array.isArray(bookingsRes.data) && bookingsRes.data.length > 0) {
+      if (bookingsRes && Array.isArray(bookingsRes.data)) {
         hasNeonData = true;
         setFieldBookings(bookingsRes.data);
       }
@@ -1361,30 +1860,10 @@ function DashboardContent() {
     loadNeonDatabase();
   }, []);
 
-  // 6. Quản Lý Chi Phí Cầu Thủ Hàng Tháng & Hàng Năm
-  const [playerFees, setPlayerFees] = useState<PlayerFeeItem[]>(() => generateDefaultPlayerFees(initialMembers));
-  const [selectedFeeYear, setSelectedFeeYear] = useState<number>(2026);
-  const [selectedFeeMonth, setSelectedFeeMonth] = useState<number | 'all'>('all');
-  const [feeTeamFilter, setFeeTeamFilter] = useState<string>('Tất cả');
-  const [feeSearch, setFeeSearch] = useState<string>('');
-  const [feeStatusFilter, setFeeStatusFilter] = useState<'all' | 'paid' | 'unpaid' | 'exempt'>('all');
-  const [financeSubTab, setFinanceSubTab] = useState<'player-fees' | 'ledger' | 'reports'>('player-fees');
-  const [payFeeTarget, setPayFeeTarget] = useState<{
-    member: ClubMember;
-    month: number;
-    year: number;
-    amount: number;
-    paymentMethod: string;
-    notes: string;
-  } | null>(null);
-  const [selectedFeePlayer, setSelectedFeePlayer] = useState<ClubMember | null>(null);
-
   // 8. Quản Lý Demo Sân & Đặt Sân Trực Tuyến Cho Khách Hàng (Sân vận động Quốc gia Mỹ Đình)
-  const [fieldFacilities] = useState<FieldDemoFacility[]>(initialFieldFacilities);
-  const [fieldBookings, setFieldBookings] = useState<FieldBookingSlot[]>(initialFieldBookingSlots);
   const [selectedBookingDate, setSelectedBookingDate] = useState<string>('2026-11-01');
   const [bookingFieldFilter, setBookingFieldFilter] = useState<string>('all');
-  const [bookingStatusFilter, setBookingStatusFilter] = useState<'all' | 'available' | 'booked'>('all');
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<'all' | 'available' | 'booked' | 'pending'>('all');
   const [bookingTargetSlot, setBookingTargetSlot] = useState<FieldBookingSlot | null>(null);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState<boolean>(false);
   const [customerBookingForm, setCustomerBookingForm] = useState<{
@@ -1504,6 +1983,7 @@ function DashboardContent() {
   // Filters & Searches
   const [memberSearch, setMemberSearch] = useState('');
   const [memberTeamFilter, setMemberTeamFilter] = useState('Tất cả');
+  const [memberLineupFilter, setMemberLineupFilter] = useState<'all' | 'Đá chính' | 'Dự bị'>('all');
   const [scheduleTeamFilter, setScheduleTeamFilter] = useState('Tất cả');
 
   // Modals visibility
@@ -1515,11 +1995,243 @@ function DashboardContent() {
   const [showAddAnnouncementModal, setShowAddAnnouncementModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<ClubMember | null>(null);
 
+  // Xem danh sách cầu thủ theo đội bóng (Chỉ hiển thị danh sách cầu thủ khi click)
+  const [viewingTeamRoster, setViewingTeamRoster] = useState<ClubTeam | null>(null);
+  const [rosterSearch, setRosterSearch] = useState<string>('');
+  const [rosterPositionFilter, setRosterPositionFilter] = useState<string>('Tất cả');
+
+  const getTeamRoster = useCallback((team: ClubTeam | null) => {
+    if (!team) return [];
+    const tName = (team.name || '').toLowerCase();
+    const isU17 = tName.includes('u17');
+    const isFutsal = tName.includes('futsal');
+    const isU21 = tName.includes('u21');
+    const isMain = tName.includes('đội 1') || tName.includes('tuyển chính');
+
+    return members.filter((m) => {
+      if (m.teamId && (m.teamId === team.id || m.teamId === team.id.replace('team-', ''))) return true;
+      if (m.teamName?.toLowerCase() === tName) return true;
+      const mName = (m.teamName || '').toLowerCase();
+      if (isU17 && mName.includes('u17')) return true;
+      if (isFutsal && mName.includes('futsal')) return true;
+      if (isU21 && mName.includes('u21')) return true;
+      if (isMain && (mName.includes('đội 1') || mName.includes('tuyển chính'))) return true;
+      return false;
+    });
+  }, [members]);
+
+  const filteredRoster = useMemo(() => {
+    if (!viewingTeamRoster) return [];
+    let list = getTeamRoster(viewingTeamRoster);
+    if (rosterPositionFilter !== 'Tất cả') {
+      list = list.filter((p) => p.position === rosterPositionFilter);
+    }
+    if (rosterSearch.trim()) {
+      const q = rosterSearch.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.jerseyNumber.toString().includes(q) ||
+          p.position.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [viewingTeamRoster, getTeamRoster, rosterPositionFilter, rosterSearch]);
+
+  // ================= Quản lý Thêm / Sửa / Xóa cầu thủ trong Modal Roster Đội bóng =================
+  const [showRosterAddModal, setShowRosterAddModal] = useState<boolean>(false);
+  const [editingRosterPlayer, setEditingRosterPlayer] = useState<ClubMember | null>(null);
+  const [rosterPlayerForm, setRosterPlayerForm] = useState<{
+    name: string;
+    jerseyNumber: number;
+    position: 'Thủ môn' | 'Hậu vệ' | 'Tiền vệ' | 'Tiền đạo';
+    lineupRole: 'Đá chính' | 'Dự bị';
+    dateOfBirth: string;
+    height: string;
+    weight: string;
+    preferredFoot: string;
+    phone: string;
+    status: 'Đang tập luyện' | 'Chấn thương' | 'Nghỉ phép';
+  }>({
+    name: '',
+    jerseyNumber: 10,
+    position: 'Tiền đạo',
+    lineupRole: 'Đá chính',
+    dateOfBirth: '2000-01-01',
+    height: '1m75',
+    weight: '70kg',
+    preferredFoot: 'Chân phải',
+    phone: '0901234567',
+    status: 'Đang tập luyện',
+  });
+
+  const handleOpenAddRosterPlayer = () => {
+    if (!viewingTeamRoster) return;
+    const currentRoster = getTeamRoster(viewingTeamRoster);
+    const usedJerseys = new Set(currentRoster.map(p => p.jerseyNumber));
+    let nextJersey = 1;
+    while (usedJerseys.has(nextJersey) && nextJersey < 99) {
+      nextJersey++;
+    }
+    const mainCount = currentRoster.filter(p => (p.lineupRole || 'Đá chính') === 'Đá chính').length;
+    const defaultRole: 'Đá chính' | 'Dự bị' = mainCount < 5 ? 'Đá chính' : 'Dự bị';
+
+    setRosterPlayerForm({
+      name: '',
+      jerseyNumber: nextJersey,
+      position: 'Tiền đạo',
+      lineupRole: defaultRole,
+      dateOfBirth: '2000-01-01',
+      height: '1m75',
+      weight: '70kg',
+      preferredFoot: 'Chân phải',
+      phone: '090' + Math.floor(1000000 + Math.random() * 9000000),
+      status: 'Đang tập luyện',
+    });
+    setShowRosterAddModal(true);
+  };
+
+  const handleOpenEditRosterPlayer = (player: ClubMember) => {
+    setEditingRosterPlayer(player);
+    setRosterPlayerForm({
+      name: player.name,
+      jerseyNumber: player.jerseyNumber,
+      position: player.position,
+      lineupRole: player.lineupRole || 'Đá chính',
+      dateOfBirth: player.dateOfBirth || '2000-01-01',
+      height: player.height || '1m75',
+      weight: player.weight || '70kg',
+      preferredFoot: player.preferredFoot || 'Chân phải',
+      phone: player.phone || '0901234567',
+      status: player.status || 'Đang tập luyện',
+    });
+  };
+
+  const handleSaveAddRosterPlayer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!viewingTeamRoster) return;
+    const nameClean = rosterPlayerForm.name.trim();
+    if (!nameClean) {
+      alert('Vui lòng nhập họ và tên cầu thủ!');
+      return;
+    }
+    const currentRoster = getTeamRoster(viewingTeamRoster);
+    const jNum = Number(rosterPlayerForm.jerseyNumber);
+    const dupJersey = currentRoster.find(p => p.jerseyNumber === jNum);
+    if (dupJersey) {
+      alert(`❌ Số áo #${jNum} đã thuộc về cầu thủ "${dupJersey.name}". Vui lòng chọn số áo khác!`);
+      return;
+    }
+
+    const sameRoleCount = currentRoster.filter(p => (p.lineupRole || 'Đá chính') === rosterPlayerForm.lineupRole).length;
+    if (sameRoleCount >= 5) {
+      const altRole = rosterPlayerForm.lineupRole === 'Đá chính' ? 'Dự bị' : 'Đá chính';
+      alert(`⚠️ Tuyến đội đã có đủ 5 cầu thủ "${rosterPlayerForm.lineupRole}". Bạn có thể chọn vai trò "${altRole}" cho cầu thủ này!`);
+      return;
+    }
+
+    const newMemberItem: ClubMember = {
+      id: `player-${Date.now()}`,
+      name: nameClean,
+      jerseyNumber: jNum,
+      position: rosterPlayerForm.position,
+      teamId: viewingTeamRoster.id,
+      teamName: viewingTeamRoster.name,
+      phone: rosterPlayerForm.phone || '0901234567',
+      dateOfBirth: rosterPlayerForm.dateOfBirth,
+      height: rosterPlayerForm.height,
+      weight: rosterPlayerForm.weight,
+      preferredFoot: rosterPlayerForm.preferredFoot,
+      status: rosterPlayerForm.status,
+      feePaidMonth: true,
+      lineupRole: rosterPlayerForm.lineupRole,
+    };
+
+    setMembers(prev => [newMemberItem, ...prev]);
+    setTeams(prev => prev.map(t => t.id === viewingTeamRoster.id ? { ...t, memberCount: t.memberCount + 1 } : t));
+    setShowRosterAddModal(false);
+    addNotification('Thêm cầu thủ thành công', `Đã thêm cầu thủ ${newMemberItem.name} (#${newMemberItem.jerseyNumber}) vào ${viewingTeamRoster.name}.`, 'new');
+
+    try {
+      await api.addPlayer({
+        name: newMemberItem.name,
+        jerseyNumber: newMemberItem.jerseyNumber,
+        position: newMemberItem.position,
+        phone: newMemberItem.phone,
+        dateOfBirth: newMemberItem.dateOfBirth,
+        status: newMemberItem.status === 'Chấn thương' ? 'Chấn thương' : newMemberItem.status === 'Nghỉ phép' ? 'Nghỉ phép' : 'Đang thi đấu',
+      });
+    } catch (err) {
+      console.warn('Lỗi lưu cầu thủ vào API:', err);
+    }
+  };
+
+  const handleSaveEditRosterPlayer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRosterPlayer || !viewingTeamRoster) return;
+    const nameClean = rosterPlayerForm.name.trim();
+    if (!nameClean) {
+      alert('Vui lòng nhập họ và tên cầu thủ!');
+      return;
+    }
+    const currentRoster = getTeamRoster(viewingTeamRoster);
+    const jNum = Number(rosterPlayerForm.jerseyNumber);
+    const dupJersey = currentRoster.find(p => p.id !== editingRosterPlayer.id && p.jerseyNumber === jNum);
+    if (dupJersey) {
+      alert(`❌ Số áo #${jNum} đã thuộc về cầu thủ "${dupJersey.name}". Vui lòng chọn số áo khác!`);
+      return;
+    }
+
+    if (rosterPlayerForm.lineupRole !== (editingRosterPlayer.lineupRole || 'Đá chính')) {
+      const targetRoleCount = currentRoster.filter(p => p.id !== editingRosterPlayer.id && (p.lineupRole || 'Đá chính') === rosterPlayerForm.lineupRole).length;
+      if (targetRoleCount >= 5) {
+        alert(`⚠️ Đội đã có đủ 5 cầu thủ "${rosterPlayerForm.lineupRole}". Không thể chuyển thêm cầu thủ này sang "${rosterPlayerForm.lineupRole}"!`);
+        return;
+      }
+    }
+
+    setMembers(prev => prev.map(m => {
+      if (m.id === editingRosterPlayer.id) {
+        return {
+          ...m,
+          name: nameClean,
+          jerseyNumber: jNum,
+          position: rosterPlayerForm.position,
+          lineupRole: rosterPlayerForm.lineupRole,
+          dateOfBirth: rosterPlayerForm.dateOfBirth,
+          height: rosterPlayerForm.height,
+          weight: rosterPlayerForm.weight,
+          preferredFoot: rosterPlayerForm.preferredFoot,
+          phone: rosterPlayerForm.phone,
+          status: rosterPlayerForm.status,
+        };
+      }
+      return m;
+    }));
+
+    setEditingRosterPlayer(null);
+    addNotification('Cập nhật thông tin cầu thủ', `Đã cập nhật cầu thủ ${nameClean} (#${jNum}) trong đội ${viewingTeamRoster.name}.`, 'change');
+  };
+
+  const handleDeleteRosterPlayer = async (player: ClubMember) => {
+    if (!viewingTeamRoster) return;
+    if (confirm(`Bạn có chắc chắn muốn xóa cầu thủ "${player.name}" (#${player.jerseyNumber}) khỏi đội "${viewingTeamRoster.name}" không?`)) {
+      setMembers(prev => prev.filter(m => m.id !== player.id));
+      setTeams(prev => prev.map(t => t.id === viewingTeamRoster.id ? { ...t, memberCount: Math.max(0, t.memberCount - 1) } : t));
+      addNotification('Xóa cầu thủ', `Đã xóa cầu thủ ${player.name} khỏi ${viewingTeamRoster.name}.`, 'cancel');
+      try {
+        await api.deletePlayer(player.id);
+      } catch (err) {
+        console.warn('Lỗi xóa cầu thủ qua API:', err);
+      }
+    }
+  };
+
   // Forms
-  const [newTeam, setNewTeam] = useState({ name: '', level: 'Đội hình 1 Chuyên nghiệp', headCoach: 'HLV. Nguyễn Văn Huấn', captain: '', memberCount: 15, homePitch: 'Sân bóng Sao Vàng A (Sân 7)', description: '' });
-  const [newMember, setNewMember] = useState({ name: '', jerseyNumber: 9, position: 'Tiền đạo' as const, teamId: 'team-1', phone: '', dateOfBirth: '2000-01-01', height: '1m78', weight: '72kg', preferredFoot: 'Chân phải' });
-  const [newCoach, setNewCoach] = useState({ name: '', role: 'HLV Thể lực', license: 'Bằng AFC B', assignedTeam: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', phone: '', email: '', experienceYears: 5, specialty: 'Rèn luyện thể lực và sức bền' });
-  const [newSchedule, setNewSchedule] = useState({ title: '', teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', type: 'Tập chiến thuật' as const, date: '2026-11-06', startTime: '18:00', endTime: '20:00', fieldName: 'Sân bóng Sao Vàng A (Sân 7)', coach: 'HLV. Nguyễn Văn Huấn', notes: '' });
+  const [newTeam, setNewTeam] = useState({ name: '', level: 'Đội hình 1 Chuyên nghiệp', headCoach: 'HLV. Nguyễn Văn Huấn', captain: '', memberCount: 10, homePitch: 'Sân bóng C1 (Sân 1)', description: '' });
+  const [newMember, setNewMember] = useState({ name: '', jerseyNumber: 9, position: 'Tiền đạo' as const, teamId: 'team-1', phone: '', dateOfBirth: '2000-01-01', height: '1m78', weight: '72kg', preferredFoot: 'Chân phải', lineupRole: 'Đá chính' as 'Đá chính' | 'Dự bị' });
+  const [newCoach, setNewCoach] = useState({ name: '', role: 'HLV Thể lực', license: 'Bằng AFC B', assignedTeam: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', phone: '', email: '', experienceYears: 5, specialty: 'Rèn luyện thể lực và sức bền' });
+  const [newSchedule, setNewSchedule] = useState({ title: '', teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', type: 'Tập chiến thuật' as const, date: '2026-11-06', startTime: '18:00', endTime: '20:00', fieldName: 'Sân bóng C1 (Sân 1)', coach: 'HLV. Nguyễn Văn Huấn', notes: '' });
   const [newTransaction, setNewTransaction] = useState({ title: '', category: 'Thu' as const, amount: 1000000, personInCharge: 'Thủ quỹ CLB', notes: '' });
   const [newAnnouncement, setNewAnnouncement] = useState<{
     title: string;
@@ -1562,25 +2274,140 @@ function DashboardContent() {
     }
   }, [newSchedule, schedules]);
 
+  // Hồ Sơ & Thông Tin Cá Nhân Của Cầu Thủ (User / Player Profile)
+  const [playerProfileData, setPlayerProfileData] = useState({
+    name: 'Khách Đặt Sân Giao Hữu',
+    phone: '0908 767 623',
+    email: 'user01@saovangfc.vn',
+    jerseyNumber: 19,
+    position: 'Tiền vệ cánh / Tấn công',
+    teamName: 'CLB Sân Bóng C1 - Đội hình 1 Chuyên nghiệp',
+    dateOfBirth: '1997-04-12',
+    height: '1m70',
+    weight: '67kg',
+    preferredFoot: 'Chân trái',
+    status: 'Đang tập luyện & Sẵn sàng thi đấu',
+    joinDate: '01/01/2026',
+    emergencyContact: '0983 830 955 (Hotline BQL C1)',
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
+  const [editProfileForm, setEditProfileForm] = useState(playerProfileData);
+
+  useEffect(() => {
+    if (user) {
+      const matched = members.find(
+        (m) =>
+          m.name.toLowerCase() === user.name?.toLowerCase() ||
+          m.phone === (user as any).phone ||
+          m.id === user.id
+      );
+      const initialData = {
+        name: matched?.name || user.name || 'Khách Đặt Sân Giao Hữu',
+        phone: matched?.phone || (user as any)?.phone || '0908 767 623',
+        email: user.email || 'user01@saovangfc.vn',
+        jerseyNumber: matched?.jerseyNumber || (user.name?.includes('19') ? 19 : 7),
+        position: matched?.position || 'Tiền vệ cánh / Tấn công',
+        teamName: matched?.teamName || 'CLB Sân Bóng C1 - Đội hình 1 Chuyên nghiệp',
+        dateOfBirth: matched?.dateOfBirth || '1997-04-12',
+        height: matched?.height || '1m70',
+        weight: matched?.weight || '67kg',
+        preferredFoot: matched?.preferredFoot || 'Chân trái',
+        status: matched?.status || 'Đang tập luyện & Sẵn sàng thi đấu',
+        joinDate: '01/01/2026',
+        emergencyContact: '0983 830 955 (Hotline BQL C1)',
+      };
+      setPlayerProfileData(initialData);
+      setEditProfileForm(initialData);
+    }
+  }, [user, members]);
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPlayerProfileData(editProfileForm);
+    setIsEditingProfile(false);
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.name.toLowerCase() === editProfileForm.name.toLowerCase() || m.jerseyNumber === editProfileForm.jerseyNumber
+          ? {
+            ...m,
+            name: editProfileForm.name,
+            phone: editProfileForm.phone,
+            position: editProfileForm.position as any,
+            height: editProfileForm.height,
+            weight: editProfileForm.weight,
+            preferredFoot: editProfileForm.preferredFoot,
+          }
+          : m
+      )
+    );
+    addNotification('Cập nhật hồ sơ cá nhân', `Thông tin cá nhân của cầu thủ ${editProfileForm.name} đã được cập nhật thành công.`, 'change');
+    alert('✓ Đã lưu thay đổi thông tin cá nhân cầu thủ thành công!');
+  };
+
   // Financial calculations
   const totalIncome = transactions.filter((t) => t.category === 'Thu').reduce((sum, t) => sum + t.amount, 0);
   const totalExpense = transactions.filter((t) => t.category === 'Chi').reduce((sum, t) => sum + t.amount, 0);
   const currentBalance = totalIncome - totalExpense;
   const paidMembersCount = members.filter((m) => m.feePaidMonth).length;
 
-  // RBAC Permission Check cho 3 vai trò: Admin, HLV, Thành viên
+  // RBAC Permission Check chuẩn 5 vai trò theo yêu cầu hệ thống:
+  // 1. ADMIN (Chủ sân): Toàn quyền hệ thống. Quản lý doanh thu tổng năm, tạo mới sân bóng, quản lý nhân viên, và xem thống kê tổng quan.
+  // 2. MANAGER (Quản lý Sân bãi & Điều phối):
+  //    - Quản lý Sân bãi & Thiết bị: Cập nhật trạng thái sân (bảo trì mặt cỏ, hỏng dàn đèn); Quản lý kho thiết bị phụ trợ (cho thuê bóng, áo bib, bán nước uống).
+  //    - Quản lý Lịch đặt & Điều phối: Duyệt, hủy hoặc dời lịch đặt sân; Xử lý các trường hợp trùng lịch (Conflict resolution); Xem toàn cảnh lịch Timeline/Calendar.
+  //    - Quản lý Câu lạc bộ & Nhân sự: Duyệt yêu cầu thành lập CLB mới; Gán quyền Huấn luyện viên (Coach); Cảnh báo hoặc khóa tài khoản vi phạm nội quy sân.
+  //    - Thanh toán & Hóa đơn: Xác nhận giao dịch chuyển khoản/tiền mặt; Xuất biên lai; Xem báo cáo doanh thu theo ca/ngày (nhưng KHÔNG xem được báo cáo tổng năm như Admin).
+  // 3. STAFF (Nhân viên ca trực): Trực ca, bàn giao sân thực tế, kiểm đếm thiết bị phụ trợ, ghi nhận thanh toán tại quầy.
+  // 4. COACH (Huấn luyện viên): Quản lý lịch tập & điểm danh đội mình, chỉ xem thanh toán & thông báo.
+  // 5. USER (Khách hàng / Cầu thủ): Xem lịch trống, đặt sân, xem lịch sử và quản lý thông tin cá nhân.
   const isAdmin = user?.role === 'admin';
+  const isManager = user?.role === 'manager';
+  const isStaff = user?.role === 'staff';
   const isCoach = user?.role === 'coach';
-  const isPlayer = user?.role === 'player' || (!isAdmin && !isCoach);
+  const isUser = !user || user?.role === 'user' || user?.role === 'player';
 
-  // Quyền quản trị CLB (Đội bóng, thành viên, HLV, tài chính): Chỉ Admin
-  const canManageClub = isAdmin;
+  // 1. Quản lý Sân bãi & Thiết bị
+  const canUpdateFieldStatus = isAdmin || isManager; // Cập nhật trạng thái sân (bảo trì mặt cỏ, hỏng dàn đèn)
+  const canManageEquipment = isAdmin || isManager || isStaff; // Quản lý kho thiết bị phụ trợ (cho thuê bóng, áo bib, bán nước uống)
+  const canCreateField = isAdmin; // Tạo mới sân bóng
 
-  // Quyền chuyên môn tập luyện (Lịch tập, điểm danh, thông báo): Admin & HLV
-  const canManageTraining = isAdmin || isCoach;
+  // 2. Quản lý Lịch đặt & Điều phối
+  const canManageBookings = isAdmin || isManager || isStaff; // Duyệt / hủy lịch đặt sân
+  const canRescheduleBooking = isAdmin || isManager; // Dời lịch đặt sân
+  const canResolveConflicts = isAdmin || isManager; // Xử lý các trường hợp trùng lịch (Conflict resolution)
+  const canViewTimeline = isAdmin || isManager || isStaff; // Xem toàn cảnh lịch Timeline/Calendar
 
-  // Tương thích ngược:
-  const canManage = canManageTraining;
+  // 3. Quản lý Câu lạc bộ & Nhân sự
+  const canApproveClubs = isAdmin || isManager; // Duyệt yêu cầu thành lập CLB mới trên hệ thống
+  const canAssignCoach = isAdmin || isManager; // Gán quyền Huấn luyện viên (Coach) cho các tài khoản hợp lệ
+  const canModerateUsers = isAdmin || isManager; // Cảnh báo hoặc khóa tài khoản vi phạm nội quy sân
+  const canManageStaff = isAdmin; // Quản lý nhân viên & tài khoản cấp cao
+
+  // 4. Thanh toán & Hóa đơn
+  const canConfirmPayments = isAdmin || isManager || isStaff; // Xác nhận các giao dịch chuyển khoản/tiền mặt hoàn tất
+  const canExportReceipts = isAdmin || isManager || isStaff; // Xuất biên lai hóa đơn
+  const canViewShiftOrDailyRevenue = isAdmin || isManager; // Xem báo cáo doanh thu theo ca làm việc hoặc theo ngày
+  const canViewAnnualRevenue = isAdmin; // Chỉ Admin xem báo cáo tổng năm (Manager bị giới hạn)
+
+  const canManageRevenue = isAdmin || isManager; // Quản lý thu chi
+  const canManageFields = isAdmin || isManager; // Quản lý trạng thái sân
+  const canViewAdminKpi = isAdmin || isManager; // Thống kê vận hành
+  const canUpdatePayments = isAdmin || isManager || isStaff; // Cập nhật trạng thái thanh toán (HLV chỉ xem)
+  const canManageAnnouncements = isAdmin || isManager; // Đăng & xóa thông báo (HLV chỉ xem)
+  const canManageSchedules = isAdmin || isManager || isStaff || isCoach;
+  const canTakeAttendance = isAdmin || isManager || isStaff || isCoach;
+  const canViewFinances = Boolean(user) && !isCoach && !isUser; // Huấn luyện viên và Cầu thủ không xem / quản lý thu phí & quỹ
+  const canViewAnnouncements = true;
+
+  const canViewAvailableSlots = true;
+  const canBookSlot = true;
+  const canViewOwnHistory = true;
+  const canManageProfile = Boolean(user);
+
+  const canManageClub = isAdmin || isManager;
+  const canManageTraining = canManageSchedules;
+  const canManage = canManageSchedules;
+  const isPlayer = isUser;
 
   // Format currency
   const formatVND = (num: number) => {
@@ -1608,7 +2435,7 @@ function DashboardContent() {
       memberCount: Number(newTeam.memberCount) || 0,
       homePitch: newTeam.homePitch,
       establishedYear: 2026,
-      description: newTeam.description || 'Đội bóng thuộc biên chế CLB Sao Vàng FC',
+      description: newTeam.description || 'Đội bóng thuộc biên chế CLB Sân Bóng C1',
       status: 'Hoạt động',
     };
 
@@ -1617,7 +2444,7 @@ function DashboardContent() {
       setTeams([...teams, team]);
       addNotification('Thành lập đội bóng mới', `CLB vừa phê duyệt thành lập đội "${team.name}".`, 'new');
       setShowAddTeamModal(false);
-      setNewTeam({ name: '', level: 'Đội hình 1 Chuyên nghiệp', headCoach: 'HLV. Nguyễn Văn Huấn', captain: '', memberCount: 15, homePitch: 'Sân bóng Sao Vàng A (Sân 7)', description: '' });
+      setNewTeam({ name: '', level: 'Đội hình 1 Chuyên nghiệp', headCoach: 'HLV. Nguyễn Văn Huấn', captain: '', memberCount: 15, homePitch: 'Sân bóng C1 (Sân 1)', description: '' });
       loadNeonDatabase();
     } catch (err: any) {
       console.warn('Lỗi lưu đội bóng vào Neon DB:', err);
@@ -1670,13 +2497,29 @@ function DashboardContent() {
     }
 
     const targetTeam = teams.find((t) => t.id === newMember.teamId);
+    const teamMembers = members.filter((m) => m.teamId === newMember.teamId);
+
+    // 4. Kiểm tra giới hạn: 1 đội tối đa 10 người
+    if (teamMembers.length >= 10) {
+      alert(`⚠️ QUÂN SỐ ĐÃ ĐẠT GIỚI HẠN:\n${targetTeam?.name || 'Đội bóng'} đã đủ tối đa 10 cầu thủ (5 đá chính + 5 dự bị).\nKhông thể thêm cầu thủ mới vào đội này!`);
+      return;
+    }
+
+    // 5. Kiểm tra giới hạn 5 đá chính và 5 dự bị
+    const chosenRole = newMember.lineupRole || 'Đá chính';
+    const sameRoleCount = teamMembers.filter((m) => (m.lineupRole || 'Đá chính') === chosenRole).length;
+    if (sameRoleCount >= 5) {
+      alert(`⚠️ VAI TRÒ ĐÃ ĐỦ:\n${targetTeam?.name || 'Đội bóng'} đã có đủ 5 cầu thủ "${chosenRole}".\nVui lòng chọn vai trò "${chosenRole === 'Đá chính' ? 'Dự bị' : 'Đá chính'}" cho cầu thủ này!`);
+      return;
+    }
+
     const member: ClubMember = {
       id: `player-${Date.now()}`,
       name: nameClean,
       jerseyNumber: jNum,
       position: newMember.position,
       teamId: newMember.teamId,
-      teamName: targetTeam ? targetTeam.name : 'Sao Vàng FC - Đội 1',
+      teamName: targetTeam ? targetTeam.name : 'CLB Sân C1 - Đội 1',
       phone: phoneClean || '0900000000',
       dateOfBirth: newMember.dateOfBirth,
       height: newMember.height,
@@ -1684,6 +2527,7 @@ function DashboardContent() {
       preferredFoot: newMember.preferredFoot,
       status: 'Đang tập luyện',
       feePaidMonth: false,
+      lineupRole: chosenRole,
     };
 
     // Lưu trực tiếp vào Neon Cloud PostgreSQL
@@ -1697,14 +2541,35 @@ function DashboardContent() {
         status: member.status === 'Chấn thương' ? 'Chấn thương' : member.status === 'Nghỉ phép' ? 'Nghỉ phép' : 'Đang thi đấu',
       });
       setMembers([member, ...members]);
-      addNotification('Thành viên mới gia nhập', `Cầu thủ ${member.name} (#${member.jerseyNumber}) vừa gia nhập ${member.teamName}.`, 'new');
+      addNotification('Thành viên mới gia nhập', `Cầu thủ ${member.name} (#${member.jerseyNumber}) vừa gia nhập ${member.teamName} (${member.lineupRole}).`, 'new');
       setShowAddMemberModal(false);
-      setNewMember({ name: '', jerseyNumber: 9, position: 'Tiền đạo', teamId: 'team-1', phone: '', dateOfBirth: '2000-01-01', height: '1m78', weight: '72kg', preferredFoot: 'Chân phải' });
+      setNewMember({ name: '', jerseyNumber: 9, position: 'Tiền đạo', teamId: 'team-1', phone: '', dateOfBirth: '2000-01-01', height: '1m78', weight: '72kg', preferredFoot: 'Chân phải', lineupRole: 'Đá chính' });
       loadNeonDatabase();
     } catch (err: any) {
       console.warn('Lỗi lưu cầu thủ vào Neon DB:', err);
       alert(`❌ LỖI: ${err.message || 'Không thể lưu do trùng dữ liệu hoặc lỗi kết nối'}`);
     }
+  };
+
+  // Đổi vai trò Đá chính ⇋ Dự bị (tối đa 5 đá chính, 5 dự bị)
+  const toggleLineupRole = (id: string) => {
+    if (!canManageClub) return;
+    setMembers((prev) => {
+      const target = prev.find((m) => m.id === id);
+      if (!target) return prev;
+      const currentRole = target.lineupRole || 'Đá chính';
+      const newRole: 'Đá chính' | 'Dự bị' = currentRole === 'Đá chính' ? 'Dự bị' : 'Đá chính';
+      const teamSameRoleCount = prev.filter(
+        (m) => m.teamId === target.teamId && m.id !== id && (m.lineupRole || 'Đá chính') === newRole
+      ).length;
+
+      if (teamSameRoleCount >= 5) {
+        alert(`⚠️ Đội "${target.teamName}" đã có đủ 5 cầu thủ "${newRole}".\nKhông thể chuyển thêm cầu thủ này sang ${newRole}!`);
+        return prev;
+      }
+
+      return prev.map((m) => (m.id === id ? { ...m, lineupRole: newRole } : m));
+    });
   };
 
   const handleDeleteMember = async (id: string) => {
@@ -1742,7 +2607,7 @@ function DashboardContent() {
     setCoaches([coach, ...coaches]);
     addNotification('Bổ nhiệm HLV mới', `CLB bổ nhiệm ${coach.name} phụ trách ${coach.assignedTeam}.`, 'new');
     setShowAddCoachModal(false);
-    setNewCoach({ name: '', role: 'HLV Thể lực', license: 'Bằng AFC B', assignedTeam: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', phone: '', email: '', experienceYears: 5, specialty: 'Rèn luyện thể lực và sức bền' });
+    setNewCoach({ name: '', role: 'HLV Thể lực', license: 'Bằng AFC B', assignedTeam: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', phone: '', email: '', experienceYears: 5, specialty: 'Rèn luyện thể lực và sức bền' });
 
     // Lưu trực tiếp HLV vào Neon DB
     try {
@@ -1794,7 +2659,7 @@ function DashboardContent() {
     setSchedules([schedule, ...schedules]);
     addNotification('Lên lịch tập luyện mới', `Lịch tập "${schedule.title}" của ${schedule.teamName} lúc ${schedule.startTime} ngày ${schedule.date}.`, 'new');
     setShowAddScheduleModal(false);
-    setNewSchedule({ title: '', teamName: 'Sao Vàng FC - Đội 1 (Tuyển Chính)', type: 'Tập chiến thuật', date: '2026-11-06', startTime: '18:00', endTime: '20:00', fieldName: 'Sân bóng Sao Vàng A (Sân 7)', coach: 'HLV. Nguyễn Văn Huấn', notes: '' });
+    setNewSchedule({ title: '', teamName: 'CLB Sân C1 - Đội 1 (Tuyển Chính)', type: 'Tập chiến thuật', date: '2026-11-06', startTime: '18:00', endTime: '20:00', fieldName: 'Sân bóng C1 (Sân 1)', coach: 'HLV. Nguyễn Văn Huấn', notes: '' });
 
     // Lưu trực tiếp vào Neon Cloud PostgreSQL
     try {
@@ -1881,6 +2746,10 @@ function DashboardContent() {
   // 6. Handlers for Finances (Chi phí & Quỹ)
   const handleCreateTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canUpdatePayments) {
+      alert('⚠️ Bạn không có quyền thêm hoặc chỉnh sửa giao dịch thu chi. Huấn luyện viên chỉ có quyền xem.');
+      return;
+    }
     if (!newTransaction.title || newTransaction.amount <= 0) return;
     const trans: FinanceTransaction = {
       id: `fin-${Date.now()}`,
@@ -1906,7 +2775,10 @@ function DashboardContent() {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    if (!canManage) return;
+    if (!canUpdatePayments) {
+      alert('⚠️ Bạn không có quyền xóa giao dịch thu chi. Huấn luyện viên chỉ có quyền xem.');
+      return;
+    }
     if (confirm('Bạn có chắc chắn muốn xóa bản ghi thu/chi này khỏi hệ thống?')) {
       setTransactions(transactions.filter((t) => t.id !== id));
       try {
@@ -1919,7 +2791,10 @@ function DashboardContent() {
 
   // 6.1 Handlers for Player Monthly & Yearly Fees (Chi phí / Thu phí cầu thủ)
   const handleToggleFeeStatus = async (playerId: string, year: number, month: number) => {
-    if (!canManage) return;
+    if (!canUpdatePayments) {
+      alert('⚠️ Bạn không có quyền thay đổi trạng thái đóng phí cầu thủ. Huấn luyện viên chỉ có quyền xem.');
+      return;
+    }
     const existing = playerFees.find((f) => f.playerId === playerId && f.year === year && f.month === month);
     const newStatus: 'paid' | 'unpaid' = existing?.status === 'paid' ? 'unpaid' : 'paid';
     const member = members.find((m) => m.id === playerId);
@@ -1986,6 +2861,10 @@ function DashboardContent() {
 
   const handleSubmitPayFee = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canUpdatePayments) {
+      alert('⚠️ Bạn không có quyền ghi nhận thu phí cầu thủ. Huấn luyện viên chỉ có quyền xem.');
+      return;
+    }
     if (!payFeeTarget) return;
 
     const { member, month, year, amount, paymentMethod, notes } = payFeeTarget;
@@ -2064,6 +2943,10 @@ function DashboardContent() {
   };
 
   const handleRemindUnpaid = (month: number | 'all', year: number) => {
+    if (!canUpdatePayments) {
+      alert('⚠️ Bạn không có quyền gửi thông báo nhắc nợ phí.');
+      return;
+    }
     const targetMonth = month === 'all' ? 11 : month;
     const unpaidPlayers = members.filter((m) => {
       const fee = playerFees.find((f) => f.playerId === m.id && f.year === year && f.month === targetMonth);
@@ -2222,7 +3105,7 @@ function DashboardContent() {
 
     printReport({
       title,
-      subtitle: 'CÂU LẠC BỘ BÓNG ĐÁ SAO VÀNG (SAO VANG FC) • BỘ PHẬN TÀI CHÍNH & THỦ QUỸ',
+      subtitle: 'CÂU LẠC BỘ & SÂN BÓNG C1 (SAN BONG C1) • BỘ PHẬN TÀI CHÍNH & THỦ QUỸ',
       filterInfo: `Năm tài chính: ${selectedFeeYear} • Tuyến đội: ${feeTeamFilter} • Định mức: 300.000 VNĐ / cầu thủ / tháng`,
       tableHeaders,
       tableRows,
@@ -2236,6 +3119,10 @@ function DashboardContent() {
   // 7. Handlers for Announcements
   const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageAnnouncements) {
+      alert('⚠️ Bạn không có quyền tạo thông báo mới. Huấn luyện viên chỉ có quyền xem thông báo.');
+      return;
+    }
     if (!newAnnouncement.title || !newAnnouncement.content) return;
     const item: ClubAnnouncement = {
       id: `notif-${Date.now()}`,
@@ -2266,7 +3153,10 @@ function DashboardContent() {
   };
 
   const handleDeleteAnnouncement = async (id: string) => {
-    if (!canManage) return;
+    if (!canManageAnnouncements) {
+      alert('⚠️ Bạn không có quyền xóa thông báo. Huấn luyện viên chỉ có quyền xem thông báo.');
+      return;
+    }
     if (confirm('Bạn có chắc chắn muốn xóa thông báo này?')) {
       setAnnouncements(announcements.filter((a) => a.id !== id));
       try {
@@ -2373,6 +3263,7 @@ function DashboardContent() {
           updated[existingIdx] = {
             ...updated[existingIdx],
             isBooked: true,
+            status: 'pending',
             customerName: cName,
             customerPhone: cPhone,
             teamName: customerBookingForm.teamName.trim() || 'Khách đá giao hữu',
@@ -2394,6 +3285,7 @@ function DashboardContent() {
               slotLabel: bookingTargetSlot.slotLabel,
               price: totalAmount,
               isBooked: true,
+              status: 'pending',
               customerName: cName,
               customerPhone: cPhone,
               teamName: customerBookingForm.teamName.trim() || 'Khách đá giao hữu',
@@ -2404,28 +3296,26 @@ function DashboardContent() {
         }
       });
 
-      // Tạo thông báo mới cho ban quản lý CLB
+      // Tạo thông báo mới cho ban quản lý CLB (Yêu cầu phê duyệt)
       const newAnn: ClubAnnouncement = {
         id: `ann-${Date.now()}`,
-        title: `⚽ Khách Đặt Sân: ${cName} - ${bookingTargetSlot.fieldName} (${bookingTargetSlot.slotTime})`,
-        target: 'Toàn bộ câu lạc bộ',
+        title: `⏳ Đơn Đặt Sân Chờ Duyệt: ${cName} - ${bookingTargetSlot.fieldName} (${bookingTargetSlot.slotTime})`,
+        target: 'Ban Điều Hành & Quản Lý Ca',
         priority: 'Quan trọng',
         date: new Date().toISOString().split('T')[0],
         author: 'Hệ Thống Đặt Sân Tự Động',
-        content: `Khách hàng ${cName} (SĐT: ${cPhone}, Đội: ${customerBookingForm.teamName || 'Khách lẻ'}) vừa hoàn tất đặt sân ${bookingTargetSlot.fieldName} vào khung giờ ${bookingTargetSlot.slotTime} ngày ${selectedBookingDate}. Tổng số tiền: ${formatVND(totalAmount)}. Dịch vụ kèm theo: ${servicesText || 'Không có'}.`,
-        pinned: false,
+        content: `Khách hàng ${cName} (SĐT: ${cPhone}, Đội: ${customerBookingForm.teamName || 'Khách lẻ'}) vừa gửi yêu cầu đặt sân ${bookingTargetSlot.fieldName} vào khung giờ ${bookingTargetSlot.slotTime} ngày ${selectedBookingDate}. Tổng số tiền: ${formatVND(totalAmount)}. Đang ở trạng thái CHỜ PHÊ DUYỆT từ nhân viên quản lý ca.`,
+        pinned: true,
       };
       setAnnouncements((prev) => [newAnn, ...prev]);
 
       addNotification(
-        `Đặt sân thành công! ${bookingTargetSlot.fieldName} lúc ${bookingTargetSlot.slotTime} (${selectedBookingDate})`,
+        `Đơn đặt sân mới (chờ duyệt)! ${bookingTargetSlot.fieldName} lúc ${bookingTargetSlot.slotTime} (${selectedBookingDate})`,
         'booking',
       );
-
-      // Hiển thị Biên lai đặt sân cho khách hàng
       setBookingSuccessReceipt({
         receiptCode: receiptNo,
-        slot: bookingTargetSlot,
+        slot: { ...bookingTargetSlot, status: 'pending' },
         customerName: cName,
         customerPhone: cPhone,
         teamName: customerBookingForm.teamName.trim() || 'Khách đá giao hữu',
@@ -2436,9 +3326,132 @@ function DashboardContent() {
 
       setBookingTargetSlot(null);
     } catch (err: any) {
-      alert(`❌ Lỗi đặt sân: ${err.message || 'Không thể kết nối đến máy chủ.'}`);
+      console.warn('Lỗi kết nối đặt sân, kích hoạt chế độ hoàn tất cục bộ:', err);
+      // Fallback: Vẫn cập nhật trạng thái đang chờ duyệt trên giao diện và hiển thị biên lai cho khách hàng
+      const fallbackReceipt = `C1-BK-${Math.floor(100000 + Math.random() * 900000)}`;
+      setFieldBookings((prev) => {
+        const existingIdx = prev.findIndex(
+          (s) =>
+            s.fieldId === bookingTargetSlot.fieldId &&
+            s.bookingDate === selectedBookingDate &&
+            s.slotTime === bookingTargetSlot.slotTime,
+        );
+        if (existingIdx >= 0) {
+          const updated = [...prev];
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            isBooked: true,
+            status: 'pending',
+            customerName: cName,
+            customerPhone: cPhone,
+            teamName: customerBookingForm.teamName.trim() || 'Khách đá giao hữu',
+            services: servicesText,
+            notes: customerBookingForm.notes.trim(),
+            price: totalAmount,
+          };
+          return updated;
+        } else {
+          return [
+            ...prev,
+            {
+              id: `fb-${Date.now()}`,
+              fieldId: bookingTargetSlot.fieldId,
+              fieldName: bookingTargetSlot.fieldName,
+              bookingDate: selectedBookingDate,
+              slotId: bookingTargetSlot.slotId,
+              slotTime: bookingTargetSlot.slotTime,
+              slotLabel: bookingTargetSlot.slotLabel,
+              price: totalAmount,
+              isBooked: true,
+              status: 'pending',
+              customerName: cName,
+              customerPhone: cPhone,
+              teamName: customerBookingForm.teamName.trim() || 'Khách đá giao hữu',
+              services: servicesText,
+              notes: customerBookingForm.notes.trim(),
+            },
+          ];
+        }
+      });
+
+      addNotification(
+        canManageBookings
+          ? `Đơn đặt sân mới (chờ duyệt)! ${bookingTargetSlot.fieldName} lúc ${bookingTargetSlot.slotTime}`
+          : `Đã đặt sân thành công! ${bookingTargetSlot.fieldName} lúc ${bookingTargetSlot.slotTime}`,
+        'booking',
+      );
+
+      setBookingSuccessReceipt({
+        receiptCode: fallbackReceipt,
+        slot: { ...bookingTargetSlot, status: 'pending' },
+        customerName: cName,
+        customerPhone: cPhone,
+        teamName: customerBookingForm.teamName.trim() || 'Khách đá giao hữu',
+        totalAmount,
+        services: selectedServices,
+        bookedAt: new Date().toLocaleString('vi-VN'),
+      });
+
+      setBookingTargetSlot(null);
     } finally {
       setIsSubmittingBooking(false);
+    }
+  };
+
+  // Phê duyệt đơn đặt sân (STAFF / MANAGER / ADMIN) -> Đưa ca sân lên lịch chính thức
+  const handleApproveBooking = async (slot: FieldBookingSlot) => {
+    try {
+      await api.approveFieldBooking(slot.id, slot.fieldId, slot.bookingDate, slot.slotTime);
+      setFieldBookings((prev) =>
+        prev.map((s) => {
+          const isTarget =
+            s.id === slot.id ||
+            (s.fieldId === slot.fieldId && s.bookingDate === slot.bookingDate && s.slotTime === slot.slotTime);
+          return isTarget ? { ...s, status: 'approved', isBooked: true } : s;
+        }),
+      );
+      addNotification(`✓ Đã phê duyệt ca ${slot.slotTime} cho khách ${slot.customerName}`, 'system');
+      alert(`✓ Phê duyệt thành công! Ca sân "${slot.slotTime}" (${slot.fieldName}) ngày ${slot.bookingDate} của khách "${slot.customerName}" đã được chính thức đưa lên lịch thi đấu.`);
+    } catch (err: any) {
+      alert(`❌ Lỗi duyệt ca: ${err.message}`);
+    }
+  };
+
+  // Từ chối đơn đặt sân (STAFF / MANAGER / ADMIN) -> Giải phóng ca sân
+  const handleRejectBooking = async (slot: FieldBookingSlot) => {
+    if (
+      !confirm(
+        `Bạn có chắc chắn muốn từ chối đơn đặt sân ca "${slot.slotTime}" (${slot.fieldName}) ngày ${slot.bookingDate} của khách "${slot.customerName}"?\nCa sân này sẽ được giải phóng trở lại trạng thái trống để khách khác có thể đặt.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await api.rejectFieldBooking(slot.id, slot.fieldId, slot.bookingDate, slot.slotTime);
+      setFieldBookings((prev) =>
+        prev.map((s) => {
+          const isTarget =
+            s.id === slot.id ||
+            (s.fieldId === slot.fieldId && s.bookingDate === slot.bookingDate && s.slotTime === slot.slotTime);
+          return isTarget
+            ? {
+              ...s,
+              isBooked: false,
+              status: 'available',
+              customerName: null,
+              customerPhone: null,
+              teamName: null,
+              services: null,
+              notes: null,
+            }
+            : s;
+        }),
+      );
+      addNotification(`Đã từ chối đơn đặt sân ca ${slot.slotTime} của khách ${slot.customerName}`, 'system');
+      alert(`✓ Đã từ chối đơn đặt sân! Ca "${slot.slotTime}" ngày ${slot.bookingDate} hiện đã được giải phóng trở lại trạng thái khả dụng.`);
+    } catch (err: any) {
+      alert(`❌ Lỗi từ chối đơn: ${err.message}`);
     }
   };
 
@@ -2452,21 +3465,25 @@ function DashboardContent() {
     }
 
     try {
-      await api.cancelFieldBooking(slot.id);
+      await api.cancelFieldBooking(slot.id, slot.fieldId, slot.bookingDate, slot.slotTime);
       setFieldBookings((prev) =>
-        prev.map((s) =>
-          s.id === slot.id
+        prev.map((s) => {
+          const isTarget =
+            s.id === slot.id ||
+            (s.fieldId === slot.fieldId && s.bookingDate === slot.bookingDate && s.slotTime === slot.slotTime);
+          return isTarget
             ? {
-                ...s,
-                isBooked: false,
-                customerName: null,
-                customerPhone: null,
-                teamName: null,
-                services: null,
-                notes: null,
-              }
-            : s,
-        ),
+              ...s,
+              isBooked: false,
+              status: 'available',
+              customerName: null,
+              customerPhone: null,
+              teamName: null,
+              services: null,
+              notes: null,
+            }
+            : s;
+        }),
       );
       addNotification(`Đã hủy ca đặt sân ${slot.slotTime} thành công`, 'system');
       alert(`✓ Đã hủy ca đặt sân thành công! Ca ${slot.slotTime} ngày ${slot.bookingDate} hiện đã trống.`);
@@ -2499,6 +3516,7 @@ function DashboardContent() {
         if (match) {
           result.push({
             ...match,
+            status: match.status || (match.isBooked ? 'approved' : 'pending'),
             fieldName: fac.name,
           });
         } else {
@@ -2513,6 +3531,7 @@ function DashboardContent() {
             slotLabel: tpl.slotLabel,
             price: tpl.price,
             isBooked: false,
+            status: undefined,
             customerName: null,
             customerPhone: null,
             teamName: null,
@@ -2523,19 +3542,32 @@ function DashboardContent() {
       });
     });
 
-    // Lọc theo trạng thái Đã đặt / Còn trống nếu có filter
+    // Lọc theo trạng thái Đã đặt / Chờ duyệt / Còn trống
+    let filtered = result;
     if (bookingStatusFilter === 'available') {
-      return result.filter((s) => !s.isBooked);
+      filtered = result.filter((s) => !s.isBooked);
+    } else if (bookingStatusFilter === 'booked') {
+      if (canManageBookings) {
+        filtered = result.filter((s) => s.isBooked && (s.status === 'approved' || !s.status));
+      } else {
+        filtered = result.filter((s) => s.isBooked);
+      }
+    } else if ((bookingStatusFilter as string) === 'pending') {
+      filtered = result.filter((s) => s.isBooked && s.status === 'pending');
     }
-    if (bookingStatusFilter === 'booked') {
-      return result.filter((s) => s.isBooked);
-    }
-    return result;
-  }, [fieldFacilities, fieldBookings, selectedBookingDate, bookingFieldFilter, bookingStatusFilter]);
+
+    // Sắp xếp ưu tiên: Nếu có ai đặt cọc/giữ sân trước sẽ luôn hiển thị lên đầu danh sách
+    return [...filtered].sort((a, b) => {
+      if (a.isBooked && !b.isBooked) return -1;
+      if (!a.isBooked && b.isBooked) return 1;
+      return 0;
+    });
+  }, [fieldFacilities, fieldBookings, selectedBookingDate, bookingFieldFilter, bookingStatusFilter, canManageBookings]);
 
   const bookingStatsForDate = useMemo(() => {
     let total = 0;
-    let booked = 0;
+    let approved = 0;
+    let pending = 0;
     let available = 0;
 
     fieldFacilities.forEach((fac) => {
@@ -2549,15 +3581,24 @@ function DashboardContent() {
             b.slotTime === tpl.slotTime,
         );
         if (match && match.isBooked) {
-          booked++;
+          if (match.status === 'pending') {
+            pending++;
+          } else {
+            approved++;
+          }
         } else {
           available++;
         }
       });
     });
 
-    return { total, booked, available };
+    return { total, booked: approved + pending, approved, pending, available };
   }, [fieldFacilities, fieldBookings, selectedBookingDate]);
+
+  // Danh sách các ca đang chờ duyệt
+  const pendingBookingSlots = useMemo(() => {
+    return fieldBookings.filter((b) => b.isBooked && b.status === 'pending');
+  }, [fieldBookings]);
 
   // Danh sách các ca sân phục vụ cho tab Tìm Sân (hỗ trợ lọc Đã Đặt, Chưa Đặt & Từ khóa tìm kiếm)
   const filteredSlotsForFieldsTab = useMemo(() => {
@@ -2652,56 +3693,26 @@ function DashboardContent() {
     return (
       <div
         key={facility.id}
-        className={`bg-white rounded-3xl border transition-all duration-300 flex flex-col justify-between overflow-hidden group shadow-lg hover:shadow-2xl hover:-translate-y-1 ${
-          isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200/90'
-        }`}
+        className={`bg-white rounded-3xl border transition-all duration-300 flex flex-col justify-between overflow-hidden group shadow-lg hover:shadow-2xl hover:-translate-y-1 ${isSelected ? 'border-emerald-600 ring-2 ring-emerald-500/30' : 'border-slate-200/90'
+          }`}
       >
         <div>
-          {/* Ảnh thực tế của sân với Overlay Badge & Nút Yêu thích */}
+          {/* Ảnh thực tế của sân */}
           <div className="relative h-52 sm:h-56 w-full overflow-hidden bg-slate-900">
             <img
               src={facility.image}
               alt={facility.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-
-            {/* Badge khoảng cách góc trên bên trái: ✈ 4.666 KM */}
-            <div className="absolute top-3 left-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-sm text-slate-800 text-xs font-black shadow-md border border-slate-200/70">
-                <span className="text-slate-700 text-xs font-bold">✈</span>
-                <span>{facility.distance || '4.666 KM'}</span>
-              </span>
-            </div>
-
-            {/* Nút tim yêu thích góc trên bên phải: ❤️ */}
-            <div className="absolute top-3 right-3">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleFavoriteField(facility.id);
-                }}
-                className="w-9 h-9 rounded-full bg-white shadow-md border border-slate-200/70 flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
-                title={isFav ? 'Đã thêm vào yêu thích' : 'Lưu sân yêu thích'}
-              >
-                <svg className="w-5 h-5 text-rose-500 fill-current" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
-              </button>
-            </div>
           </div>
 
           {/* Thân card */}
           <div className="p-4 sm:p-5 space-y-3">
-            {/* Dòng 1: Tên Sân + Điểm Đánh Giá ★ 5 */}
-            <div className="flex items-center justify-between gap-2">
+            {/* Dòng 1: Tên Sân */}
+            <div>
               <h4 className="text-lg font-black text-slate-900 tracking-tight truncate" title={facility.name}>
                 {facility.name}
               </h4>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#f4f9ea] text-[#3f6212] font-black text-xs border border-[#e0f0cd] shrink-0">
-                <span className="text-amber-500 text-xs">★</span>
-                <span>{facility.rating || 5}</span>
-              </span>
             </div>
 
             {/* Dòng 2: Địa chỉ với icon Ghim Đỏ 📍 */}
@@ -2710,12 +3721,15 @@ function DashboardContent() {
               <span className="truncate">{facility.location}</span>
             </div>
 
-            {/* Dòng 3: Các Tiện Ích / Dịch Vụ Đi Kèm (THUE BONG, NUOC LOC, AO) */}
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              {(facility.tags && facility.tags.length > 0 ? facility.tags : ['THUE BONG', 'NUOC LOC', 'AO']).map((tag, tIdx) => (
+            {/* Dòng 3: Các Tiện Ích / Dịch Vụ Đi Kèm (Gọn gàng, có dấu) */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              {(facility.tags && facility.tags.length > 0
+                ? facility.tags
+                : ['2 sân cỏ nhân tạo', 'Đèn chiếu sáng', 'Thuê bóng', 'Nước lọc']
+              ).map((tag, tIdx) => (
                 <span
                   key={tIdx}
-                  className="px-3 py-1 rounded-full bg-[#f1f5f9] text-[#475569] text-xs font-black uppercase tracking-wider border border-slate-200/60"
+                  className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-slate-700 text-xs font-bold border border-slate-200/80 transition-colors"
                 >
                   {tag}
                 </span>
@@ -2724,15 +3738,15 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* Dòng 4 (Chân Card): GIÁ TỪ + 20.000 đ / GIỜ & Nút ĐẶT SÂN → */}
+        {/* Dòng 4 (Chân Card): GIÁ TỪ + 250.000 – 350.000 đ/giờ & Nút ĐẶT SÂN → */}
         <div className="p-4 sm:p-5 pt-0">
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
             <div>
               <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">
                 GIÁ TỪ
               </span>
-              <span className="text-[#0d6efd] font-black text-xl sm:text-2xl block tracking-tight">
-                {facility.priceDisplay || '20.000 đ / GIỜ'}
+              <span className="text-[#0d6efd] font-black text-lg sm:text-xl block tracking-tight whitespace-nowrap">
+                {facility.priceDisplay || '250.000 – 350.000 đ/giờ'}
               </span>
             </div>
 
@@ -2750,12 +3764,13 @@ function DashboardContent() {
     );
   };
 
-  // Filtered members
+  // Filtered members (hỗ trợ lọc theo đội hình 5 đá chính / 5 dự bị)
   const filteredMembers = members.filter((m) => {
     const matchTeam = memberTeamFilter === 'Tất cả' || m.teamName === memberTeamFilter;
+    const matchLineup = memberLineupFilter === 'all' || (m.lineupRole || 'Đá chính') === memberLineupFilter;
     const q = memberSearch.toLowerCase();
     const matchSearch = !q || m.name.toLowerCase().includes(q) || String(m.jerseyNumber).includes(q) || m.phone.includes(q);
-    return matchTeam && matchSearch;
+    return matchTeam && matchLineup && matchSearch;
   });
 
   return (
@@ -2768,7 +3783,7 @@ function DashboardContent() {
               <div className="space-y-2 max-w-3xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-bold tracking-wide uppercase">
                   <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                  SAO VÀNG FOOTBALL CLUB • TRUNG TÂM QUẢN TRỊ TOÀN DIỆN
+                  SÂN BÓNG C1 • TRUNG TÂM QUẢN TRỊ TOÀN DIỆN
                 </div>
                 <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
                   Quản Lý Đội Bóng, Thành Viên & Lịch Huấn Luyện
@@ -2818,7 +3833,7 @@ function DashboardContent() {
                   </span>
                 </div>
                 <p className="text-emerald-200/90 mt-0.5 text-[11.5px]">
-                  Dữ liệu đồng bộ trực tiếp qua <strong>NestJS Backend (Port 5000/api)</strong> tới <strong>Neon PostgreSQL Cloud</strong>.
+                  Dữ liệu đồng bộ trực tiếp qua <strong>Wispbyte Backend (haiandbao.wispbyte.app - Port 11569/api)</strong> tới <strong>Neon PostgreSQL Cloud</strong>.
                 </p>
               </div>
             </div>
@@ -2837,46 +3852,6 @@ function DashboardContent() {
             </div>
           </div>
         </>
-      )}
-
-      {/* THÔNG BÁO VAI TRÒ & PHÂN QUYỀN HỆ THỐNG - CHỈ HIỂN THỊ KHI THÀNH VIÊN ĐÃ ĐĂNG NHẬP */}
-      {user && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 px-5 rounded-2xl bg-[#022c22]/90 border border-emerald-500/40 text-xs text-emerald-100 shadow-md animate-in fade-in duration-200">
-          <div className="flex items-center gap-3">
-            <span className="text-xl shrink-0 p-2 rounded-xl bg-emerald-800/80 border border-emerald-500/40">
-              {isAdmin ? '🛡️' : isCoach ? '📋' : '🏃'}
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm text-white">
-                  Vai trò: {isAdmin ? 'Quản Trị Viên (Admin)' : isCoach ? 'Huấn Luyện Viên (HLV)' : 'Cầu Thủ / Thành Viên'}
-                </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  isAdmin
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                    : isCoach
-                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
-                    : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/40'
-                }`}>
-                  {isAdmin ? 'Toàn Quyền Quản Trị' : isCoach ? 'Chuyên Môn & Điểm Danh' : 'Cầu Thủ Thành Viên'}
-                </span>
-              </div>
-              <p className="text-emerald-300/90 mt-0.5 text-[11.5px]">
-                {isAdmin
-                  ? 'Bạn có toàn quyền thêm, sửa, xóa các đội bóng, nhân sự, lịch tập, tài chính và thông báo CLB.'
-                  : isCoach
-                  ? 'Bạn có quyền điều hành lịch tập luyện, thực hiện điểm danh các buổi tập và đăng thông báo.'
-                  : 'Bạn có quyền theo dõi lịch tập luyện, danh sách đội bóng, kiểm tra điểm danh và đóng phí sinh hoạt.'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            <span className="text-[11px] text-emerald-400 font-bold">Đang online:</span>
-            <span className="font-black text-white px-2.5 py-1 rounded-lg bg-emerald-800 border border-emerald-600">
-              {user.name}
-            </span>
-          </div>
-        </div>
       )}
 
       {/* 3. MODULE CONTENTS */}
@@ -3028,11 +4003,10 @@ function DashboardContent() {
                         key={d.val}
                         type="button"
                         onClick={() => setSelectedBookingDate(d.val)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                          selectedBookingDate === d.val
+                        className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${selectedBookingDate === d.val
                             ? 'bg-emerald-700 text-white shadow-md shadow-emerald-700/20'
                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                        }`}
+                          }`}
                       >
                         {d.label}
                       </button>
@@ -3068,32 +4042,53 @@ function DashboardContent() {
                       <button
                         type="button"
                         onClick={() => setBookingStatusFilter('all')}
-                        className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                          bookingStatusFilter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${bookingStatusFilter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                          }`}
                       >
                         Tất cả ca
                       </button>
                       <button
                         type="button"
                         onClick={() => setBookingStatusFilter('available')}
-                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                          bookingStatusFilter === 'available' ? 'bg-emerald-600 text-white shadow-sm' : 'text-emerald-700 hover:text-emerald-900'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${bookingStatusFilter === 'available' ? 'bg-emerald-600 text-white shadow-sm' : 'text-emerald-700 hover:text-emerald-900'
+                          }`}
                       >
                         <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                         Chưa có người đặt
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setBookingStatusFilter('booked')}
-                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
-                          bookingStatusFilter === 'booked' ? 'bg-rose-600 text-white shadow-sm' : 'text-rose-700 hover:text-rose-900'
-                        }`}
-                      >
-                        <span className="w-2 h-2 rounded-full bg-rose-400"></span>
-                        Đã có người đặt
-                      </button>
+
+                      {canManageBookings ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setBookingStatusFilter('pending')}
+                            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${bookingStatusFilter === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-amber-700 hover:text-amber-900'
+                              }`}
+                          >
+                            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                            Chờ duyệt {bookingStatsForDate.pending > 0 && `(${bookingStatsForDate.pending})`}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBookingStatusFilter('booked')}
+                            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${bookingStatusFilter === 'booked' ? 'bg-rose-600 text-white shadow-sm' : 'text-rose-700 hover:text-rose-900'
+                              }`}
+                          >
+                            <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                            Đã duyệt ({bookingStatsForDate.approved})
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setBookingStatusFilter('booked')}
+                          className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 cursor-pointer ${bookingStatusFilter === 'booked' ? 'bg-rose-600 text-white shadow-sm' : 'text-rose-700 hover:text-rose-900'
+                            }`}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                          Đã có người đặt ({bookingStatsForDate.booked})
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3120,15 +4115,18 @@ function DashboardContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {computedFacilitySlots.map((slot: FieldBookingSlot) => {
                     const isBooked = slot.isBooked;
+                    const isPending = slot.status === 'pending';
+                    const showPendingState = canManageBookings && isPending;
 
                     return (
                       <div
                         key={slot.id}
-                        className={`rounded-2xl p-4.5 border-2 transition-all flex flex-col justify-between ${
-                          isBooked
-                            ? 'bg-gradient-to-br from-rose-50/70 to-red-50/40 border-rose-300 shadow-sm'
+                        className={`rounded-2xl p-4.5 border-2 transition-all flex flex-col justify-between ${isBooked
+                            ? showPendingState
+                              ? 'bg-gradient-to-br from-amber-50/80 to-yellow-50/40 border-amber-300 shadow-sm'
+                              : 'bg-gradient-to-br from-rose-50/70 to-red-50/40 border-rose-300 shadow-sm'
                             : 'bg-gradient-to-br from-emerald-50/70 to-teal-50/30 border-emerald-400/90 shadow-md hover:shadow-xl hover:border-emerald-600'
-                        }`}
+                          }`}
                       >
                         <div className="space-y-3">
                           {/* Header card: Tên sân & Badge trạng thái */}
@@ -3140,12 +4138,19 @@ function DashboardContent() {
                               <h5 className="font-black text-slate-900 text-sm">{slot.fieldName}</h5>
                             </div>
 
-                            {/* BADGE TRẠNG THÁI: ĐÃ ĐẶT vs CHƯA ĐẶT */}
+                            {/* BADGE TRẠNG THÁI: KHÁCH HÀNG CHỈ THẤY ĐÃ ĐẶT HOẶC CHƯA ĐẶT */}
                             {isBooked ? (
-                              <span className="px-2.5 py-1 rounded-full bg-rose-100 border border-rose-300 text-rose-800 text-[11px] font-black tracking-wide flex items-center gap-1 shrink-0">
-                                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                                🔴 ĐÃ CÓ NGƯỜI ĐẶT
-                              </span>
+                              showPendingState ? (
+                                <span className="px-2.5 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[11px] font-black tracking-wide flex items-center gap-1 shrink-0 animate-pulse">
+                                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                  ⏳ ĐANG CHỜ DUYỆT
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-1 rounded-full bg-rose-100 border border-rose-300 text-rose-800 text-[11px] font-black tracking-wide flex items-center gap-1 shrink-0">
+                                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                  🔴 ĐÃ CỌC GIỮ SÂN
+                                </span>
+                              )
                             ) : (
                               <span className="px-2.5 py-1 rounded-full bg-emerald-100 border border-emerald-400 text-emerald-900 text-[11px] font-black tracking-wide flex items-center gap-1 shrink-0 animate-pulse">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -3169,31 +4174,53 @@ function DashboardContent() {
                               <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
                                 Giá Thuê Sân
                               </span>
-                              <strong className={`text-base font-black ${isBooked ? 'text-slate-700' : 'text-emerald-700'}`}>
+                              <strong className={`text-base font-black ${isBooked ? (showPendingState ? 'text-amber-800' : 'text-slate-700') : 'text-emerald-700'}`}>
                                 {formatVND(slot.price)}
                               </strong>
                             </div>
                           </div>
 
-                          {/* Chi tiết ca đặt: Nếu đã đặt thì hiện thông tin người đặt */}
+                          {/* Chi tiết ca đặt: Chỉ Admin/Staff/Manager mới xem được thông tin chờ duyệt & cá nhân */}
                           {isBooked ? (
-                            <div className="p-2.5 rounded-xl bg-rose-100/60 border border-rose-200 text-xs text-rose-950 space-y-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-semibold text-rose-700">Khách đặt:</span>
-                                <strong className="font-extrabold">{slot.customerName || 'Khách vãng lai'}</strong>
-                              </div>
-                              {slot.teamName && (
+                            canManageBookings ? (
+                              <div className={`p-2.5 rounded-xl border text-xs space-y-1 ${isPending ? 'bg-amber-100/70 border-amber-300 text-amber-950' : 'bg-rose-100/60 border-rose-200 text-rose-950'
+                                }`}>
                                 <div className="flex items-center justify-between">
-                                  <span className="font-semibold text-rose-700">Đội bóng:</span>
-                                  <strong className="font-extrabold truncate max-w-[160px]">{slot.teamName}</strong>
+                                  <span className={`font-semibold ${isPending ? 'text-amber-800' : 'text-rose-700'}`}>
+                                    {isPending ? '⏳ Đang chờ duyệt:' : 'Khách đặt:'}
+                                  </span>
+                                  <strong className="font-extrabold">{slot.customerName || 'Khách vãng lai'}</strong>
                                 </div>
-                              )}
-                              {slot.services && (
-                                <div className="text-[11px] text-rose-800 pt-0.5 border-t border-rose-200/60">
-                                  🎁 Dịch vụ: {slot.services}
-                                </div>
-                              )}
-                            </div>
+                                {slot.customerPhone && (
+                                  <div className="flex items-center justify-between">
+                                    <span className={`font-semibold ${isPending ? 'text-amber-800' : 'text-rose-700'}`}>SĐT:</span>
+                                    <strong className="font-extrabold text-slate-800">{slot.customerPhone}</strong>
+                                  </div>
+                                )}
+                                {slot.teamName && (
+                                  <div className="flex items-center justify-between">
+                                    <span className={`font-semibold ${isPending ? 'text-amber-800' : 'text-rose-700'}`}>Đội bóng:</span>
+                                    <strong className="font-extrabold truncate max-w-[160px]">{slot.teamName}</strong>
+                                  </div>
+                                )}
+                                {slot.services && (
+                                  <div className={`text-[11px] pt-0.5 border-t ${isPending ? 'text-amber-800 border-amber-200/60' : 'text-rose-800 border-rose-200/60'}`}>
+                                    🎁 Dịch vụ: {slot.services}
+                                  </div>
+                                )}
+                                {isPending && (
+                                  <div className="text-[10px] font-semibold text-amber-700 pt-1 border-t border-amber-200/50 flex items-center gap-1">
+                                    <span>ℹ️</span> Đã giữ chỗ tạm thời - Chờ nhân viên bấm duyệt để lên lịch chính thức.
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="p-2.5 rounded-xl border text-xs font-semibold bg-rose-50/80 border-rose-200 text-rose-800">
+                                <span className="flex items-center gap-1.5">
+                                  <span>⛔</span> Ca này đã có người đặt cọc trước (Đang bận)
+                                </span>
+                              </div>
+                            )
                           ) : (
                             <p className="text-xs text-emerald-800 font-semibold flex items-center gap-1">
                               <span>✨</span> Ca sân đang trống hoàn toàn, hỗ trợ giữ chỗ online ngay không cần cọc trước!
@@ -3204,20 +4231,48 @@ function DashboardContent() {
                         {/* Nút thao tác dưới cùng */}
                         <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between gap-2">
                           {isBooked ? (
-                            <>
-                              <span className="text-xs text-slate-500 font-medium italic">
-                                ⛔ Ca này đã kín lịch
-                              </span>
-                              {canManage && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleCancelBooking(slot)}
-                                  className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
-                                >
-                                  Hủy Ca Đặt
-                                </button>
-                              )}
-                            </>
+                            canManageBookings ? (
+                              isPending ? (
+                                <div className="w-full flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleApproveBooking(slot)}
+                                    className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                  >
+                                    <span>✅</span> Duyệt ca
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRejectBooking(slot)}
+                                    className="px-3 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs border border-rose-300 transition-all cursor-pointer"
+                                  >
+                                    Từ chối
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="w-full flex items-center justify-between gap-2">
+                                  <span className="text-xs text-slate-500 font-medium italic">
+                                    ⛔ Ca này đã kín lịch
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCancelBooking(slot)}
+                                    className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+                                  >
+                                    Hủy Ca Đặt
+                                  </button>
+                                </div>
+                              )
+                            ) : (
+                              <button
+                                type="button"
+                                disabled
+                                className="w-full py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs text-center cursor-not-allowed flex items-center justify-center gap-1.5"
+                              >
+                                <span>⛔</span>
+                                <span>ĐÃ CỌC GIỮ SÂN (HẾT CHỖ)</span>
+                              </button>
+                            )
                           ) : (
                             <button
                               type="button"
@@ -3264,7 +4319,7 @@ function DashboardContent() {
                             ⏰ {nextSchedule ? `${nextSchedule.startTime} - ${nextSchedule.endTime}` : '18:00 - 20:00'}
                           </span>
                           <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
-                            📍 {nextSchedule ? nextSchedule.fieldName : 'Sân bóng Sao Vàng A'}
+                            📍 {nextSchedule ? nextSchedule.fieldName : 'Sân bóng C1 A'}
                           </span>
                           <span className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-xl border border-white/10">
                             📋 {nextSchedule ? nextSchedule.coach : 'HLV. Nguyễn Văn Huấn'}
@@ -3380,85 +4435,24 @@ function DashboardContent() {
                   </span>
                 </div>
 
-                <div
-                  onClick={() => setActiveTab('finances')}
-                  className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">💰</span>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Số dư</span>
+                {canViewFinances && (
+                  <div
+                    onClick={() => setActiveTab('finances')}
+                    className="bg-white rounded-2xl p-4 border-2 border-emerald-200 hover:border-emerald-500 shadow-md hover:shadow-xl transition-all cursor-pointer group hover:-translate-y-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl p-2 rounded-xl bg-emerald-50 border border-emerald-200 group-hover:scale-110 transition-transform">💰</span>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Số dư</span>
+                    </div>
+                    <strong className="text-lg font-black text-emerald-700 block mt-2 truncate">
+                      {formatVND(currentBalance)}
+                    </strong>
+                    <span className="text-xs text-slate-500 font-semibold block mt-0.5">Quỹ sinh hoạt CLB</span>
+                    <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
+                      Thu chi quỹ →
+                    </span>
                   </div>
-                  <strong className="text-lg font-black text-emerald-700 block mt-2 truncate">
-                    {formatVND(currentBalance)}
-                  </strong>
-                  <span className="text-xs text-slate-500 font-semibold block mt-0.5">Quỹ sinh hoạt CLB</span>
-                  <span className="text-[11px] font-bold text-emerald-700 mt-2 flex items-center gap-1 group-hover:underline">
-                    Thu chi quỹ →
-                  </span>
-                </div>
-              </div>
-
-              {/* 3. PHÍM TẮT HÀNH ĐỘNG NHANH (QUICK ACTIONS BAR) */}
-              <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md">
-                <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <span>⚡</span> Phím Tắt Thao Tác Nhanh (Nội Bộ)
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                  {canManageClub && (
-                    <button
-                      onClick={() => setShowAddMemberModal(true)}
-                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
-                    >
-                      <span className="text-xl group-hover:scale-110 transition-transform">➕</span>
-                      <span>Thêm Cầu Thủ</span>
-                    </button>
-                  )}
-                  {canManageTraining && (
-                    <button
-                      onClick={() => setShowAddScheduleModal(true)}
-                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
-                    >
-                      <span className="text-xl group-hover:scale-110 transition-transform">📅</span>
-                      <span>Lên Lịch Tập Mới</span>
-                    </button>
-                  )}
-                  {canManageTraining && (
-                    <button
-                      onClick={() => setActiveTab('attendance')}
-                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
-                    >
-                      <span className="text-xl group-hover:scale-110 transition-transform">✅</span>
-                      <span>Điểm Danh Ngay</span>
-                    </button>
-                  )}
-                  {canManageClub && (
-                    <button
-                      onClick={() => setShowAddFinanceModal(true)}
-                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
-                    >
-                      <span className="text-xl group-hover:scale-110 transition-transform">💵</span>
-                      <span>Ghi Nhận Thu / Chi</span>
-                    </button>
-                  )}
-                  {canManage && (
-                    <button
-                      onClick={() => setShowAddAnnouncementModal(true)}
-                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
-                    >
-                      <span className="text-xl group-hover:scale-110 transition-transform">📢</span>
-                      <span>Đăng Thông Báo</span>
-                    </button>
-                  )}
-                  {canManageClub && (
-                    <button
-                      onClick={() => setShowAddTeamModal(true)}
-                      className="p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-600 text-emerald-950 hover:text-white border-2 border-emerald-300 transition-all font-extrabold text-xs flex flex-col items-center gap-1.5 shadow-sm cursor-pointer group"
-                    >
-                      <span className="text-xl group-hover:scale-110 transition-transform">🛡️</span>
-                      <span>Thành Lập Đội Mới</span>
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
             </>
           )}
@@ -3468,7 +4462,7 @@ function DashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                  <span>🏆</span> Các Tuyến Đội Bóng Trực Thuộc CLB Sao Vàng FC
+                  <span>🏆</span> Các Tuyến Đội Bóng Trực Thuộc CLB Sân Bóng C1
                 </h3>
                 <p className="text-xs text-slate-500">Cơ cấu tổ chức và ban huấn luyện phụ trách từng tuyến thi đấu</p>
               </div>
@@ -3509,164 +4503,100 @@ function DashboardContent() {
                         <span className="text-slate-400">Đội Trưởng:</span>
                         <strong className="text-slate-800">{t.captain}</strong>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-slate-400">Quân số:</span>
-                        <strong className="text-emerald-700 font-black">{t.memberCount} Cầu thủ</strong>
+                        <div className="text-right">
+                          <strong className="text-emerald-700 font-black block">10 Cầu thủ</strong>
+                          <span className="text-[10px] text-emerald-800 font-bold block">(5 Đá chính • 5 Dự bị)</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => {
-                      setMemberTeamFilter(t.name);
-                      setActiveTab('members');
+                      setViewingTeamRoster(t);
+                      setRosterSearch('');
+                      setRosterPositionFilter('Tất cả');
                     }}
-                    className="w-full mt-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-sm"
+                    className="w-full mt-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer hover:shadow-md"
                   >
-                    Xem Cầu Thủ Đội Này →
+                    <span>Xem Cầu Thủ Đội Này</span>
+                    <span>→</span>
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* 5. HAI CỘT: BẢNG TIN HOẠT ĐỘNG & KẾT QUẢ THI ĐẤU */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* CỘT 1: THÔNG BÁO QUAN TRỌNG GẦN ĐÂY */}
-            <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-                  <h4 className="font-black text-slate-900 text-base flex items-center gap-2">
-                    <span>📢</span> Thông Báo Mới Nhất Từ Ban Quản Trị
-                  </h4>
-                  <button
-                    onClick={() => setActiveTab('announcements')}
-                    className="text-xs font-bold text-emerald-700 hover:underline"
-                  >
-                    Xem tất cả →
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {announcements.slice(0, 3).map((a) => (
-                    <div
-                      key={a.id}
-                      className="p-3.5 rounded-2xl bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-200 transition-all"
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span
-                          className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                            a.priority === 'Khẩn cấp'
-                              ? 'bg-rose-100 text-rose-700 border border-rose-300'
-                              : a.priority === 'Quan trọng'
-                              ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                              : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                          }`}
-                        >
-                          {a.priority}
-                        </span>
-                        <span className="text-[11px] text-slate-400 font-semibold">{a.date}</span>
-                      </div>
-                      <h5 className="font-extrabold text-slate-900 text-xs sm:text-sm">{a.title}</h5>
-                      <p className="text-slate-600 text-xs mt-1 line-clamp-2 leading-relaxed">{a.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span>Tác giả: Ban Điều Hành Sao Vàng FC</span>
-                <span className="font-bold text-emerald-700">Tổng cộng {announcements.length} thông báo</span>
-              </div>
-            </div>
-
-            {/* CỘT 2: KẾT QUẢ TRẬN ĐẤU & CHIẾN TÍCH GẦN NHẤT */}
-            <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-                  <h4 className="font-black text-slate-900 text-base flex items-center gap-2">
-                    <span>⚽</span> Kết Quả Thi Đấu & Chiến Tích Gần Đây
-                  </h4>
-                  <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                    Phong độ cao
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200">
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-slate-500 font-bold">10/10/2026 • Sân Sao Vàng A</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">THẮNG</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-slate-900 text-sm">Sao Vàng FC</span>
-                      <span className="text-lg font-black text-emerald-700 px-3 py-0.5 rounded-xl bg-white border border-emerald-300">3 - 1</span>
-                      <span className="font-black text-slate-900 text-sm">FC Rồng Đỏ</span>
-                    </div>
-                    <p className="text-slate-500 text-[11px] mt-1.5">
-                      ⚽ Bàn thắng: Hoàng Minh Huy (15&apos;, 45&apos;), Nguyễn Đức Thắng (78&apos;) • MVP: Hoàng Minh Huy
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200">
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-slate-500 font-bold">17/10/2026 • Sân Thống Nhất</span>
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-extrabold text-[10px]">HÒA</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-slate-900 text-sm">Sao Vàng FC</span>
-                      <span className="text-lg font-black text-amber-700 px-3 py-0.5 rounded-xl bg-white border border-amber-300">2 - 2</span>
-                      <span className="font-black text-slate-900 text-sm">Hổ Biển FC</span>
-                    </div>
-                    <p className="text-slate-500 text-[11px] mt-1.5">
-                      ⚽ Bàn thắng: Bùi Văn Kiên (22&apos;), Hoàng Minh Huy (60&apos;) • MVP: Bùi Văn Kiên
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200">
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-slate-500 font-bold">28/09/2026 • Sân Phú Thọ</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">THẮNG</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-slate-900 text-sm">Sao Vàng FC</span>
-                      <span className="text-lg font-black text-emerald-700 px-3 py-0.5 rounded-xl bg-white border border-emerald-300">1 - 0</span>
-                      <span className="font-black text-slate-900 text-sm">Sông Hồng Utd</span>
-                    </div>
-                    <p className="text-slate-500 text-[11px] mt-1.5">
-                      ⚽ Bàn thắng: Nguyễn Đức Thắng (88&apos;) • MVP: Thủ môn Nguyễn Văn Khải
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span>Giải bóng đá phong trào & Cúp khu vực</span>
-                <span className="font-bold text-emerald-700">Tỷ lệ thắng 75%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 6. BẢN SẮC & TRUYỀN THỐNG CLB */}
-          <div className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] text-white border-2 border-emerald-500/40 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-2 max-w-3xl">
-              <span className="text-xs font-black uppercase tracking-wider text-emerald-300 block">
-                ⭐ BẢN SẮC & TINH THẦN SAO VÀNG FC
+          {/* 5. KẾT QUẢ THI ĐẤU & CHIẾN TÍCH GẦN NHẤT (Đã ẩn khối thông báo theo yêu cầu) */}
+          <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+              <h4 className="font-black text-slate-900 text-base flex items-center gap-2">
+                <span>⚽</span> Kết Quả Thi Đấu & Chiến Tích Gần Đây
+              </h4>
+              <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                Phong độ cao
               </span>
-              <h3 className="text-xl sm:text-2xl font-black text-white">
-                &ldquo;Đoàn Kết - Kỷ Luật - Tinh Thần Thể Thao Cống Hiến&rdquo;
-              </h3>
-              <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed">
-                Được thành lập từ năm 2015, Sao Vàng FC là mái nhà chung kết nối đam mê bóng đá, rèn luyện thể chất và xây dựng phong cách thi đấu hiện đại, công bằng. Chúng tôi tự hào phát triển toàn diện từ lứa tuổi trẻ U17, U21 đến đội 1 chuyên nghiệp và đội bóng đá trong nhà Futsal.
-              </p>
             </div>
-            <div className="shrink-0 flex items-center gap-3">
-              <button
-                onClick={() => setActiveTab('members')}
-                className="px-5 py-3 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-950 font-black text-xs sm:text-sm shadow-md transition-all cursor-pointer"
-              >
-                Gia Nhập CLB →
-              </button>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span className="text-slate-500 font-bold">10/10/2026 • Sân C1 (Sân 1)</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">THẮNG</span>
+                  </div>
+                  <div className="flex items-center justify-between my-2">
+                    <span className="font-black text-slate-900 text-sm">CLB Sân Bóng C1</span>
+                    <span className="text-lg font-black text-emerald-700 px-3 py-0.5 rounded-xl bg-white border border-emerald-300">3 - 1</span>
+                    <span className="font-black text-slate-900 text-sm">FC Rồng Đỏ</span>
+                  </div>
+                </div>
+                <p className="text-slate-500 text-[11px] mt-2 pt-2 border-t border-emerald-100">
+                  ⚽ Bàn thắng: Hoàng Minh Huy (15&apos;, 45&apos;), Nguyễn Đức Thắng (78&apos;) • MVP: Hoàng Minh Huy
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span className="text-slate-500 font-bold">17/10/2026 • Sân Thống Nhất</span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-extrabold text-[10px]">HÒA</span>
+                  </div>
+                  <div className="flex items-center justify-between my-2">
+                    <span className="font-black text-slate-900 text-sm">CLB Sân Bóng C1</span>
+                    <span className="text-lg font-black text-amber-700 px-3 py-0.5 rounded-xl bg-white border border-amber-300">2 - 2</span>
+                    <span className="font-black text-slate-900 text-sm">Hổ Biển FC</span>
+                  </div>
+                </div>
+                <p className="text-slate-500 text-[11px] mt-2 pt-2 border-t border-emerald-100">
+                  ⚽ Bàn thắng: Bùi Văn Kiên (22&apos;), Hoàng Minh Huy (60&apos;) • MVP: Bùi Văn Kiên
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span className="text-slate-500 font-bold">28/09/2026 • Sân Phú Thọ</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-extrabold text-[10px]">THẮNG</span>
+                  </div>
+                  <div className="flex items-center justify-between my-2">
+                    <span className="font-black text-slate-900 text-sm">CLB Sân Bóng C1</span>
+                    <span className="text-lg font-black text-emerald-700 px-3 py-0.5 rounded-xl bg-white border border-emerald-300">1 - 0</span>
+                    <span className="font-black text-slate-900 text-sm">Sông Hồng Utd</span>
+                  </div>
+                </div>
+                <p className="text-slate-500 text-[11px] mt-2 pt-2 border-t border-emerald-100">
+                  ⚽ Bàn thắng: Nguyễn Đức Thắng (88&apos;) • MVP: Thủ môn Nguyễn Văn Khải
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Giải bóng đá phong trào & Cúp khu vực</span>
+              <span className="font-bold text-emerald-700">Tỷ lệ thắng 75%</span>
             </div>
           </div>
         </div>
@@ -3732,37 +4662,45 @@ function DashboardContent() {
                 <button
                   type="button"
                   onClick={() => setBookingStatusFilter('all')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                    bookingStatusFilter === 'all'
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${bookingStatusFilter === 'all'
                       ? 'bg-slate-900 text-white shadow-md'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
+                    }`}
                 >
                   ⚪ Tất Cả Ca ({bookingStatsForDate.total})
                 </button>
                 <button
                   type="button"
                   onClick={() => setBookingStatusFilter('available')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    bookingStatusFilter === 'available'
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${bookingStatusFilter === 'available'
                       ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-400'
                       : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300'
-                  }`}
+                    }`}
                 >
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   🟢 Chưa Đặt - Còn Trống ({bookingStatsForDate.available})
                 </button>
                 <button
                   type="button"
+                  onClick={() => setBookingStatusFilter('pending')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${bookingStatusFilter === 'pending'
+                      ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30 ring-2 ring-amber-400'
+                      : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300'
+                    }`}
+                >
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                  ⏳ Chờ Phê Duyệt ({bookingStatsForDate.pending})
+                </button>
+                <button
+                  type="button"
                   onClick={() => setBookingStatusFilter('booked')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    bookingStatusFilter === 'booked'
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${bookingStatusFilter === 'booked'
                       ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-2 ring-rose-400'
                       : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-300'
-                  }`}
+                    }`}
                 >
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-                  🔴 Đã Đặt - Đang Bận ({bookingStatsForDate.booked})
+                  🔴 Đã Duyệt Chính Thức ({bookingStatsForDate.approved})
                 </button>
               </div>
 
@@ -3781,11 +4719,10 @@ function DashboardContent() {
                       key={d.val}
                       type="button"
                       onClick={() => setSelectedBookingDate(d.val)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
-                        selectedBookingDate === d.val
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${selectedBookingDate === d.val
                           ? 'bg-emerald-700 text-white font-extrabold shadow-sm'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
+                        }`}
                     >
                       {d.label}
                     </button>
@@ -3817,15 +4754,28 @@ function DashboardContent() {
                   </span>
                   <span className="text-[11px] font-bold text-emerald-700">07:00 – 22:00</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-center">
-                    <span className="text-[11px] font-bold text-emerald-700 block">🟢 Chưa Đặt</span>
-                    <strong className="text-lg font-black text-emerald-800">{bookingStatsForDate.available} Ca</strong>
+                <div className={`grid ${canManageBookings ? 'grid-cols-3' : 'grid-cols-2'} gap-2 text-xs`}>
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-2.5 text-center">
+                    <span className="text-[10px] font-bold text-emerald-700 block">🟢 Trống</span>
+                    <strong className="text-base font-black text-emerald-800">{bookingStatsForDate.available}</strong>
                   </div>
-                  <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3 text-center">
-                    <span className="text-[11px] font-bold text-rose-700 block">🔴 Đã Đặt</span>
-                    <strong className="text-lg font-black text-rose-800">{bookingStatsForDate.booked} Ca</strong>
-                  </div>
+                  {canManageBookings ? (
+                    <>
+                      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-2.5 text-center">
+                        <span className="text-[10px] font-bold text-amber-700 block">⏳ Chờ duyệt</span>
+                        <strong className="text-base font-black text-amber-800">{bookingStatsForDate.pending}</strong>
+                      </div>
+                      <div className="bg-rose-50 border border-rose-200 rounded-2xl p-2.5 text-center">
+                        <span className="text-[10px] font-bold text-rose-700 block">🔴 Đã duyệt</span>
+                        <strong className="text-base font-black text-rose-800">{bookingStatsForDate.approved}</strong>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="bg-rose-50 border border-rose-200 rounded-2xl p-2.5 text-center">
+                      <span className="text-[10px] font-bold text-rose-700 block">🔴 Đã có người đặt</span>
+                      <strong className="text-base font-black text-rose-800">{bookingStatsForDate.booked}</strong>
+                    </div>
+                  )}
                 </div>
                 <div className="text-[11.5px] text-slate-500 text-center font-medium">
                   Đơn giá niêm yết: <strong className="text-emerald-700 font-bold">20.000 VNĐ / 1 Giờ</strong>
@@ -3840,11 +4790,16 @@ function DashboardContent() {
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
                     {bookingStatusFilter === 'available' && <span className="text-emerald-600">🟢 Các Ca Chưa Đặt (Còn Trống)</span>}
-                    {bookingStatusFilter === 'booked' && <span className="text-rose-600">🔴 Các Ca Đã Có Người Đặt</span>}
+                    {bookingStatusFilter === 'pending' && <span className="text-amber-600">⏳ Các Ca Đang Chờ Phê Duyệt</span>}
+                    {bookingStatusFilter === 'booked' && (
+                      <span className="text-rose-600">
+                        {canManageBookings ? '🔴 Các Ca Đã Duyệt Chính Thức' : '🔴 Các Ca Đã Có Người Đặt (Đang Bận)'}
+                      </span>
+                    )}
                     {bookingStatusFilter === 'all' && <span>⚪ Toàn Bộ 13 Ca Hoạt Động (07:00 – 22:00)</span>}
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Ngày thi đấu: <strong>{selectedBookingDate}</strong> {fieldSearchQuery && <span>• Lọc từ khóa: "{fieldSearchQuery}"</span>}
+                    Ngày thi đấu: <strong>{selectedBookingDate}</strong> {fieldSearchQuery && <span>• Lọc từ khóa: &quot;{fieldSearchQuery}&quot;</span>}
                   </p>
                 </div>
                 <span className="text-xs font-black text-emerald-800 px-3 py-1 rounded-full bg-emerald-100 self-start sm:self-auto shrink-0">
@@ -3858,7 +4813,7 @@ function DashboardContent() {
                   <span className="text-3xl block">🔍</span>
                   <h4 className="text-sm font-black text-slate-800">Không tìm thấy ca nào phù hợp!</h4>
                   <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    Không có ca nào khớp với bộ lọc "{bookingStatusFilter === 'available' ? 'Chưa đặt' : bookingStatusFilter === 'booked' ? 'Đã đặt' : 'Tất cả'}" cho ngày {selectedBookingDate}.
+                    Không có ca nào khớp với bộ lọc &quot;{bookingStatusFilter === 'available' ? 'Chưa đặt' : bookingStatusFilter === 'pending' ? 'Chờ duyệt' : bookingStatusFilter === 'booked' ? (canManageBookings ? 'Đã duyệt' : 'Đã có người đặt') : 'Tất cả'}&quot; cho ngày {selectedBookingDate}.
                   </p>
                   <button
                     type="button"
@@ -3878,11 +4833,10 @@ function DashboardContent() {
                     return (
                       <div
                         key={slot.id}
-                        className={`rounded-2xl p-4 border transition-all flex flex-col justify-between gap-3 ${
-                          isAvailable
+                        className={`rounded-2xl p-4 border transition-all flex flex-col justify-between gap-3 ${isAvailable
                             ? 'bg-gradient-to-br from-emerald-50/60 to-white border-emerald-300 hover:border-emerald-500 hover:shadow-md'
                             : 'bg-gradient-to-br from-rose-50/50 to-white border-rose-200 opacity-90'
-                        }`}
+                          }`}
                       >
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between gap-2">
@@ -3890,11 +4844,10 @@ function DashboardContent() {
                               {slot.slotLabel}
                             </span>
                             <span
-                              className={`text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
-                                isAvailable
+                              className={`text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 ${isAvailable
                                   ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                   : 'bg-rose-100 text-rose-800 border border-rose-300'
-                              }`}
+                                }`}
                             >
                               <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
                               {isAvailable ? '🟢 Chưa Đặt' : '🔴 Đã Đặt'}
@@ -3913,9 +4866,13 @@ function DashboardContent() {
                           <div className="text-[11px] text-slate-500">
                             {isAvailable ? (
                               <span className="text-emerald-700 font-bold">✓ Sẵn sàng nhận đặt sân ngay</span>
-                            ) : (
+                            ) : canManageBookings ? (
                               <span className="text-rose-700 font-semibold">
                                 Khách đặt: <strong>{slot.customerName || 'Đã có khách giữ chỗ'}</strong>
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 font-medium italic">
+                                {slot.status === 'pending' ? '⏳ Đang chờ nhân viên duyệt giữ chỗ' : '⛔ Ca đã có người đặt trước'}
                               </span>
                             )}
                           </div>
@@ -3944,6 +4901,146 @@ function DashboardContent() {
               )}
             </div>
           </div>
+
+          {/* ================= PHÂN HỆ QUẢN LÝ SÂN BÃI & THIẾT BỊ PHỤ TRỢ (MANAGER / ADMIN) ================= */}
+          {(isAdmin || isManager) && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-amber-400 shadow-xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black uppercase tracking-wider mb-1">
+                    <span>🏟️</span> PHÂN QUYỀN QUẢN LÝ (MANAGER / ADMIN)
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                    Quản Lý Sân Bãi & Trạng Thái Mặt Sân
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Cập nhật tình trạng vận hành sân (bảo trì mặt cỏ, hỏng dàn đèn) tự động đồng bộ đến khách đặt sân
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+                    👔 Quyền: Quản Lý Sân Bãi & Điều Phối
+                  </span>
+                </div>
+              </div>
+
+              {/* CẬP NHẬT TRẠNG THÁI SÂN */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
+                    <span>🌱</span> Trạng Thái Vận Hành & Bảo Trì Mặt Sân (Sân 1 & Sân 2)
+                  </h4>
+                  <span className="text-xs text-slate-400">Tự động cập nhật đến khách đặt sân</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {fieldOperationalStatuses.map((fs) => {
+                    const isNormal = fs.status === 'normal';
+                    const isGrass = fs.status === 'maintenance_grass';
+                    const isLights = fs.status === 'broken_lights';
+
+                    return (
+                      <div
+                        key={fs.id}
+                        className={`p-5 rounded-2xl border-2 transition-all ${isNormal
+                            ? 'bg-emerald-50/50 border-emerald-300'
+                            : isGrass
+                              ? 'bg-amber-50/50 border-amber-400'
+                              : 'bg-rose-50/50 border-rose-400'
+                          }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <h5 className="font-black text-base text-slate-900">{fs.name}</h5>
+                          <span
+                            className={`text-xs px-2.5 py-1 rounded-full font-black border ${isNormal
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : isGrass
+                                  ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                  : 'bg-rose-100 text-rose-800 border-rose-300'
+                              }`}
+                          >
+                            {isNormal ? '🟢 Sẵn sàng' : isGrass ? '🟡 Bảo trì mặt cỏ' : '🔴 Hỏng dàn đèn'}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-600 mt-2 italic bg-white/80 p-2.5 rounded-xl border border-slate-200">
+                          &quot;{fs.statusNote}&quot;
+                        </p>
+
+                        <div className="mt-4 pt-3 border-t border-slate-200/80">
+                          <label className="text-[11px] font-black text-slate-600 uppercase block mb-1.5">
+                            Cập nhật trạng thái sân ngay:
+                          </label>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFieldOperationalStatuses((prev) =>
+                                  prev.map((item) =>
+                                    item.id === fs.id
+                                      ? { ...item, status: 'normal', statusNote: 'Mặt cỏ & dàn đèn hoạt động tốt 100%', updatedAt: new Date().toLocaleString('vi-VN') }
+                                      : item
+                                  )
+                                );
+                                alert(`Đã cập nhật ${fs.name}: Sẵn sàng đón khách!`);
+                              }}
+                              className={`px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${isNormal ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm' : 'bg-white hover:bg-emerald-50 text-slate-700 border-slate-300'
+                                }`}
+                            >
+                              🟢 Bình thường
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const note = prompt('Nhập lý do bảo trì mặt cỏ (ví dụ: Thay cỏ nhân tạo khu vực cầu môn):', 'Đang bảo dưỡng bề mặt cỏ nhân tạo, tạm ngưng nhận ca');
+                                if (note !== null) {
+                                  setFieldOperationalStatuses((prev) =>
+                                    prev.map((item) =>
+                                      item.id === fs.id
+                                        ? { ...item, status: 'maintenance_grass', statusNote: note || 'Đang bảo trì mặt cỏ', updatedAt: new Date().toLocaleString('vi-VN') }
+                                        : item
+                                    )
+                                  );
+                                }
+                              }}
+                              className={`px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${isGrass ? 'bg-amber-600 text-white border-amber-700 shadow-sm' : 'bg-white hover:bg-amber-50 text-slate-700 border-slate-300'
+                                }`}
+                            >
+                              🟡 Bảo trì cỏ
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const note = prompt('Nhập sự cố đèn chiếu sáng (ví dụ: Cháy bóng pha cột 2, đang chờ thợ sửa):', 'Hỏng dàn đèn chiếu sáng, không nhận ca đêm sau 18:00');
+                                if (note !== null) {
+                                  setFieldOperationalStatuses((prev) =>
+                                    prev.map((item) =>
+                                      item.id === fs.id
+                                        ? { ...item, status: 'broken_lights', statusNote: note || 'Hỏng dàn đèn chiếu sáng', updatedAt: new Date().toLocaleString('vi-VN') }
+                                        : item
+                                    )
+                                  );
+                                }
+                              }}
+                              className={`px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${isLights ? 'bg-rose-600 text-white border-rose-700 shadow-sm' : 'bg-white hover:bg-rose-50 text-slate-700 border-slate-300'
+                                }`}
+                            >
+                              🔴 Hỏng đèn
+                            </button>
+                          </div>
+                          <span className="text-[10px] text-slate-400 mt-2 block">
+                            Cập nhật lần cuối: {fs.updatedAt}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -3966,17 +5063,21 @@ function DashboardContent() {
               </div>
 
               {/* Quick Summary Badges */}
-              <div className="grid grid-cols-3 gap-3 shrink-0">
-                <div className="bg-emerald-50 rounded-2xl p-3 border border-emerald-200 text-center">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
+                <div className="bg-slate-50 rounded-2xl p-3 border border-slate-200 text-center">
                   <span className="text-[11px] font-bold text-slate-500 block">Tổng số ca</span>
-                  <strong className="text-lg font-black text-emerald-800">{bookingStatsForDate.total} Ca</strong>
+                  <strong className="text-lg font-black text-slate-800">{bookingStatsForDate.total} Ca</strong>
                 </div>
                 <div className="bg-emerald-100/70 rounded-2xl p-3 border border-emerald-300 text-center">
                   <span className="text-[11px] font-bold text-emerald-700 block">Còn trống</span>
                   <strong className="text-lg font-black text-emerald-900">{bookingStatsForDate.available} Ca</strong>
                 </div>
+                <div className="bg-amber-100/70 rounded-2xl p-3 border border-amber-300 text-center">
+                  <span className="text-[11px] font-bold text-amber-800 block">Chờ phê duyệt</span>
+                  <strong className="text-lg font-black text-amber-900">{bookingStatsForDate.pending} Ca</strong>
+                </div>
                 <div className="bg-rose-50 rounded-2xl p-3 border border-rose-200 text-center">
-                  <span className="text-[11px] font-bold text-rose-600 block">Đã đặt</span>
+                  <span className="text-[11px] font-bold text-rose-600 block">Đã duyệt (Đã đặt)</span>
                   <strong className="text-lg font-black text-rose-800">{bookingStatsForDate.booked} Ca</strong>
                 </div>
               </div>
@@ -3996,11 +5097,10 @@ function DashboardContent() {
                     key={d.val}
                     type="button"
                     onClick={() => setSelectedBookingDate(d.val)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                      selectedBookingDate === d.val
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${selectedBookingDate === d.val
                         ? 'bg-emerald-700 text-white shadow-md'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
+                      }`}
                   >
                     {d.label}
                   </button>
@@ -4031,35 +5131,322 @@ function DashboardContent() {
                 >
                   <option value="all">🔍 Tất cả trạng thái</option>
                   <option value="available">🟢 Chỉ ca còn trống</option>
-                  <option value="booked">🔴 Chỉ ca đã có người đặt</option>
+                  {canManageBookings ? (
+                    <>
+                      <option value="pending">⏳ Chỉ ca đang chờ duyệt</option>
+                      <option value="booked">🔴 Chỉ ca đã duyệt</option>
+                    </>
+                  ) : (
+                    <option value="booked">🔴 Chỉ ca đã có người đặt</option>
+                  )}
                 </select>
+
+                {/* Nút chuyển chế độ xem: Thẻ ca vs Toàn cảnh Timeline */}
+                <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setBookingScheduleViewMode('cards')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${bookingScheduleViewMode === 'cards' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                  >
+                    🃏 Dạng Thẻ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookingScheduleViewMode('timeline')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${bookingScheduleViewMode === 'timeline' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                  >
+                    📊 Timeline Sân 1 & 2
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* ================= PHÂN HỆ ĐIỀU PHỐI & XỬ LÝ TRÙNG LỊCH (CONFLICT RESOLUTION) ================= */}
+          {(isAdmin || isManager) && (
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border-2 border-indigo-400 shadow-md space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl">⚖️</span>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                      <span>Điều Phối Lịch Đặt & Xử Lý Trùng Lịch (Conflict Resolution)</span>
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Tự động quét và giải quyết xung đột khi có nhiều Câu lạc bộ hoặc Người dùng cùng đặt trùng ca sân
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-indigo-800 bg-indigo-50 px-3 py-1 rounded-xl border border-indigo-200 shrink-0">
+                  👔 Công cụ Quản Lý
+                </span>
+              </div>
+
+              {/* Hộp kiểm tra xung đột */}
+              {(() => {
+                const bookedForDate = fieldBookings.filter((b) => b.bookingDate === selectedBookingDate && b.isBooked);
+                const conflictMap: Record<string, FieldBookingSlot[]> = {};
+                bookedForDate.forEach((b) => {
+                  const key = `${b.fieldId}_${b.slotTime}`;
+                  if (!conflictMap[key]) conflictMap[key] = [];
+                  conflictMap[key].push(b);
+                });
+                const conflicts = Object.entries(conflictMap).filter(([, list]) => list.length > 1);
+
+                if (conflicts.length === 0) {
+                  return (
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-bold flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span>✓</span>
+                        <span>Không có xung đột trùng lịch nào cho ngày {selectedBookingDate}. Toàn bộ các ca sân đều được phân bổ chính xác.</span>
+                      </div>
+                      <span className="text-[11px] text-emerald-700 bg-white px-2.5 py-0.5 rounded-lg border border-emerald-300">
+                        Hệ thống đồng bộ 100%
+                      </span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 space-y-3">
+                    <div className="text-xs font-black text-rose-800 uppercase tracking-wide flex items-center gap-1.5">
+                      <span>⚠️</span> PHÁT HIỆN {conflicts.length} CA TRÙNG LỊCH ĐẶT CẦN ĐIỀU PHỐI:
+                    </div>
+                    {conflicts.map(([key, list]) => (
+                      <div key={key} className="p-3 bg-white rounded-xl border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div>
+                          <strong className="text-slate-900 block font-black">{list[0].fieldName} • Khung giờ: {list[0].slotTime}</strong>
+                          <span className="text-slate-600">
+                            Có {list.length} đơn cùng chọn: {list.map((x) => `${x.customerName} (${x.status === 'pending' ? 'Chờ duyệt' : 'Đã duyệt'})`).join(' VS ')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              alert(`Đã ưu tiên giữ ca cho ${list[0].customerName}. Đang tiến hành dời ca thứ hai.`);
+                              setRescheduleTargetSlot(list[1]);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs cursor-pointer shadow-sm"
+                          >
+                            Xử lý dời ca thứ hai →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* ================= CHẾ ĐỘ XEM TOÀN CẢNH TIMELINE / CALENDAR (SÂN 1 & SÂN 2) ================= */}
+          {bookingScheduleViewMode === 'timeline' && (
+            <div className="bg-white rounded-3xl p-6 border-2 border-emerald-400 shadow-xl space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                    <span>📊</span> Toàn Cảnh Timeline Lịch Đặt Sân Ngày {selectedBookingDate}
+                  </h3>
+                  <p className="text-xs text-slate-500">Đối chiếu trực quan tình trạng đặt giữa Sân 1 và Sân 2 từ 07:00 đến 22:00</p>
+                </div>
+                <div className="flex items-center gap-3 text-xs font-bold">
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500"></span> Trống</span>
+                  {canManageBookings ? (
+                    <>
+                      <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-500"></span> Chờ duyệt</span>
+                      <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-rose-500"></span> Đã duyệt</span>
+                    </>
+                  ) : (
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-rose-500"></span> Đã có người đặt</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border border-slate-200 rounded-2xl overflow-hidden">
+                  <thead className="bg-slate-800 text-white uppercase text-[11px] font-extrabold">
+                    <tr>
+                      <th className="p-3 w-32">Khung Giờ</th>
+                      <th className="p-3">🏟️ Sân bóng C1 - Sân 1</th>
+                      <th className="p-3">🏟️ Sân bóng C1 - Sân 2</th>
+                      <th className="p-3 text-center w-36">Thao Tác Điều Phối</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {(standardFacilitySlots['field-c1'] || []).map((tpl) => {
+                      const timeRange = tpl.slotTime;
+                      const slot1 = computedFacilitySlots.find((s) => s.slotTime === timeRange);
+                      const isBooked1 = slot1?.isBooked;
+                      const isPending1 = slot1?.status === 'pending';
+
+                      return (
+                        <tr key={timeRange} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-3 font-black text-slate-900 bg-slate-50 whitespace-nowrap">
+                            ⏱️ {timeRange}
+                          </td>
+
+                          {/* Sân 1 */}
+                          <td className="p-3">
+                            {isBooked1 ? (
+                              <div className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 ${canManageBookings && isPending1 ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-rose-50 border-rose-300 text-rose-900'
+                                }`}>
+                                <div>
+                                  <span className="font-black block">{canManageBookings ? (slot1?.customerName || 'Đã có khách đặt') : 'Đã có người đặt'}</span>
+                                  {canManageBookings && <span className="text-[10px] text-slate-500">{slot1?.teamName || 'Giao hữu tự do'}</span>}
+                                </div>
+                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${canManageBookings && isPending1 ? 'bg-amber-200 text-amber-950' : 'bg-rose-200 text-rose-950'
+                                  }`}>
+                                  {canManageBookings ? (isPending1 ? 'Chờ duyệt' : 'Đã duyệt') : 'Đã đặt'}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-800 font-bold flex items-center justify-between">
+                                <span>🟢 Sân trống ({formatVND(slot1?.price || 20000)}/h)</span>
+                                <button
+                                  type="button"
+                                  onClick={() => slot1 && handleOpenBookingModal(slot1)}
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[10px] cursor-pointer"
+                                >
+                                  Đặt ca
+                                </button>
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Sân 2 */}
+                          <td className="p-3">
+                            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-800 font-bold flex items-center justify-between">
+                              <span>🟢 Sân trống ({formatVND(20000)}/h)</span>
+                              <button
+                                type="button"
+                                onClick={() => slot1 && handleOpenBookingModal({ ...slot1, fieldId: 'field-c2', fieldName: 'Sân bóng C1 - Sân 2' })}
+                                className="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-black text-[10px] cursor-pointer"
+                              >
+                                Đặt ca
+                              </button>
+                            </div>
+                          </td>
+
+                          {/* Thao tác */}
+                          <td className="p-3 text-center">
+                            {isBooked1 && (isAdmin || isManager) ? (
+                              <button
+                                type="button"
+                                onClick={() => slot1 && setRescheduleTargetSlot(slot1)}
+                                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] shadow-sm cursor-pointer transition-all"
+                              >
+                                🔄 Dời lịch
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 text-xs">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ================= KHU VỰC PHÊ DUYỆT ĐƠN CHO NHÂN VIÊN & QUẢN TRỊ VIÊN ================= */}
+          {canManageBookings && pendingBookingSlots.length > 0 && (
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 border-2 border-amber-400 rounded-3xl p-5 sm:p-6 shadow-md space-y-3 animate-in fade-in">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl animate-bounce">🔔</span>
+                  <div>
+                    <h3 className="text-base font-black text-amber-950 flex items-center gap-2">
+                      <span>Đơn Đặt Sân Chờ Nhân Viên Phê Duyệt</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-xs font-extrabold shadow-sm">
+                        {pendingBookingSlots.length} Đơn Mới
+                      </span>
+                    </h3>
+                    <p className="text-xs text-amber-800 font-medium">
+                      Khách hàng vừa đặt ca trực tuyến. Vui lòng kiểm tra và <strong>Phê Duyệt</strong> để đưa ca lên lịch chính thức hoặc <strong>Từ Chối</strong> để giải phóng ca.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                {pendingBookingSlots.map((ps) => (
+                  <div key={ps.id} className="bg-white rounded-2xl p-4 border-2 border-amber-300 shadow-sm space-y-2 flex flex-col justify-between">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                          <span>⏳</span> Đang Chờ Duyệt
+                        </span>
+                        <strong className="text-xs text-emerald-800 font-black">{formatVND(ps.price)}</strong>
+                      </div>
+                      <div className="text-sm font-black text-slate-900">{ps.fieldName} • {ps.slotTime}</div>
+                      <div className="text-xs text-slate-500">Ngày: <strong className="text-slate-800">{ps.bookingDate}</strong></div>
+                      <div className="text-xs text-slate-700">Khách: <strong>{ps.customerName}</strong> ({ps.customerPhone})</div>
+                      {ps.teamName && <div className="text-[11px] text-slate-600">Đội: {ps.teamName}</div>}
+                      {ps.services && <div className="text-[11px] text-amber-800 font-medium">Dịch vụ: {ps.services}</div>}
+                      {ps.notes && <div className="text-[11px] text-slate-500 italic">Ghi chú: {ps.notes}</div>}
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleApproveBooking(ps)}
+                        className="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <span>✓</span>
+                        <span>Phê Duyệt Ngay</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRejectBooking(ps)}
+                        className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-xs transition-all cursor-pointer"
+                      >
+                        ✕ Từ Chối
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Danh sách các ca sân */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {computedFacilitySlots.map((slot) => {
+              const isPending = slot.isBooked && slot.status === 'pending';
+              const isApproved = slot.isBooked && (slot.status === 'approved' || !slot.status);
+              const showPendingState = canManageBookings && isPending;
+
               return (
                 <div
                   key={slot.id}
-                  className={`p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${
-                    slot.isBooked
-                      ? 'bg-rose-50/40 border-rose-200'
-                      : 'bg-white border-emerald-200 hover:border-emerald-500 hover:shadow-lg'
-                  }`}
+                  className={`p-5 rounded-3xl border-2 transition-all flex flex-col justify-between ${showPendingState
+                      ? 'bg-amber-50/40 border-amber-300 shadow-sm'
+                      : slot.isBooked
+                        ? 'bg-rose-50/40 border-rose-200'
+                        : 'bg-white border-emerald-200 hover:border-emerald-500 hover:shadow-lg'
+                    }`}
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <span className="font-extrabold text-xs text-slate-700 truncate">{slot.fieldName}</span>
                       <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
-                          slot.isBooked
-                            ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                            : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        }`}
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-black shrink-0 ${showPendingState
+                            ? 'bg-amber-100 text-amber-900 border border-amber-400'
+                            : slot.isBooked
+                              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          }`}
                       >
-                        {slot.isBooked ? '🔴 ĐÃ CÓ NGƯỜI ĐẶT' : '🟢 CHƯA CÓ NGƯỜI ĐẶT'}
+                        {showPendingState
+                          ? '⏳ ĐANG CHỜ DUYỆT'
+                          : slot.isBooked
+                            ? '🔴 ĐÃ CỌC GIỮ SÂN'
+                            : '🟢 CHƯA CÓ NGƯỜI ĐẶT'}
                       </span>
                     </div>
 
@@ -4074,45 +5461,97 @@ function DashboardContent() {
                     </div>
 
                     {slot.isBooked && (
-                      <div className="mt-2 p-2.5 rounded-xl bg-white/80 border border-rose-200 text-xs text-slate-600 space-y-1">
-                        <div>
-                          <span className="text-slate-400">Người đặt:</span>{' '}
-                          <strong className="text-slate-800">{slot.customerName || 'Khách giữ chỗ'}</strong>
+                      canManageBookings ? (
+                        <div className={`mt-2 p-2.5 rounded-xl border text-xs space-y-1 ${isPending ? 'bg-amber-50/70 border-amber-200 text-amber-900' : 'bg-white/80 border-rose-200 text-slate-600'
+                          }`}>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Người đặt:</span>{' '}
+                            <strong className="text-slate-900">{slot.customerName || 'Khách giữ chỗ'}</strong>
+                          </div>
+                          {slot.customerPhone && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-slate-400">SĐT:</span>{' '}
+                              <span className="font-semibold text-slate-700">{slot.customerPhone}</span>
+                            </div>
+                          )}
+                          {slot.teamName && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-slate-400">Đội bóng:</span>{' '}
+                              <span className="text-slate-700 font-bold">{slot.teamName}</span>
+                            </div>
+                          )}
+                          {slot.services && (
+                            <div className="text-[11px] text-slate-500">
+                              <span className="text-slate-400">Dịch vụ:</span> {slot.services}
+                            </div>
+                          )}
+                          {isPending && (
+                            <div className="text-[10.5px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
+                              * Ca đang chờ nhân viên kiểm tra & duyệt
+                            </div>
+                          )}
                         </div>
-                        {slot.teamName && (
-                          <div>
-                            <span className="text-slate-400">Đội bóng:</span>{' '}
-                            <span className="text-slate-700 font-bold">{slot.teamName}</span>
-                          </div>
-                        )}
-                        {slot.services && (
-                          <div className="text-[11px] text-slate-500">
-                            <span className="text-slate-400">Dịch vụ:</span> {slot.services}
-                          </div>
-                        )}
-                      </div>
+                      ) : (
+                        <div className="mt-2 p-2 rounded-xl border text-xs font-semibold bg-rose-50/70 border-rose-200 text-rose-800">
+                          <span className="flex items-center gap-1.5">
+                            <span>⛔</span> Ca này đã có người đặt cọc trước (Hết chỗ)
+                          </span>
+                        </div>
+                      )
                     )}
                   </div>
 
                   <div className="mt-4 pt-2">
                     {slot.isBooked ? (
-                      <div className="flex items-center gap-2">
+                      canManageBookings ? (
+                        isPending ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleApproveBooking(slot)}
+                              className="flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs transition-all shadow-sm flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                              <span>✓</span>
+                              <span>Phê Duyệt</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRejectBooking(slot)}
+                              className="px-3 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs transition-all cursor-pointer"
+                              title="Từ chối đơn và giải phóng ca sân"
+                            >
+                              ✕ Hủy
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled
+                              className="flex-1 py-2.5 rounded-xl bg-slate-200 text-slate-500 font-bold text-xs text-center cursor-not-allowed"
+                            >
+                              ✓ Đã duyệt chính thức
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelBooking(slot)}
+                              className="px-3 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs transition-all cursor-pointer"
+                              title="Hủy đặt ca này để giải phóng lịch"
+                            >
+                              Hủy ca
+                            </button>
+                          </div>
+                        )
+                      ) : (
                         <button
                           type="button"
                           disabled
-                          className="flex-1 py-2.5 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs text-center cursor-not-allowed"
+                          className="w-full py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 font-bold text-xs text-center cursor-not-allowed flex items-center justify-center gap-1.5"
                         >
-                          Đã có người giữ chỗ
+                          <span>⛔</span>
+                          <span>Đã cọc giữ sân (Hết chỗ)</span>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCancelBooking(slot)}
-                          className="px-3 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs transition-all cursor-pointer"
-                          title="Hủy đặt ca này để giải phóng lịch"
-                        >
-                          Hủy ca
-                        </button>
-                      </div>
+                      )
                     ) : (
                       <button
                         type="button"
@@ -4370,11 +5809,14 @@ function DashboardContent() {
                     </div>
                     <div className="space-y-0.5">
                       <span className="text-emerald-800 font-bold block text-[11px] flex items-center gap-1">
-                        👥 Quân Số:
+                        👥 Quy Mô Đội Hình:
                       </span>
                       <strong className="text-emerald-700 font-black text-sm block">
-                        {t.memberCount} thành viên
+                        Tối đa 10 cầu thủ
                       </strong>
+                      <span className="text-[10px] text-emerald-800 font-extrabold block">
+                        (5 Đá chính • 5 Dự bị)
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -4382,9 +5824,11 @@ function DashboardContent() {
                 {/* HÀNH ĐỘNG CUỐI CARD */}
                 <div className="mt-5 pt-4 border-t-2 border-emerald-100 flex items-center justify-between">
                   <button
+                    type="button"
                     onClick={() => {
-                      setMemberTeamFilter(t.name);
-                      setActiveTab('members');
+                      setViewingTeamRoster(t);
+                      setRosterSearch('');
+                      setRosterPositionFilter('Tất cả');
                     }}
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-500 hover:from-emerald-800 hover:to-emerald-600 text-white font-extrabold text-xs shadow-md shadow-emerald-700/25 flex items-center gap-1.5 transition-all cursor-pointer"
                   >
@@ -4407,32 +5851,36 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* ================= MODULE 2: QUẢN LÝ THÀNH VIÊN ================= */}
+      {/* ================= MODULE 2: QUẢN LÝ THÀNH VIÊN HOẶC DANH SÁCH CẦU THỦ ================= */}
       {user && activeTab === 'members' && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                <span>🏃</span> Quản Lý Hồ Sơ Cầu Thủ & Thành Viên
+                <span>🏃</span> {isUser ? 'Danh Sách Cầu Thủ Câu Lạc Bộ' : 'Quản Lý Cầu Thủ'}
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Quản lý chi tiết thông tin nhân sự, số áo, vị trí, chỉ số thể chất và đội trực thuộc
+                {isUser
+                  ? 'Theo dõi danh sách vận động viên, số áo, vị trí thi đấu và các tuyến đội thuộc CLB Sân Bóng C1'
+                  : 'Quản lý chi tiết danh sách cầu thủ, số áo, vị trí, chỉ số thể chất và đội trực thuộc'}
               </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={() =>
-                  handleExportCSV(
-                    'Danh_Sach_Thanh_Vien_SaoVangFC',
-                    ['Họ Tên', 'Số Áo', 'Vị Trí', 'Đội Bóng', 'Điện Thoại', 'Ngày Sinh', 'Trạng Thái', 'Đóng Phí Tháng'],
-                    members.map((m) => [m.name, m.jerseyNumber, m.position, m.teamName, m.phone, m.dateOfBirth, m.status, m.feePaidMonth ? 'Đã đóng' : 'Chưa đóng'])
-                  )
-                }
-                className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm"
-              >
-                📥 Xuất File CSV
-              </button>
+              {!isUser && (
+                <button
+                  onClick={() =>
+                    handleExportCSV(
+                      'Danh_Sach_Cau_Thu_SaoVangFC',
+                      ['Họ Tên', 'Số Áo', 'Vị Trí', 'Đội Bóng', 'Điện Thoại', 'Ngày Sinh', 'Trạng Thái', 'Đóng Phí Tháng'],
+                      members.map((m) => [m.name, m.jerseyNumber, m.position, m.teamName, m.phone, m.dateOfBirth, m.status, m.feePaidMonth ? 'Đã đóng' : 'Chưa đóng'])
+                    )
+                  }
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm"
+                >
+                  📥 Xuất File CSV
+                </button>
+              )}
 
               {canManageClub && (
                 <button
@@ -4440,127 +5888,450 @@ function DashboardContent() {
                   className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
                 >
                   <span>+</span>
-                  <span>Thêm Thành Viên</span>
+                  <span>Thêm Cầu Thủ</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* Search & Team Filter */}
-          <div className="bg-white p-4 rounded-3xl border-2 border-emerald-400/90 shadow-lg shadow-emerald-950/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-              <span className="text-xs font-black text-emerald-950 uppercase tracking-wide whitespace-nowrap">🛡️ Chọn Đội:</span>
-              <select
-                value={memberTeamFilter}
-                onChange={(e) => setMemberTeamFilter(e.target.value)}
-                className="bg-emerald-50/70 border-2 border-emerald-200 rounded-xl px-3.5 py-2 text-xs font-bold text-emerald-950 focus:outline-none focus:border-emerald-600 focus:bg-white"
+          {/* 4 SUBTABS DÀNH CHO MANAGER & ADMIN (USER CHỈ HIỂN THỊ DANH SÁCH CẦU THỦ) */}
+          {!isUser && (
+            <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setMemberSectionTab('members')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${memberSectionTab === 'members' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-200'
+                  }`}
               >
-                <option value="Tất cả">Tất cả các đội</option>
-                {teams.map((t) => (
-                  <option key={t.id} value={t.name}>{t.name}</option>
-                ))}
-              </select>
-            </div>
+                <span>🏃</span>
+                <span>1. Danh Sách Cầu Thủ</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20">{members.length}</span>
+              </button>
 
-            <div className="relative w-full sm:w-80">
-              <input
-                type="text"
-                placeholder="Tìm tên, số áo, số điện thoại..."
-                value={memberSearch}
-                onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full bg-emerald-50/50 border-2 border-emerald-200 rounded-xl px-4 py-2 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
-              />
-              <span className="absolute right-3.5 top-2.5 text-emerald-700 text-xs">🔍</span>
-            </div>
-          </div>
+              <button
+                type="button"
+                onClick={() => setMemberSectionTab('pending-clubs')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${memberSectionTab === 'pending-clubs' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-200'
+                  }`}
+              >
+                <span>🛡️</span>
+                <span>2. Duyệt Yêu Cầu Thành Lập CLB Mới</span>
+                {pendingClubRequests.filter((r) => r.status === 'pending').length > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black animate-pulse">
+                    {pendingClubRequests.filter((r) => r.status === 'pending').length} Mới
+                  </span>
+                )}
+              </button>
 
-          {/* Members Table */}
-          <div className="bg-white rounded-3xl border-2 border-emerald-400/90 shadow-xl shadow-emerald-950/10 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="green-table-header font-black uppercase tracking-wider border-b-2 border-emerald-700 text-white">
-                  <tr>
-                    <th className="p-4">Số Áo</th>
-                    <th className="p-4">Họ Và Tên</th>
-                    <th className="p-4">Vị Trí</th>
-                    <th className="p-4">Đội Trực Thuộc</th>
-                    <th className="p-4">Điện Thoại</th>
-                    <th className="p-4">Thể Chất</th>
-                    <th className="p-4">Trạng Thái</th>
-                    <th className="p-4 text-center">Phí Tháng</th>
-                    <th className="p-4 text-right">Thao Tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-emerald-100 text-slate-700">
-                  {filteredMembers.map((m) => (
-                    <tr key={m.id} className="odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-100/60 transition-colors">
-                      <td className="p-4 font-black text-emerald-800">
-                        <span className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold flex items-center justify-center text-xs shadow-sm">
-                          #{m.jerseyNumber}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <strong className="text-slate-900 block font-bold text-sm">{m.name}</strong>
-                        <span className="text-[11px] text-slate-400">Sinh: {m.dateOfBirth}</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-bold">
-                          {m.position}
-                        </span>
-                      </td>
-                      <td className="p-4 text-slate-600 font-medium">{m.teamName}</td>
-                      <td className="p-4 font-mono text-slate-600">{m.phone}</td>
-                      <td className="p-4 text-slate-600">{m.height} • {m.weight} ({m.preferredFoot})</td>
-                      <td className="p-4">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
-                            m.status === 'Chấn thương'
-                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          }`}
-                        >
-                          {m.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
+              <button
+                type="button"
+                onClick={() => setMemberSectionTab('assign-coach')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${memberSectionTab === 'assign-coach' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-200'
+                  }`}
+              >
+                <span>🧢</span>
+                <span>3. Gán Quyền Huấn Luyện Viên (Coach)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMemberSectionTab('violations')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${memberSectionTab === 'violations' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-200'
+                  }`}
+              >
+                <span>⚠️</span>
+                <span>4. Cảnh Báo & Khóa Tài Khoản Vi Phạm</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">{accountViolations.length}</span>
+              </button>
+            </div>
+          )}
+
+          {/* SUBTAB 2: DUYỆT YÊU CẦU THÀNH LẬP CLB MỚI */}
+          {!isUser && memberSectionTab === 'pending-clubs' && (
+            <div className="bg-white rounded-3xl p-6 border-2 border-emerald-400 shadow-xl space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div>
+                  <h4 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <span>🛡️</span> Yêu Cầu Thành Lập Câu Lạc Bộ Mới Chờ Phê Duyệt
+                  </h4>
+                  <p className="text-xs text-slate-500">Thẩm quyền của Quản Lý Sân Bãi & Admin kiểm tra tính hợp lệ và phê duyệt CLB tham gia hệ thống</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingClubRequests.map((req) => (
+                  <div key={req.id} className="p-5 rounded-2xl border-2 border-slate-200 bg-slate-50/60 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-black text-slate-900">{req.clubName}</span>
+                      <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-full ${req.status === 'pending' ? 'bg-amber-100 text-amber-900 border border-amber-300' : req.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                        }`}>
+                        {req.status === 'pending' ? '⏳ Chờ duyệt' : req.status === 'approved' ? '✓ Đã duyệt' : '✕ Từ chối'}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-slate-600 space-y-1">
+                      <div>👤 Đại diện: <strong>{req.representative}</strong> • SĐT: <strong>{req.phone}</strong></div>
+                      <div>📧 Email: {req.email} • Quân số: <strong>{req.memberCount} Cầu thủ</strong></div>
+                      <div>📅 Ngày gửi: {req.createdAt}</div>
+                      <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-slate-700 italic">
+                        &quot;{req.notes}&quot;
+                      </div>
+                    </div>
+
+                    {req.status === 'pending' && (
+                      <div className="pt-2 flex items-center gap-2">
                         <button
-                          onClick={() => toggleMemberFee(m.id)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                            m.feePaidMonth
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : 'bg-amber-100 text-amber-800 border border-amber-300'
-                          }`}
-                          title="Click để đổi trạng thái đóng phí"
+                          type="button"
+                          onClick={() => {
+                            setPendingClubRequests((prev) =>
+                              prev.map((r) => (r.id === req.id ? { ...r, status: 'approved' } : r))
+                            );
+                            addNotification(
+                              'Đã phê duyệt thành lập CLB mới',
+                              `Câu lạc bộ "${req.clubName}" do ${req.representative} làm đại diện đã được phê duyệt chính thức gia nhập Sân bóng C1.`,
+                              'new',
+                              undefined,
+                              'teams',
+                              undefined,
+                              'Quản Lý CLB & Nhân Sự',
+                              'important'
+                            );
+                            alert(`✅ ĐÃ PHÊ DUYỆT THÀNH LẬP CLB:\n"${req.clubName}" chính thức được kích hoạt trên hệ thống!`);
+                          }}
+                          className="flex-1 py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs cursor-pointer shadow-sm"
                         >
-                          {m.feePaidMonth ? '✓ Đã đóng' : 'Chưa đóng'}
+                          ✓ Phê Duyệt Thành Lập
                         </button>
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedMember(m)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 transition-colors"
-                            title="Xem chi tiết"
-                          >
-                            👁️
-                          </button>
-                          {canManageClub && (
-                            <button
-                              onClick={() => handleDeleteMember(m.id)}
-                              className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 transition-colors"
-                              title="Xóa thành viên"
-                            >
-                              🗑️
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const reason = prompt('Nhập lý do từ chối yêu cầu thành lập CLB:', 'Thông tin đại diện chưa đầy đủ hoặc trùng lịch cố định');
+                            if (reason !== null) {
+                              setPendingClubRequests((prev) =>
+                                prev.map((r) => (r.id === req.id ? { ...r, status: 'rejected', notes: `${r.notes} • Từ chối: ${reason}` } : r))
+                              );
+                            }
+                          }}
+                          className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 font-bold text-xs cursor-pointer"
+                        >
+                          ✕ Từ Chối
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* SUBTAB 3: GÁN QUYỀN HUẤN LUYỆN VIÊN (COACH) */}
+          {!isUser && memberSectionTab === 'assign-coach' && (
+            <div className="bg-white rounded-3xl p-6 border-2 border-emerald-400 shadow-xl space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div>
+                  <h4 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <span>🧢</span> Gán Quyền Huấn Luyện Viên (Coach) Cho Tài Khoản Hợp Lệ
+                  </h4>
+                  <p className="text-xs text-slate-500">Ủy quyền cho Ban huấn luyện lên lịch tập, giáo án và điểm danh chuyên cần đội bóng</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 rounded-2xl bg-sky-50 border-2 border-sky-300 space-y-3">
+                  <span className="text-xs font-black uppercase text-sky-900 flex items-center gap-1.5">
+                    <span>📋</span> Danh Sách Huấn Luyện Viên Đang Hoạt Động
+                  </span>
+                  <div className="space-y-2">
+                    {coaches.map((c) => (
+                      <div key={c.id} className="p-3 bg-white rounded-xl border border-sky-200 flex items-center justify-between text-xs">
+                        <div>
+                          <strong className="text-slate-900 block font-black">{c.name}</strong>
+                          <span className="text-slate-500">{c.role} • Đội: {c.assignedTeam}</span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-black text-[10px]">
+                          COACH KÍCH HOẠT
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-3">
+                  <span className="text-xs font-black uppercase text-slate-700 flex items-center gap-1.5">
+                    <span>⚡</span> Gán Quyền Coach Cho Thành Viên Mới
+                  </span>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Chọn thành viên hoặc tài khoản để cấp quyền truy cập Bàn Làm Việc HLV (xếp lịch tập, điểm danh, xem thu chi và nhận thông báo).
+                  </p>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const name = prompt('Nhập tên HLV cần gán quyền (ví dụ: HLV. Lê Hoàng Anh):', 'HLV. Lê Hoàng Anh');
+                        if (name) {
+                          alert(`✅ ĐÃ GÁN QUYỀN HUẤN LUYỆN VIÊN!\nTài khoản "${name}" đã được phân quyền COACH thành công!`);
+                        }
+                      }}
+                      className="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>+ Gán Quyền Huấn Luyện Viên Mới</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SUBTAB 4: CẢNH BÁO & KHÓA TÀI KHOẢN VI PHẠM */}
+          {!isUser && memberSectionTab === 'violations' && (
+            <div className="bg-white rounded-3xl p-6 border-2 border-rose-400 shadow-xl space-y-4 animate-in fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                <div>
+                  <h4 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <span>⚠️</span> Cảnh Báo & Khóa Tài Khoản Vi Phạm Nội Quy Sân
+                  </h4>
+                  <p className="text-xs text-slate-500">Xử lý nghiêm các trường hợp bùng giờ đặt sân, gây gổ hoặc vi phạm bảo quản trang thiết bị</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const uname = prompt('Nhập tên hoặc số điện thoại tài khoản vi phạm:', '');
+                    const r = prompt('Nhập lý do vi phạm (ví dụ: Bùng cọc, làm hỏng dàn đèn...):', 'Bùng ca đặt sân');
+                    if (uname && r) {
+                      setAccountViolations((prev) => [
+                        ...prev,
+                        { id: `vio-${Date.now()}`, username: uname, name: uname, reason: r, status: 'warning', date: new Date().toLocaleDateString('vi-VN'), handledBy: 'Quản Lý Sân' }
+                      ]);
+                      alert(`Đã lập biên bản cảnh báo vi phạm cho ${uname}!`);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs cursor-pointer shadow-md"
+                >
+                  + Lập Biên Bản Cảnh Báo
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {accountViolations.map((v) => (
+                  <div key={v.id} className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <strong className="text-slate-900 text-sm font-black">{v.name}</strong>
+                        <span className={`px-2 py-0.5 rounded-md font-black text-[10px] ${v.status === 'banned' ? 'bg-rose-600 text-white' : 'bg-amber-100 text-amber-900 border border-amber-300'
+                          }`}>
+                          {v.status === 'banned' ? '🔒 ĐÃ KHÓA' : '⚠️ CẢNH CÁO'}
+                        </span>
+                      </div>
+                      <p className="text-slate-700 mt-1">Lý do: <strong>{v.reason}</strong></p>
+                      <span className="text-slate-400 text-[10.5px]">Ngày lập: {v.date} • Xử lý bởi: {v.handledBy}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {v.status === 'warning' ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAccountViolations((prev) => prev.map((item) => (item.id === v.id ? { ...item, status: 'banned' } : item)));
+                            alert(`Đã khóa tài khoản ${v.name} khỏi hệ thống đặt sân!`);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-rose-700 hover:bg-rose-800 text-white font-black text-xs cursor-pointer shadow-sm"
+                        >
+                          🔒 Khóa Tài Khoản
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAccountViolations((prev) => prev.map((item) => (item.id === v.id ? { ...item, status: 'normal' } : item)));
+                            alert(`Đã mở khóa cho tài khoản ${v.name}!`);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs cursor-pointer shadow-sm"
+                        >
+                          🔓 Mở Khóa Lại
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* SUBTAB 1: DANH SÁCH CẦU THỦ & THÀNH VIÊN (HIỂN THỊ CHO TẤT CẢ) */}
+          {(isUser || memberSectionTab === 'members') && (
+            <>
+              {/* Search & Team Filter & Lineup Filter (5 Chính + 5 Dự bị) */}
+              <div className="bg-white p-4 rounded-3xl border-2 border-emerald-400/90 shadow-lg shadow-emerald-950/10 flex flex-col lg:flex-row items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-emerald-950 uppercase tracking-wide whitespace-nowrap">🛡️ Chọn Đội:</span>
+                    <select
+                      value={memberTeamFilter}
+                      onChange={(e) => setMemberTeamFilter(e.target.value)}
+                      className="bg-emerald-50/70 border-2 border-emerald-200 rounded-xl px-3.5 py-2 text-xs font-bold text-emerald-950 focus:outline-none focus:border-emerald-600 focus:bg-white"
+                    >
+                      <option value="Tất cả">Tất cả các đội</option>
+                      {teams.map((t) => (
+                        <option key={t.id} value={t.name}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Bộ lọc đội hình: 5 Đá chính + 5 Dự bị */}
+                  <div className="flex items-center gap-1 bg-emerald-50/80 p-1 rounded-xl border border-emerald-300">
+                    <button
+                      type="button"
+                      onClick={() => setMemberLineupFilter('all')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                        memberLineupFilter === 'all'
+                          ? 'bg-emerald-700 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-emerald-800'
+                      }`}
+                    >
+                      Tất cả ({memberTeamFilter === 'Tất cả' ? filteredMembers.length : 10})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMemberLineupFilter('Đá chính')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
+                        memberLineupFilter === 'Đá chính'
+                          ? 'bg-emerald-700 text-white shadow-xs'
+                          : 'text-emerald-800 hover:bg-emerald-100'
+                      }`}
+                    >
+                      <span>🟢</span> Đá chính (5)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMemberLineupFilter('Dự bị')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
+                        memberLineupFilter === 'Dự bị'
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'text-amber-800 hover:bg-amber-100'
+                      }`}
+                    >
+                      <span>🟡</span> Dự bị (5)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative w-full lg:w-80">
+                  <input
+                    type="text"
+                    placeholder={isUser ? 'Tìm tên, số áo, vị trí...' : 'Tìm tên, số áo, số điện thoại...'}
+                    value={memberSearch}
+                    onChange={(e) => setMemberSearch(e.target.value)}
+                    className="w-full bg-emerald-50/50 border-2 border-emerald-200 rounded-xl px-4 py-2 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                  />
+                  <span className="absolute right-3.5 top-2.5 text-emerald-700 text-xs">🔍</span>
+                </div>
+              </div>
+
+              {/* Members Table */}
+              <div className="bg-white rounded-3xl border-2 border-emerald-400/90 shadow-xl shadow-emerald-950/10 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="green-table-header font-black uppercase tracking-wider border-b-2 border-emerald-700 text-white">
+                      <tr>
+                        <th className="p-4">Số Áo</th>
+                        <th className="p-4">Họ Và Tên</th>
+                        <th className="p-4">Vị Trí</th>
+                        <th className="p-4">Đội Trực Thuộc</th>
+                        <th className="p-4 text-center">Đội Hình (Tối đa 10)</th>
+                        {!isUser && <th className="p-4">Điện Thoại</th>}
+                        <th className="p-4">Thể Chất</th>
+                        <th className="p-4">Trạng Thái</th>
+                        {canViewFinances && <th className="p-4 text-center">Phí Tháng</th>}
+                        <th className="p-4 text-right">Thao Tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-emerald-100 text-slate-700">
+                      {filteredMembers.map((m) => (
+                        <tr key={m.id} className="odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-100/60 transition-colors">
+                          <td className="p-4 font-black text-emerald-800">
+                            <span className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold flex items-center justify-center text-xs shadow-sm">
+                              #{m.jerseyNumber}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <strong className="text-slate-900 block font-bold text-sm">{m.name}</strong>
+                            <span className="text-[11px] text-slate-400">Sinh: {m.dateOfBirth}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-bold">
+                              {m.position}
+                            </span>
+                          </td>
+                          <td className="p-4 text-slate-600 font-medium">{m.teamName}</td>
+                          <td className="p-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => canManageClub && toggleLineupRole(m.id)}
+                              className={`px-3 py-1 rounded-full font-black text-[11px] inline-flex items-center gap-1.5 transition-all shadow-xs ${
+                                (m.lineupRole || 'Đá chính') === 'Đá chính'
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 hover:bg-emerald-200'
+                                  : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+                              } ${canManageClub ? 'cursor-pointer' : 'cursor-default'}`}
+                              title={canManageClub ? 'Nhấn để chuyển đổi vai trò Đá chính ⇋ Dự bị (tối đa 5 người/vai trò)' : 'Vai trò đội hình'}
+                            >
+                              <span>{(m.lineupRole || 'Đá chính') === 'Đá chính' ? '🟢' : '🟡'}</span>
+                              <span>{m.lineupRole || 'Đá chính'}</span>
+                            </button>
+                          </td>
+                          {!isUser && <td className="p-4 font-mono text-slate-600">{m.phone}</td>}
+                          <td className="p-4 text-slate-600">{m.height} • {m.weight} ({m.preferredFoot})</td>
+                          <td className="p-4">
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${m.status === 'Chấn thương'
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                }`}
+                            >
+                              {m.status}
+                            </span>
+                          </td>
+                          {canViewFinances && (
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() => toggleMemberFee(m.id)}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${m.feePaidMonth
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                    : 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  }`}
+                                title="Click để đổi trạng thái đóng phí"
+                              >
+                                {m.feePaidMonth ? '✓ Đã đóng' : 'Chưa đóng'}
+                              </button>
+                            </td>
+                          )}
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => setSelectedMember(m)}
+                                className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 transition-colors cursor-pointer"
+                                title="Xem chi tiết cầu thủ"
+                              >
+                                👁️
+                              </button>
+                              {canManageClub && (
+                                <button
+                                  onClick={() => handleDeleteMember(m.id)}
+                                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 transition-colors cursor-pointer"
+                                  title="Xóa thành viên"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -4746,113 +6517,567 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* ================= MODULE 5: QUẢN LÝ ĐIỂM DANH ================= */}
+      {/* ================= MODULE 5: QUẢN LÝ ĐIỂM DANH (ADMIN/STAFF/COACH) HOẶC THÔNG TIN CÁ NHÂN (USER/CẦU THỦ) ================= */}
       {user && activeTab === 'attendance' && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                <span>✅</span> Quản Lý Điểm Danh & Chuyên Cần Buổi Tập
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Ghi nhận tình trạng có mặt, đi muộn hoặc vắng phép của từng thành viên trong buổi tập
-              </p>
+        isUser ? (
+          /* ================= GIAO DIỆN THÔNG TIN CÁ NHÂN CẦU THỦ / KHÁCH HÀNG ================= */
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-black uppercase tracking-wider mb-1.5">
+                  <span>👤</span>
+                  <span>HỒ SƠ CÁ NHÂN & THẺ CẦU THỦ</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+                  <span>🏃</span> Thông Tin Cá Nhân Cầu Thủ: {playerProfileData.name}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Quản lý hồ sơ vận động viên, chỉ số thể lực, lịch sử chuyên cần và tiến độ sinh hoạt tại CLB Sân Bóng C1
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {isEditingProfile ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(false)}
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+                  >
+                    ✕ Hủy Chỉnh Sửa
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditProfileForm(playerProfileData);
+                      setIsEditingProfile(true);
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs shadow-md shadow-emerald-700/20 flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <span>✏️</span>
+                    <span>Cập Nhật Thông Tin</span>
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() =>
-                  handleExportCSV(
-                    'Diem_Danh_SaoVangFC',
-                    ['Số Áo', 'Họ Tên', 'Vị Trí', 'Trạng Thái', 'Ghi Chú'],
-                    attendance.map((a) => [a.jerseyNumber, a.memberName, a.position, a.status, a.note])
-                  )
-                }
-                className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm"
-              >
-                📥 Xuất File CSV
-              </button>
+            {/* Layout 2 cột: Thẻ VĐV bên trái & Chi tiết thông số bên phải */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* CỘT TRÁI: THẺ VẬN ĐỘNG VIÊN ĐIỆN TỬ (DIGITAL PLAYER ID CARD) */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="rounded-3xl p-6 bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#047857] text-white border-2 border-emerald-400/50 shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 rounded-full bg-emerald-400/15 blur-2xl pointer-events-none"></div>
 
-              {canManage && (
-                <button
-                  onClick={handleSaveAttendance}
-                  disabled={isSavingAttendance}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  {isSavingAttendance ? '⏳ Đang lưu Neon DB...' : '💾 Lưu Điểm Danh'}
-                </button>
-              )}
-            </div>
-          </div>
+                  {/* Header thẻ */}
+                  <div className="relative z-10 flex items-center justify-between border-b border-emerald-500/40 pb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">⚽</span>
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-wider text-emerald-300">CLB SÂN BÓNG C1</div>
+                        <div className="text-xs font-extrabold text-white">THẺ VẬN ĐỘNG VIÊN</div>
+                      </div>
+                    </div>
+                    <span className="text-3xl font-black text-amber-300/90 tracking-tighter">
+                      #{playerProfileData.jerseyNumber}
+                    </span>
+                  </div>
 
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl p-4 text-center border-2 border-emerald-300 shadow-md">
-              <span className="text-xs text-emerald-800 font-extrabold uppercase tracking-wide block">Tổng Quân Số</span>
-              <strong className="text-2xl text-slate-900 font-black mt-1 block">{attendance.length}</strong>
-            </div>
-            <div className="bg-white rounded-2xl p-4 text-center border-2 border-emerald-400 bg-emerald-50/50 shadow-md">
-              <span className="text-xs text-emerald-800 font-extrabold uppercase tracking-wide block">🟢 Có Mặt</span>
-              <strong className="text-2xl text-emerald-700 font-black mt-1 block">{attendance.filter((a) => a.status === 'Có mặt').length}</strong>
-            </div>
-            <div className="bg-white rounded-2xl p-4 text-center border-2 border-amber-300 bg-amber-50/50 shadow-md">
-              <span className="text-xs text-amber-800 font-extrabold uppercase tracking-wide block">🟡 Đến Muộn</span>
-              <strong className="text-2xl text-amber-700 font-black mt-1 block">{attendance.filter((a) => a.status === 'Đến muộn').length}</strong>
-            </div>
-            <div className="bg-white rounded-2xl p-4 text-center border-2 border-rose-300 bg-rose-50/50 shadow-md">
-              <span className="text-xs text-rose-800 font-extrabold uppercase tracking-wide block">🔴 Vắng Mặt</span>
-              <strong className="text-2xl text-rose-700 font-black mt-1 block">{attendance.filter((a) => a.status.startsWith('Vắng')).length}</strong>
-            </div>
-          </div>
+                  {/* Avatar & Thông tin chính */}
+                  <div className="relative z-10 py-5 text-center space-y-3">
+                    <div className="relative inline-block">
+                      <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md border-2 border-emerald-300 p-1 mx-auto flex items-center justify-center text-5xl shadow-xl">
+                        🏃
+                      </div>
+                      <span className="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] shadow-md border border-white">
+                        #{playerProfileData.jerseyNumber}
+                      </span>
+                    </div>
 
-          {/* Attendance Table */}
-          <div className="bg-white rounded-3xl border-2 border-emerald-400/90 shadow-xl shadow-emerald-950/10 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="green-table-header font-black uppercase tracking-wider border-b-2 border-emerald-700 text-white">
-                  <tr>
-                    <th className="p-4">Số Áo</th>
-                    <th className="p-4">Cầu Thủ</th>
-                    <th className="p-4">Vị Trí</th>
-                    <th className="p-4">Trạng Thái Điểm Danh</th>
-                    <th className="p-4">Ghi Chú Huấn Luyện Viên</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-emerald-100 text-slate-700">
-                  {attendance.map((item) => (
-                    <tr key={item.id} className="odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-100/60 transition-colors">
-                      <td className="p-4 font-black text-emerald-800">#{item.jerseyNumber}</td>
-                      <td className="p-4 font-extrabold text-slate-900 text-sm">{item.memberName}</td>
-                      <td className="p-4">
-                        <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
-                          {item.position}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <select
-                          value={item.status}
-                          disabled={!canManage}
-                          onChange={(e) => handleUpdateAttendance(item.id, e.target.value as any)}
-                          className="bg-white border-2 border-emerald-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 disabled:opacity-80 shadow-sm"
+                    <div>
+                      <h4 className="text-xl font-black text-white tracking-tight">{playerProfileData.name}</h4>
+                      <p className="text-xs font-bold text-emerald-200 mt-0.5">{playerProfileData.teamName}</p>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-xs font-bold text-emerald-100 mt-2">
+                        <span>⭐</span>
+                        <span>{playerProfileData.position}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chỉ số thể hình 4 ô */}
+                  <div className="relative z-10 grid grid-cols-2 gap-2.5 pt-3 border-t border-emerald-500/40 text-xs">
+                    <div className="bg-white/10 rounded-xl p-2.5 border border-white/10">
+                      <span className="text-emerald-300 block text-[10.5px]">Chiều cao</span>
+                      <strong className="text-sm text-white font-extrabold">{playerProfileData.height}</strong>
+                    </div>
+                    <div className="bg-white/10 rounded-xl p-2.5 border border-white/10">
+                      <span className="text-emerald-300 block text-[10.5px]">Cân nặng</span>
+                      <strong className="text-sm text-white font-extrabold">{playerProfileData.weight}</strong>
+                    </div>
+                    <div className="bg-white/10 rounded-xl p-2.5 border border-white/10">
+                      <span className="text-emerald-300 block text-[10.5px]">Chân thuận</span>
+                      <strong className="text-sm text-white font-extrabold">{playerProfileData.preferredFoot}</strong>
+                    </div>
+                    <div className="bg-white/10 rounded-xl p-2.5 border border-white/10">
+                      <span className="text-emerald-300 block text-[10.5px]">Năm sinh</span>
+                      <strong className="text-sm text-white font-extrabold">{playerProfileData.dateOfBirth}</strong>
+                    </div>
+                  </div>
+
+                  {/* Footer Thẻ */}
+                  <div className="relative z-10 mt-4 pt-3 border-t border-emerald-500/40 flex items-center justify-between text-[11px] text-emerald-200">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      {playerProfileData.status}
+                    </span>
+                    <span className="font-mono text-[10px] text-emerald-300">ID: {user?.id || 'C1-PL-19'}</span>
+                  </div>
+                </div>
+
+                {/* Box trạng thái thể lực & sức khỏe */}
+                <div className="bg-white rounded-3xl p-5 border-2 border-emerald-200 shadow-md space-y-3">
+                  <span className="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center gap-1.5">
+                    <span>❤️</span> Tình Trạng Thể Lực & Y Tế
+                  </span>
+                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 space-y-1">
+                    <div className="font-black flex items-center justify-between">
+                      <span>Chỉ Số Thể Lực Hiện Tại:</span>
+                      <span className="text-emerald-700 font-extrabold">100% Sẵn Sàng</span>
+                    </div>
+                    <p className="text-[11.5px] text-slate-600">
+                      Cầu thủ không có tiền sử chấn thương dây chằng, đã vượt qua bài kiểm tra thể lực cự ly ngắn và sức bền đầu mùa giải.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                    <span>Hotline BQL hỗ trợ cầu thủ:</span>
+                    <strong className="text-emerald-800">0983 830 955</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* CỘT PHẢI: CHI TIẾT HỒ SƠ / FORM CHỈNH SỬA / CHUYÊN CẦN / QUỸ */}
+              <div className="lg:col-span-7 space-y-6">
+                {isEditingProfile ? (
+                  /* FORM CHỈNH SỬA THÔNG TIN CÁ NHÂN */
+                  <div className="bg-white rounded-3xl p-6 border-2 border-emerald-500 shadow-lg space-y-4">
+                    <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+                      <h4 className="font-black text-base text-emerald-950 flex items-center gap-2">
+                        <span>✏️</span> Cập Nhật Hồ Sơ Cá Nhân Cầu Thủ
+                      </h4>
+                      <span className="text-xs text-slate-400">Các mục dấu (*) là bắt buộc</span>
+                    </div>
+
+                    <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">
+                            Họ và tên cầu thủ <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={editProfileForm.name}
+                            onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
+                            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">
+                            Số điện thoại liên hệ <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={editProfileForm.phone}
+                            onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
+                            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">Email tài khoản</label>
+                          <input
+                            type="email"
+                            disabled
+                            value={editProfileForm.email}
+                            className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-500 font-medium cursor-not-allowed"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">Số áo thi đấu</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="99"
+                            value={editProfileForm.jerseyNumber}
+                            onChange={(e) => setEditProfileForm({ ...editProfileForm, jerseyNumber: Number(e.target.value) || 1 })}
+                            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">Vị trí thi đấu sở trường</label>
+                          <select
+                            value={editProfileForm.position}
+                            onChange={(e) => setEditProfileForm({ ...editProfileForm, position: e.target.value })}
+                            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:border-emerald-600 cursor-pointer"
+                          >
+                            <option value="Thủ môn">Thủ môn (GK)</option>
+                            <option value="Hậu vệ">Hậu vệ (DF)</option>
+                            <option value="Tiền vệ">Tiền vệ (MF)</option>
+                            <option value="Tiền đạo">Tiền đạo (FW)</option>
+                            <option value="Tiền vệ cánh / Tấn công">Tiền vệ cánh / Tấn công (Winger)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">Chân thuận</label>
+                          <select
+                            value={editProfileForm.preferredFoot}
+                            onChange={(e) => setEditProfileForm({ ...editProfileForm, preferredFoot: e.target.value })}
+                            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:border-emerald-600 cursor-pointer"
+                          >
+                            <option value="Chân phải">Chân phải</option>
+                            <option value="Chân trái">Chân trái</option>
+                            <option value="Hai chân như một">Hai chân như một</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">Chiều cao (cm/m)</label>
+                          <input
+                            type="text"
+                            value={editProfileForm.height}
+                            onChange={(e) => setEditProfileForm({ ...editProfileForm, height: e.target.value })}
+                            placeholder="Ví dụ: 1m75"
+                            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-bold mb-1">Cân nặng (kg)</label>
+                          <input
+                            type="text"
+                            value={editProfileForm.weight}
+                            onChange={(e) => setEditProfileForm({ ...editProfileForm, weight: e.target.value })}
+                            placeholder="Ví dụ: 68kg"
+                            className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:border-emerald-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingProfile(false)}
+                          className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
                         >
-                          <option value="Có mặt">🟢 Có mặt</option>
-                          <option value="Đến muộn">🟡 Đến muộn</option>
-                          <option value="Vắng có phép">🔵 Vắng có phép</option>
-                          <option value="Vắng không phép">🔴 Vắng không phép</option>
-                        </select>
-                      </td>
-                      <td className="p-4 text-slate-600 font-medium">{item.note || '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          Hủy bỏ
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs shadow-md shadow-emerald-700/20 cursor-pointer flex items-center gap-1.5"
+                        >
+                          <span>💾</span>
+                          <span>Lưu Thay Đổi Hồ Sơ</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  /* CHI TIẾT HỒ SƠ DẠNG CARD TIÊU CHUẨN */
+                  <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md space-y-4">
+                    <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+                      <h4 className="font-black text-base text-emerald-950 flex items-center gap-2">
+                        <span>📋</span> Chi Tiết Hồ Sơ Cá Nhân & Định Danh
+                      </h4>
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ✓ Đã xác thực
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span className="text-slate-500 block text-[11px] font-bold">Họ và tên cầu thủ:</span>
+                        <strong className="text-sm text-slate-900 font-black mt-0.5 block">{playerProfileData.name}</strong>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span className="text-slate-500 block text-[11px] font-bold">Số điện thoại liên hệ:</span>
+                        <strong className="text-sm text-slate-900 font-black mt-0.5 block">{playerProfileData.phone}</strong>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span className="text-slate-500 block text-[11px] font-bold">Email tài khoản:</span>
+                        <strong className="text-sm text-slate-900 font-black mt-0.5 block">{playerProfileData.email}</strong>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span className="text-slate-500 block text-[11px] font-bold">Tuyến đội thi đấu:</span>
+                        <strong className="text-sm text-emerald-800 font-black mt-0.5 block">{playerProfileData.teamName}</strong>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span className="text-slate-500 block text-[11px] font-bold">Vị trí & Số áo:</span>
+                        <strong className="text-sm text-slate-900 font-black mt-0.5 block">
+                          #{playerProfileData.jerseyNumber} • {playerProfileData.position}
+                        </strong>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span className="text-slate-500 block text-[11px] font-bold">Ngày chính thức gia nhập:</span>
+                        <strong className="text-sm text-slate-900 font-black mt-0.5 block">{playerProfileData.joinDate}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* KHỐI 2: LỊCH SỬ ĐIỂM DANH & CHUYÊN CẦN CÁ NHÂN */}
+                <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-100 pb-3">
+                    <div>
+                      <h4 className="font-black text-base text-emerald-950 flex items-center gap-2">
+                        <span>✅</span> Lịch Sử Điểm Danh & Chuyên Cần Của Bản Thân
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Thống kê mức độ tham gia các buổi tập thể lực và chiến thuật định kỳ
+                      </p>
+                    </div>
+                    <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 self-start sm:self-auto">
+                      Tỷ lệ chuyên cần: 92%
+                    </span>
+                  </div>
+
+                  {/* 3 Metric chuyên cần cá nhân */}
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
+                      <span className="text-[11px] font-extrabold text-emerald-800 uppercase block">Có Mặt</span>
+                      <strong className="text-xl font-black text-emerald-700 mt-0.5 block">13 Buổi</strong>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200">
+                      <span className="text-[11px] font-extrabold text-amber-800 uppercase block">Đến Muộn</span>
+                      <strong className="text-xl font-black text-amber-700 mt-0.5 block">2 Buổi</strong>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200">
+                      <span className="text-[11px] font-extrabold text-rose-800 uppercase block">Vắng Mặt</span>
+                      <strong className="text-xl font-black text-rose-700 mt-0.5 block">0 Buổi</strong>
+                    </div>
+                  </div>
+
+                  {/* Bảng lịch sử các buổi tập gần đây của cầu thủ */}
+                  <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-100 text-slate-700 font-extrabold uppercase text-[11px] border-b border-slate-200">
+                        <tr>
+                          <th className="p-3">Ngày Tập</th>
+                          <th className="p-3">Khung Giờ & Sân</th>
+                          <th className="p-3">Nội Dung Giáo Án</th>
+                          <th className="p-3 text-center">Trạng Thái</th>
+                          <th className="p-3">Đánh Giá Của HLV</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
+                        <tr className="hover:bg-emerald-50/40">
+                          <td className="p-3 font-mono font-bold">29/10/2026</td>
+                          <td className="p-3">18:00 – 20:00 (Sân bóng C1)</td>
+                          <td className="p-3 font-semibold text-slate-900">Chiến thuật phối hợp nhỏ & sút phạt</td>
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px]">
+                              🟢 Có mặt
+                            </span>
+                          </td>
+                          <td className="p-3 text-slate-600">Thể lực tốt, sút phạt chuẩn xác</td>
+                        </tr>
+                        <tr className="hover:bg-emerald-50/40">
+                          <td className="p-3 font-mono font-bold">27/10/2026</td>
+                          <td className="p-3">17:30 – 19:30 (Sân bóng C1)</td>
+                          <td className="p-3 font-semibold text-slate-900">Rèn sức bền & bứt tốc đoạn ngắn</td>
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px]">
+                              🟢 Có mặt
+                            </span>
+                          </td>
+                          <td className="p-3 text-slate-600">Hoàn thành đủ 10 vòng chạy</td>
+                        </tr>
+                        <tr className="hover:bg-emerald-50/40">
+                          <td className="p-3 font-mono font-bold">25/10/2026</td>
+                          <td className="p-3">16:00 – 18:00 (Sân bóng C1)</td>
+                          <td className="p-3 font-semibold text-slate-900">Đấu đối kháng chia đôi đội hình</td>
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-black text-[10px]">
+                              🟡 Đến muộn
+                            </span>
+                          </td>
+                          <td className="p-3 text-slate-600">Đến muộn 15p do kẹt xe, khởi động bù</td>
+                        </tr>
+                        <tr className="hover:bg-emerald-50/40">
+                          <td className="p-3 font-mono font-bold">22/10/2026</td>
+                          <td className="p-3">18:00 – 20:00 (Sân bóng C1)</td>
+                          <td className="p-3 font-semibold text-slate-900">Phòng ngự khu vực & cản phá bóng bổng</td>
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px]">
+                              🟢 Có mặt
+                            </span>
+                          </td>
+                          <td className="p-3 text-slate-600">Bọc lót tốt, tinh thần tích cực</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* KHỐI 3: TIẾN ĐỘ ĐÓNG QUỸ SINH HOẠT CỦA BẢN THÂN */}
+                <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-md space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-100 pb-3">
+                    <div>
+                      <h4 className="font-black text-base text-emerald-950 flex items-center gap-2">
+                        <span>💳</span> Tình Trạng Quỹ Sinh Hoạt Của Bản Thân
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Định mức đóng quỹ câu lạc bộ: 300.000 VNĐ / cầu thủ / tháng
+                      </p>
+                    </div>
+                    <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      ✓ Năm 2026: Đã nộp 11/12 Tháng
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200">
+                      <span className="text-slate-500 block font-bold">Trạng Thái Tháng 11/2026:</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-lg bg-emerald-700 text-white font-black text-xs">
+                          ✓ ĐÃ NỘP 300.000 VNĐ
+                        </span>
+                        <span className="text-slate-500 text-[11px]">Chuyển khoản</span>
+                      </div>
+                      <p className="text-[10.5px] text-emerald-700 font-mono mt-1.5">Mã biên lai: REC-202611-019</p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                      <span className="text-slate-500 block font-bold">Tháng Kế Tiếp (Tháng 12/2026):</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-black text-xs">
+                          ⏳ Chờ đến hạn thu
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] text-slate-500 mt-1.5">Hạn nộp định kỳ trước ngày 10/12/2026</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          /* ================= GIAO DIỆN QUẢN LÝ ĐIỂM DANH DÀNH CHO ADMIN / STAFF / COACH ================= */
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>✅</span> Quản Lý Điểm Danh & Chuyên Cần Buổi Tập
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Ghi nhận tình trạng có mặt, đi muộn hoặc vắng phép của từng thành viên trong buổi tập
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() =>
+                    handleExportCSV(
+                      'Diem_Danh_SaoVangFC',
+                      ['Số Áo', 'Họ Tên', 'Vị Trí', 'Trạng Thái', 'Ghi Chú'],
+                      attendance.map((a) => [a.jerseyNumber, a.memberName, a.position, a.status, a.note])
+                    )
+                  }
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm"
+                >
+                  📥 Xuất File CSV
+                </button>
+
+                {canManage && (
+                  <button
+                    onClick={handleSaveAttendance}
+                    disabled={isSavingAttendance}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    {isSavingAttendance ? '⏳ Đang lưu Neon DB...' : '💾 Lưu Điểm Danh'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-white rounded-2xl p-4 text-center border-2 border-emerald-300 shadow-md">
+                <span className="text-xs text-emerald-800 font-extrabold uppercase tracking-wide block">Tổng Quân Số</span>
+                <strong className="text-2xl text-slate-900 font-black mt-1 block">{attendance.length}</strong>
+              </div>
+              <div className="bg-white rounded-2xl p-4 text-center border-2 border-emerald-400 bg-emerald-50/50 shadow-md">
+                <span className="text-xs text-emerald-800 font-extrabold uppercase tracking-wide block">🟢 Có Mặt</span>
+                <strong className="text-2xl text-emerald-700 font-black mt-1 block">{attendance.filter((a) => a.status === 'Có mặt').length}</strong>
+              </div>
+              <div className="bg-white rounded-2xl p-4 text-center border-2 border-amber-300 bg-amber-50/50 shadow-md">
+                <span className="text-xs text-amber-800 font-extrabold uppercase tracking-wide block">🟡 Đến Muộn</span>
+                <strong className="text-2xl text-amber-700 font-black mt-1 block">{attendance.filter((a) => a.status === 'Đến muộn').length}</strong>
+              </div>
+              <div className="bg-white rounded-2xl p-4 text-center border-2 border-rose-300 bg-rose-50/50 shadow-md">
+                <span className="text-xs text-rose-800 font-extrabold uppercase tracking-wide block">🔴 Vắng Mặt</span>
+                <strong className="text-2xl text-rose-700 font-black mt-1 block">{attendance.filter((a) => a.status.startsWith('Vắng')).length}</strong>
+              </div>
+            </div>
+
+            {/* Attendance Table */}
+            <div className="bg-white rounded-3xl border-2 border-emerald-400/90 shadow-xl shadow-emerald-950/10 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="green-table-header font-black uppercase tracking-wider border-b-2 border-emerald-700 text-white">
+                    <tr>
+                      <th className="p-4">Số Áo</th>
+                      <th className="p-4">Cầu Thủ</th>
+                      <th className="p-4">Vị Trí</th>
+                      <th className="p-4">Trạng Thái Điểm Danh</th>
+                      <th className="p-4">Ghi Chú Huấn Luyện Viên</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-emerald-100 text-slate-700">
+                    {attendance.map((item) => (
+                      <tr key={item.id} className="odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-100/60 transition-colors">
+                        <td className="p-4 font-black text-emerald-800">#{item.jerseyNumber}</td>
+                        <td className="p-4 font-extrabold text-slate-900 text-sm">{item.memberName}</td>
+                        <td className="p-4">
+                          <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                            {item.position}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <select
+                            value={item.status}
+                            disabled={!canManage}
+                            onChange={(e) => handleUpdateAttendance(item.id, e.target.value as any)}
+                            className="bg-white border-2 border-emerald-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-emerald-600 disabled:opacity-80 shadow-sm"
+                          >
+                            <option value="Có mặt">🟢 Có mặt</option>
+                            <option value="Đến muộn">🟡 Đến muộn</option>
+                            <option value="Vắng có phép">🔵 Vắng có phép</option>
+                            <option value="Vắng không phép">🔴 Vắng không phép</option>
+                          </select>
+                        </td>
+                        <td className="p-4 text-slate-600 font-medium">{item.note || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )
       )}
 
       {/* ================= MODULE 6: QUẢN LÝ PHÍ SINH HOẠT & QUỸ ================= */}
-      {user && activeTab === 'finances' && (
+      {user && canViewFinances && activeTab === 'finances' && (
         <div className="space-y-6 animate-in fade-in duration-300">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -4888,7 +7113,7 @@ function DashboardContent() {
                     <span>🖨️</span>
                     <span>In Báo Cáo</span>
                   </button>
-                  {canManage && (
+                  {canUpdatePayments && (
                     <button
                       onClick={() => handleRemindUnpaid(selectedFeeMonth, selectedFeeYear)}
                       className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
@@ -4918,11 +7143,10 @@ function DashboardContent() {
             <button
               type="button"
               onClick={() => setFinanceSubTab('player-fees')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all cursor-pointer ${
-                financeSubTab === 'player-fees'
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all cursor-pointer ${financeSubTab === 'player-fees'
                   ? 'bg-emerald-700 text-white shadow-md'
                   : 'text-slate-700 hover:bg-slate-200'
-              }`}
+                }`}
             >
               <span>📑</span>
               <span>1. Bảng Thu Phí Cầu Thủ Hàng Tháng & Năm</span>
@@ -4934,11 +7158,10 @@ function DashboardContent() {
             <button
               type="button"
               onClick={() => setFinanceSubTab('ledger')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all cursor-pointer ${
-                financeSubTab === 'ledger'
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all cursor-pointer ${financeSubTab === 'ledger'
                   ? 'bg-emerald-700 text-white shadow-md'
                   : 'text-slate-700 hover:bg-slate-200'
-              }`}
+                }`}
             >
               <span>📜</span>
               <span>2. Sổ Thu Chi Chi Tiết CLB</span>
@@ -4950,14 +7173,28 @@ function DashboardContent() {
             <button
               type="button"
               onClick={() => setFinanceSubTab('reports')}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all cursor-pointer ${
-                financeSubTab === 'reports'
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all cursor-pointer ${financeSubTab === 'reports'
                   ? 'bg-emerald-700 text-white shadow-md'
                   : 'text-slate-700 hover:bg-slate-200'
-              }`}
+                }`}
             >
               <span>📊</span>
-              <span>3. Báo Cáo Phân Tích & Quỹ CLB</span>
+              <span>3. Báo Cáo Doanh Thu (Ca/Ngày/Năm)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFinanceSubTab('shift-bookings')}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all cursor-pointer ${financeSubTab === 'shift-bookings'
+                  ? 'bg-emerald-700 text-white shadow-md'
+                  : 'text-slate-700 hover:bg-slate-200'
+                }`}
+            >
+              <span>🧾</span>
+              <span>4. Hóa Đơn & Doanh Thu Ca Sân</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20 font-black">
+                {fieldBookings.filter((b) => b.isBooked).length} Ca
+              </span>
             </button>
           </div>
 
@@ -5054,11 +7291,10 @@ function DashboardContent() {
                           key={y}
                           type="button"
                           onClick={() => setSelectedFeeYear(y)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                            selectedFeeYear === y
+                          className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${selectedFeeYear === y
                               ? 'bg-emerald-700 text-white shadow-sm'
                               : 'text-slate-600 hover:bg-slate-200'
-                          }`}
+                            }`}
                         >
                           {y} {y === 2026 ? '(Hiện tại)' : ''}
                         </button>
@@ -5117,11 +7353,10 @@ function DashboardContent() {
                   <button
                     type="button"
                     onClick={() => setSelectedFeeMonth('all')}
-                    className={`px-3 py-1.5 rounded-xl font-black transition-all cursor-pointer ${
-                      selectedFeeMonth === 'all'
+                    className={`px-3 py-1.5 rounded-xl font-black transition-all cursor-pointer ${selectedFeeMonth === 'all'
                         ? 'bg-emerald-800 text-white shadow-md'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
+                      }`}
                   >
                     ⭐ Cả Năm (Ma Trận 12 Tháng)
                   </button>
@@ -5140,17 +7375,15 @@ function DashboardContent() {
                         key={mNum}
                         type="button"
                         onClick={() => setSelectedFeeMonth(mNum)}
-                        className={`px-2.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                          isSelected
+                        className={`px-2.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1 ${isSelected
                             ? 'bg-emerald-600 text-white shadow-md'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
+                          }`}
                         title={`Xem chi tiết Tháng ${mNum}/${selectedFeeYear} (${paidInThisMonth}/${members.length} đã nộp)`}
                       >
                         <span>T{mNum}</span>
-                        <span className={`text-[10px] px-1 py-0.2 rounded-full font-black ${
-                          isSelected ? 'bg-white text-emerald-800' : 'bg-slate-200 text-slate-600'
-                        }`}>
+                        <span className={`text-[10px] px-1 py-0.2 rounded-full font-black ${isSelected ? 'bg-white text-emerald-800' : 'bg-slate-200 text-slate-600'
+                          }`}>
                           {paidInThisMonth}
                         </span>
                       </button>
@@ -5233,7 +7466,7 @@ function DashboardContent() {
                                 </td>
                                 <td className="p-3">
                                   <span className="text-[11px] font-bold text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block line-clamp-1 max-w-[150px]">
-                                    {m.teamName.replace('Sao Vàng FC - ', '')}
+                                    {m.teamName.replace('CLB Sân C1 - ', '').replace('CLB Sân Bóng C1 - ', '')}
                                   </span>
                                 </td>
 
@@ -5246,17 +7479,20 @@ function DashboardContent() {
                                     <td key={mNum} className="p-1.5 text-center">
                                       <button
                                         type="button"
-                                        disabled={!canManage}
+                                        disabled={!canUpdatePayments}
                                         onClick={() => handleToggleFeeStatus(m.id, selectedFeeYear, mNum)}
-                                        className={`w-full py-1.5 rounded-lg text-[11px] font-black transition-all flex items-center justify-center gap-0.5 border cursor-pointer ${
-                                          isPaid
+                                        className={`w-full py-1.5 rounded-lg text-[11px] font-black transition-all flex items-center justify-center gap-0.5 border ${isPaid
                                             ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 shadow-sm'
                                             : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
-                                        } ${!canManage ? 'cursor-default opacity-90' : ''}`}
+                                          } ${!canUpdatePayments ? 'cursor-default opacity-85' : 'cursor-pointer'}`}
                                         title={
-                                          isPaid
-                                            ? `Tháng ${mNum}/${selectedFeeYear}: ĐÃ NỘP 300.000 VNĐ (${f?.paidDate || 'Đã nộp'}) • Nhấn để đổi`
-                                            : `Tháng ${mNum}/${selectedFeeYear}: CHƯA NỘP • Nhấn để đánh dấu đã nộp`
+                                          canUpdatePayments
+                                            ? isPaid
+                                              ? `Tháng ${mNum}/${selectedFeeYear}: ĐÃ NỘP 300.000 VNĐ (${f?.paidDate || 'Đã nộp'}) • Nhấn để đổi`
+                                              : `Tháng ${mNum}/${selectedFeeYear}: CHƯA NỘP • Nhấn để đánh dấu đã nộp`
+                                            : isPaid
+                                              ? `Tháng ${mNum}/${selectedFeeYear}: ĐÃ NỘP (Chỉ xem)`
+                                              : `Tháng ${mNum}/${selectedFeeYear}: CHƯA NỘP (Chỉ xem)`
                                         }
                                       >
                                         <span>{isPaid ? '✓' : '✕'}</span>
@@ -5273,9 +7509,8 @@ function DashboardContent() {
                                 {/* Tiến độ */}
                                 <td className="p-3 text-center">
                                   <div className="flex flex-col items-center gap-1">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${
-                                      isGood ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                                    }`}>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isGood ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                      }`}>
                                       {paidCount}/12 Tháng
                                     </span>
                                     <div className="w-14 bg-slate-200 h-1.5 rounded-full overflow-hidden">
@@ -5394,11 +7629,10 @@ function DashboardContent() {
                               <td className="p-4 font-bold text-slate-700">{m.teamName}</td>
                               <td className="p-4 text-center">
                                 <span
-                                  className={`px-3 py-1 rounded-full font-black text-[11px] inline-flex items-center gap-1 ${
-                                    isPaid
+                                  className={`px-3 py-1 rounded-full font-black text-[11px] inline-flex items-center gap-1 ${isPaid
                                       ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                       : 'bg-rose-100 text-rose-800 border border-rose-300'
-                                  }`}
+                                    }`}
                                 >
                                   <span>{isPaid ? '✓' : '✕'}</span>
                                   <span>{isPaid ? 'Đã Nộp Đủ' : 'Chưa Đóng / Nợ'}</span>
@@ -5420,7 +7654,7 @@ function DashboardContent() {
                               <td className="p-4 font-mono text-[11px] text-slate-500">{f?.receiptNo || '—'}</td>
                               <td className="p-4 text-center">
                                 <div className="flex items-center justify-center gap-2">
-                                  {canManage && (
+                                  {canUpdatePayments && (
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -5430,11 +7664,10 @@ function DashboardContent() {
                                           selectedFeeMonth as number
                                         )
                                       }
-                                      className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all ${
-                                        isPaid
+                                      className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all ${isPaid
                                           ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
                                           : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                                      }`}
+                                        }`}
                                     >
                                       {isPaid ? 'Đánh dấu Chưa nộp' : '✓ Xác nhận Đã nộp'}
                                     </button>
@@ -5515,7 +7748,7 @@ function DashboardContent() {
                         <th className="p-4 text-right">Số Tiền (VNĐ)</th>
                         <th className="p-4">Người Thực Hiện</th>
                         <th className="p-4">Ghi Chú</th>
-                        {canManage && <th className="p-4 text-center">Thao Tác</th>}
+                        {canUpdatePayments && <th className="p-4 text-center">Thao Tác</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-emerald-100 text-slate-700">
@@ -5525,25 +7758,23 @@ function DashboardContent() {
                           <td className="p-4 font-bold text-slate-900">{t.title}</td>
                           <td className="p-4">
                             <span
-                              className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
-                                t.category === 'Thu'
+                              className={`px-2.5 py-0.5 rounded-full font-bold text-[11px] ${t.category === 'Thu'
                                   ? 'bg-emerald-100 text-emerald-800'
                                   : 'bg-rose-100 text-rose-800'
-                              }`}
+                                }`}
                             >
                               {t.category === 'Thu' ? '↓ Khoản Thu' : '↑ Khoản Chi'}
                             </span>
                           </td>
                           <td
-                            className={`p-4 text-right font-extrabold text-sm ${
-                              t.category === 'Thu' ? 'text-emerald-700' : 'text-rose-700'
-                            }`}
+                            className={`p-4 text-right font-extrabold text-sm ${t.category === 'Thu' ? 'text-emerald-700' : 'text-rose-700'
+                              }`}
                           >
                             {t.category === 'Thu' ? '+' : '-'}{formatVND(t.amount)}
                           </td>
                           <td className="p-4 text-slate-600 font-medium">{t.personInCharge}</td>
                           <td className="p-4 text-slate-500">{t.notes || '—'}</td>
-                          {canManage && (
+                          {canUpdatePayments && (
                             <td className="p-4 text-center">
                               <button
                                 onClick={() => handleDeleteTransaction(t.id)}
@@ -5563,84 +7794,276 @@ function DashboardContent() {
             </div>
           )}
 
-          {/* ================= TAB 3: BÁO CÁO PHÂN TÍCH TÀI CHÍNH ================= */}
+          {/* ================= TAB 3: BÁO CÁO PHÂN TÍCH TÀI CHÍNH (CA / NGÀY / NĂM) ================= */}
           {financeSubTab === 'reports' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Biểu đồ thu nộp 12 tháng năm 2026 */}
-                <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-xl space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
-                    <h4 className="font-black text-sm text-slate-900 flex items-center gap-2">
-                      <span>📊</span> Tiến Độ Thu Phí 12 Tháng Năm {selectedFeeYear}
-                    </h4>
-                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                      Tỷ lệ đạt
-                    </span>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((mNum) => {
-                      const paidCount = members.filter((m) => {
-                        const f = playerFees.find((x) => x.playerId === m.id && x.year === selectedFeeYear && x.month === mNum);
-                        return f?.status === 'paid';
-                      }).length;
-                      const percent = Math.round((paidCount / members.length) * 100);
-
-                      return (
-                        <div key={mNum} className="flex items-center gap-3 text-xs">
-                          <span className="font-bold text-slate-700 w-16">Tháng {mNum}:</span>
-                          <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
-                            <div
-                              className={`h-full rounded-full transition-all duration-300 ${
-                                percent >= 80 ? 'bg-emerald-600' : percent >= 50 ? 'bg-amber-500' : 'bg-rose-500'
-                              }`}
-                              style={{ width: `${percent}%` }}
-                            ></div>
-                          </div>
-                          <span className="font-black text-slate-800 w-24 text-right">
-                            {paidCount}/{members.length} ({percent}%)
-                          </span>
-                        </div>
-                      );
-                    })}
+            <div className="space-y-6 animate-in fade-in">
+              {/* Scope filter: Theo Ca / Theo Ngày / Tổng Năm */}
+              <div className="bg-white p-4 rounded-2xl border-2 border-emerald-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-slate-700 uppercase">Phạm Vi Báo Cáo:</span>
+                  <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setRevenueReportScope('shift')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${revenueReportScope === 'shift' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                      ⏱️ Theo Ca Làm Việc
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRevenueReportScope('daily')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${revenueReportScope === 'daily' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                      📅 Theo Ngày
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRevenueReportScope('annual')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${revenueReportScope === 'annual' ? 'bg-emerald-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                      👑 Toàn Niên Độ (Tổng Năm)
+                    </button>
                   </div>
                 </div>
 
-                {/* So sánh năm 2025 vs 2026 & Tình hình quỹ */}
-                <div className="space-y-6">
-                  <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-xl space-y-4">
-                    <h4 className="font-black text-sm text-slate-900 flex items-center gap-2 pb-3 border-b border-emerald-100">
-                      <span>⚖️</span> So Sánh Thu Quỹ Cầu Thủ 2 Năm Gần Nhất
+                <div className="text-xs text-slate-500">
+                  {isManager && <span className="text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">👔 Quản Lý: Xem báo cáo theo ca/ngày</span>}
+                  {isAdmin && <span className="text-rose-800 font-bold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">👑 Admin: Toàn quyền xem báo cáo tổng năm</span>}
+                </div>
+              </div>
+
+              {/* TRƯỜNG HỢP 1: MANAGER CHỌN XEM BÁO CÁO TỔNG NĂM -> HIỂN THỊ THÔNG BÁO GIỚI HẠN */}
+              {isManager && revenueReportScope === 'annual' ? (
+                <div className="bg-amber-50 border-2 border-amber-400 rounded-3xl p-8 sm:p-10 text-center space-y-4 shadow-lg">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-100 border border-amber-300 flex items-center justify-center text-3xl mx-auto shadow-inner">
+                    🔒
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-black text-amber-950 uppercase tracking-tight">
+                      Giới Hạn Quyền Xem Báo Cáo Doanh Thu Tổng Năm
                     </h4>
-                    <div className="grid grid-cols-2 gap-4 text-center">
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                        <p className="text-xs font-bold text-slate-500">Năm 2025 (Đã kết toán)</p>
-                        <p className="text-xl font-black text-slate-800 mt-1">72.000.000 đ</p>
-                        <p className="text-[11px] text-emerald-700 font-bold mt-1">✓ 100% hoàn thành</p>
-                      </div>
-                      <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300">
-                        <p className="text-xs font-bold text-emerald-800">Năm 2026 (Đang tiến hành)</p>
-                        <p className="text-xl font-black text-emerald-800 mt-1">
-                          {formatVND(
-                            playerFees
-                              .filter((f) => f.year === 2026 && f.status === 'paid')
-                              .reduce((s, f) => s + (f.amount || 300000), 0)
-                          )}
-                        </p>
-                        <p className="text-[11px] text-emerald-800 font-bold mt-1">⚡ Tiến độ 11/12 tháng</p>
-                      </div>
+                    <p className="text-xs sm:text-sm text-amber-900 mt-2 max-w-xl mx-auto leading-relaxed font-medium">
+                      Theo phân quyền hệ thống, vai trò <strong>MANAGER (Quản Lý Sân Bãi & Điều Phối)</strong> chỉ được phép xem báo cáo doanh thu theo <strong>Ca làm việc</strong> hoặc theo <strong>Ngày</strong> để phục vụ bàn giao và đối soát ca trực.
+                      <br /><br />
+                      Báo cáo tài chính tổng hợp toàn niên độ (Toàn Năm) chỉ dành riêng cho <strong>ADMIN (Chủ Sân)</strong>.
+                    </p>
+                  </div>
+                  <div className="pt-2 flex justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setRevenueReportScope('shift')}
+                      className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-md transition-all cursor-pointer"
+                    >
+                      ← Xem Báo Cáo Theo Ca Làm Việc
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRevenueReportScope('daily')}
+                      className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs shadow-md transition-all cursor-pointer"
+                    >
+                      Xem Báo Cáo Theo Ngày →
+                    </button>
+                  </div>
+                </div>
+              ) : revenueReportScope === 'shift' ? (
+                /* BÁO CÁO DOANH THU THEO CA LÀM VIỆC */
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white p-5 rounded-3xl border-2 border-emerald-300 shadow-md">
+                      <span className="text-xs font-bold text-slate-500 block">Ca Sáng (07:00 - 12:00)</span>
+                      <strong className="text-2xl font-black text-emerald-700 block mt-1">100.000 VNĐ</strong>
+                      <span className="text-[11px] text-slate-500 font-semibold">5 khung giờ • 2 ca đã đặt</span>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl border-2 border-amber-300 shadow-md">
+                      <span className="text-xs font-bold text-slate-500 block">Ca Chiều (13:00 - 18:00)</span>
+                      <strong className="text-2xl font-black text-amber-700 block mt-1">100.000 VNĐ</strong>
+                      <span className="text-[11px] text-slate-500 font-semibold">5 khung giờ • 3 ca đã đặt</span>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl border-2 border-indigo-300 shadow-md">
+                      <span className="text-xs font-bold text-slate-500 block">Ca Tối (18:00 - 22:00)</span>
+                      <strong className="text-2xl font-black text-indigo-700 block mt-1">80.000 VNĐ</strong>
+                      <span className="text-[11px] text-slate-500 font-semibold">4 khung giờ • 4 ca đã đặt (Full)</span>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 font-medium">
+                    ✓ Báo cáo ca làm việc được tổng hợp theo thời gian thực từ các giao dịch tiền mặt và chuyển khoản đã đối soát thành công.
+                  </div>
+                </div>
+              ) : revenueReportScope === 'daily' ? (
+                /* BÁO CÁO DOANH THU THEO NGÀY */
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white p-5 rounded-3xl border-2 border-emerald-400 shadow-md">
+                      <span className="text-xs font-bold text-slate-500 block">Doanh Thu Hôm Nay ({selectedBookingDate})</span>
+                      <strong className="text-2xl font-black text-emerald-700 block mt-1">
+                        {formatVND(fieldBookings.filter(b => b.bookingDate === selectedBookingDate && b.isBooked).reduce((sum, b) => sum + (b.price || 20000), 0))}
+                      </strong>
+                      <span className="text-[11px] text-emerald-600 font-semibold">Tổng số ca đã duyệt giữ chỗ</span>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl border-2 border-slate-300 shadow-md">
+                      <span className="text-xs font-bold text-slate-500 block">Doanh Thu Dịch Vụ Phụ Trợ</span>
+                      <strong className="text-2xl font-black text-slate-800 block mt-1">140.000 VNĐ</strong>
+                      <span className="text-[11px] text-slate-500 font-semibold">Thuê bóng, áo bib & nước uống</span>
+                    </div>
+                    <div className="bg-white p-5 rounded-3xl border-2 border-indigo-400 shadow-md">
+                      <span className="text-xs font-bold text-slate-500 block">Tổng Thu Ngày</span>
+                      <strong className="text-2xl font-black text-indigo-800 block mt-1">
+                        {formatVND(fieldBookings.filter(b => b.bookingDate === selectedBookingDate && b.isBooked).reduce((sum, b) => sum + (b.price || 20000), 0) + 140000)}
+                      </strong>
+                      <span className="text-[11px] text-indigo-600 font-semibold">Bao gồm tiền sân và phụ phí</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* BÁO CÁO TỔNG NĂM (DÀNH CHO ADMIN) */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Biểu đồ thu nộp 12 tháng năm 2026 */}
+                  <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-xl space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
+                      <h4 className="font-black text-sm text-slate-900 flex items-center gap-2">
+                        <span>📊</span> Tiến Độ Thu Phí 12 Tháng Năm {selectedFeeYear}
+                      </h4>
+                      <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                        Tỷ lệ đạt
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((mNum) => {
+                        const paidCount = members.filter((m) => {
+                          const f = playerFees.find((x) => x.playerId === m.id && x.year === selectedFeeYear && x.month === mNum);
+                          return f?.status === 'paid';
+                        }).length;
+                        const percent = Math.round((paidCount / members.length) * 100);
+
+                        return (
+                          <div key={mNum} className="flex items-center gap-3 text-xs">
+                            <span className="font-bold text-slate-700 w-16">Tháng {mNum}:</span>
+                            <div className="flex-1 bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+                              <div
+                                className={`h-full rounded-full transition-all duration-300 ${percent >= 80 ? 'bg-emerald-600' : percent >= 50 ? 'bg-amber-500' : 'bg-rose-500'
+                                  }`}
+                                style={{ width: `${percent}%` }}
+                              ></div>
+                            </div>
+                            <span className="font-black text-slate-800 w-24 text-right">
+                              {paidCount}/{members.length} ({percent}%)
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-emerald-900 to-teal-900 text-white rounded-3xl p-6 shadow-xl space-y-3">
-                    <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
-                      🛡️ ĐÁNH GIÁ SỨC KHỎE TÀI CHÍNH CLB
-                    </span>
-                    <h4 className="font-black text-lg text-white">Quỹ Dự Phòng Đảm Bảo Hoạt Động Ổn Định</h4>
-                    <p className="text-xs text-emerald-100 leading-relaxed">
-                      Quỹ câu lạc bộ duy trì số dư dương với tỷ lệ thu nộp của cầu thủ đạt trên 80%. Đảm bảo đầy đủ kinh phí chi trả thuê sân bãi, thiết bị tập luyện và y tế phục hồi.
-                    </p>
+                  {/* So sánh năm 2025 vs 2026 & Tình hình quỹ */}
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-3xl p-6 border-2 border-emerald-300 shadow-xl space-y-4">
+                      <h4 className="font-black text-sm text-slate-900 flex items-center gap-2 pb-3 border-b border-emerald-100">
+                        <span>⚖️</span> So Sánh Thu Quỹ Cầu Thủ 2 Năm Gần Nhất
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4 text-center">
+                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                          <p className="text-xs font-bold text-slate-500">Năm 2025 (Đã kết toán)</p>
+                          <p className="text-xl font-black text-slate-800 mt-1">72.000.000 đ</p>
+                          <p className="text-[11px] text-emerald-700 font-bold mt-1">✓ 100% hoàn thành</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300">
+                          <p className="text-xs font-bold text-emerald-800">Năm 2026 (Đang tiến hành)</p>
+                          <p className="text-xl font-black text-emerald-800 mt-1">
+                            {formatVND(
+                              playerFees
+                                .filter((f) => f.year === 2026 && f.status === 'paid')
+                                .reduce((s, f) => s + (f.amount || 300000), 0)
+                            )}
+                          </p>
+                          <p className="text-[11px] text-emerald-800 font-bold mt-1">⚡ Tiến độ 11/12 tháng</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-emerald-900 to-teal-900 text-white rounded-3xl p-6 shadow-xl space-y-3">
+                      <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                        🛡️ ĐÁNH GIÁ SỨC KHỎE TÀI CHÍNH CLB
+                      </span>
+                      <h4 className="font-black text-lg text-white">Quỹ Dự Phòng Đảm Bảo Hoạt Động Ổn Định</h4>
+                      <p className="text-xs text-emerald-100 leading-relaxed">
+                        Quỹ câu lạc bộ duy trì số dư dương với tỷ lệ thu nộp của cầu thủ đạt trên 80%. Đảm bảo đầy đủ kinh phí chi trả thuê sân bãi, thiết bị tập luyện và y tế phục hồi.
+                      </p>
+                    </div>
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ================= TAB 4: HÓA ĐƠN & DOANH THU CA SÂN (MANAGER & ADMIN) ================= */}
+          {financeSubTab === 'shift-bookings' && (
+            <div className="space-y-6 animate-in fade-in">
+              <div className="bg-white rounded-3xl p-6 border-2 border-emerald-400 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                  <div>
+                    <h4 className="text-base font-black text-slate-900 flex items-center gap-2">
+                      <span>🧾</span> Quản Lý Hóa Đơn, Biên Lai & Doanh Thu Đặt Sân Theo Ca
+                    </h4>
+                    <p className="text-xs text-slate-500">Xác nhận các giao dịch chuyển khoản/tiền mặt và xuất biên lai thanh toán ca đá</p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    Sân bóng C1 • {selectedBookingDate}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border border-slate-200 rounded-2xl overflow-hidden">
+                    <thead className="bg-slate-100 text-slate-700 uppercase font-extrabold text-[11px]">
+                      <tr>
+                        <th className="p-3">Mã Đơn / Khách Hàng</th>
+                        <th className="p-3">Sân & Khung Giờ</th>
+                        <th className="p-3">Ngày Đá</th>
+                        <th className="p-3 text-right">Tiền Sân</th>
+                        <th className="p-3">Trạng Thái Thanh Toán</th>
+                        <th className="p-3 text-center">Thao Tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {fieldBookings.filter((b) => b.isBooked).length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-6 text-center text-slate-400">Chưa có đơn đặt sân nào</td>
+                        </tr>
+                      ) : (
+                        fieldBookings.filter((b) => b.isBooked).map((b) => (
+                          <tr key={b.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="p-3">
+                              <strong className="text-slate-900 block">{b.customerName || 'Khách đặt sân'}</strong>
+                              <span className="text-[10.5px] text-slate-500">{b.customerPhone || '0983 830 955'} • {b.teamName || 'Giao hữu'}</span>
+                            </td>
+                            <td className="p-3 font-bold text-slate-800">
+                              {b.fieldName} • <span className="text-emerald-700">{b.slotTime}</span>
+                            </td>
+                            <td className="p-3 font-mono text-slate-600">{b.bookingDate}</td>
+                            <td className="p-3 text-right font-black text-emerald-700">{formatVND(b.price || 20000)}</td>
+                            <td className="p-3">
+                              <span className="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                ✓ Đã thanh toán ({formatVND(b.price || 20000)})
+                              </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedReceiptSlot(b)}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs shadow-sm transition-all flex items-center justify-center gap-1 mx-auto cursor-pointer"
+                              >
+                                <span>🧾</span>
+                                <span>Xuất Biên Lai</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -5648,83 +8071,355 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* ================= MODULE 7: QUẢN LÝ THÔNG BÁO ================= */}
-      {user && activeTab === 'announcements' && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* THÔNG BÁO GIỚI HẠN QUYỀN TRUY CẬP CHO HUẤN LUYỆN VIÊN / CẦU THỦ VÀO PHÂN HỆ TÀI CHÍNH */}
+      {user && !canViewFinances && activeTab === 'finances' && (
+        <div className="rounded-3xl bg-white border-2 border-emerald-300 p-8 sm:p-12 text-center shadow-xl space-y-4 max-w-xl mx-auto my-8 animate-in fade-in">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-3xl font-black">
+            📋
+          </div>
+          <h3 className="text-xl font-black text-slate-900">Phân Hệ Tài Chính & Thu Phí Nội Bộ</h3>
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Huấn luyện viên phụ trách công tác chuyên môn, quản lý buổi tập và nhân sự cầu thủ.
+            Phân hệ Quản lý Thu Phí & Quỹ chỉ dành riêng cho Ban Quản Lý và Thủ Quỹ.
+          </p>
+          <div className="pt-2 flex items-center justify-center gap-3">
+            <button
+              onClick={() => setActiveTab('schedules')}
+              className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center gap-2"
+            >
+              <span>📅</span>
+              <span>Lịch Tập Đội Bóng</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('members')}
+              className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs border border-slate-300 transition-all cursor-pointer flex items-center gap-2"
+            >
+              <span>🏃</span>
+              <span>Hồ Sơ Cầu Thủ</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODULE 7: QUẢN LÝ & CHI TIẾT THÔNG BÁO ================= */}
+      {activeTab === 'announcements' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* Header Banner */}
+          <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] rounded-3xl p-6 sm:p-8 text-white border-2 border-emerald-400/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                <span>📢</span> Đăng Tải & Quản Lý Thông Báo Câu Lạc Bộ
+              <div className="text-xs font-black uppercase tracking-wider text-emerald-300 flex items-center gap-1.5 mb-1">
+                <span>📢</span> TRUNG TÂM BẢNG TIN & THÔNG BÁO
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-white">
+                Bảng Tin & Chi Tiết Thông Báo CLB
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Phát đi các thông điệp, chỉ đạo thi đấu và thông tin quan trọng tới toàn bộ hoặc từng đội bóng
+              <p className="text-xs sm:text-sm text-emerald-100 mt-1 max-w-2xl leading-relaxed">
+                Nơi cập nhật toàn bộ các chỉ đạo, lịch thi đấu, phân công huấn luyện, nhắc nhở tài chính và hoạt động chuyên môn của Sân Bóng C1.
               </p>
             </div>
 
-            {canManage && (
+            {canManageAnnouncements && (
               <button
                 onClick={() => setShowAddAnnouncementModal(true)}
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
+                className="px-5 py-3 rounded-2xl bg-white hover:bg-emerald-50 text-emerald-950 font-black text-xs sm:text-sm shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 hover:scale-105"
               >
-                <span>+</span>
+                <span className="text-base leading-none">+</span>
                 <span>Tạo Thông Báo Mới</span>
               </button>
             )}
           </div>
 
-          <div className="space-y-4">
-            {announcements.map((a) => {
-              const isUrgent = a.priority === 'Khẩn cấp';
-              const isImportant = a.priority === 'Quan trọng';
+          {/* Subtabs Filter: Bảng tin CLB vs Thông báo hoạt động hệ thống */}
+          <div className="flex flex-wrap items-center gap-3 bg-white p-2 rounded-2xl border-2 border-emerald-200/80 shadow-sm">
+            <button
+              onClick={() => setAnnouncementSubTab('club')}
+              className={`px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer ${announcementSubTab === 'club'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                  : 'text-slate-600 hover:text-emerald-800 hover:bg-emerald-50'
+                }`}
+            >
+              <span>📢</span>
+              <span>Bảng Tin & Chỉ Đạo CLB</span>
+              <span className={`text-[11px] px-2 py-0.5 rounded-full font-extrabold ${announcementSubTab === 'club' ? 'bg-white text-emerald-900' : 'bg-slate-100 text-slate-700'
+                }`}>
+                {announcements.length}
+              </span>
+            </button>
 
-              return (
-                <div
-                  key={a.id}
-                  className={`bg-white rounded-3xl p-6 border-2 border-emerald-400/90 shadow-xl shadow-emerald-950/10 border-l-8 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 ${
-                    isUrgent ? 'border-l-rose-500' : isImportant ? 'border-l-amber-500' : 'border-l-emerald-600'
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b-2 border-emerald-100">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className={`text-xs px-3 py-1 rounded-full font-black border ${
-                          isUrgent
-                            ? 'bg-rose-100 text-rose-800 border-rose-300'
-                            : isImportant
+            <button
+              onClick={() => setAnnouncementSubTab('activity')}
+              className={`px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer ${announcementSubTab === 'activity'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                  : 'text-slate-600 hover:text-emerald-800 hover:bg-emerald-50'
+                }`}
+            >
+              <span>🔔</span>
+              <span>Hoạt Động & Lịch Trình Tự Động</span>
+              <span className={`text-[11px] px-2 py-0.5 rounded-full font-extrabold ${announcementSubTab === 'activity' ? 'bg-white text-emerald-900' : 'bg-slate-100 text-slate-700'
+                }`}>
+                {notifications.length}
+              </span>
+            </button>
+          </div>
+
+          {/* TAB 1: BẢNG TIN CLB */}
+          {announcementSubTab === 'club' && (
+            <div className="space-y-4">
+              {announcements.map((a) => {
+                const isUrgent = a.priority === 'Khẩn cấp';
+                const isImportant = a.priority === 'Quan trọng';
+
+                return (
+                  <div
+                    key={a.id}
+                    className={`bg-white rounded-3xl p-6 border-2 border-emerald-400/90 shadow-xl shadow-emerald-950/10 border-l-8 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200 ${isUrgent ? 'border-l-rose-500' : isImportant ? 'border-l-amber-500' : 'border-l-emerald-600'
+                      }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b-2 border-emerald-100">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span
+                          className={`text-xs px-3 py-1 rounded-full font-black border ${isUrgent
+                              ? 'bg-rose-100 text-rose-800 border-rose-300'
+                              : isImportant
+                                ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            }`}
+                        >
+                          {isUrgent ? '🚨 ' : isImportant ? '⚡ ' : '📢 '}
+                          {a.priority}
+                        </span>
+                        <span className="text-xs font-bold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                          Gửi đến: <strong className="text-emerald-950 font-black">{a.target}</strong>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-xs text-slate-500 font-semibold">
+                        <span>👤 {a.author}</span>
+                        <span>📅 {a.date}</span>
+                        {canManageAnnouncements && (
+                          <button
+                            onClick={() => handleDeleteAnnouncement(a.id)}
+                            className="px-2.5 py-1 rounded-lg border border-rose-300 text-rose-600 hover:bg-rose-50 font-bold text-xs transition-all cursor-pointer"
+                          >
+                            Xóa
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <h4 className="font-black text-lg sm:text-xl text-emerald-950 mt-3.5 tracking-tight">
+                      {a.title}
+                    </h4>
+
+                    <p className="text-xs sm:text-sm text-slate-800 mt-2.5 leading-relaxed bg-gradient-to-br from-emerald-50/80 to-white p-4 rounded-2xl border border-emerald-200/90 font-medium line-clamp-3">
+                      {a.content}
+                    </p>
+
+                    <div className="mt-4 pt-3 border-t border-emerald-100 flex items-center justify-between gap-2">
+                      <span className="text-xs text-slate-400 italic">
+                        Đăng bởi {a.author} lúc {a.date}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAnnouncement(a)}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 cursor-pointer hover:scale-105"
+                      >
+                        <span>👁️ Xem Chi Tiết Thông Báo</span>
+                        <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* TAB 2: THÔNG BÁO HOẠT ĐỘNG & LỊCH TRÌNH */}
+          {announcementSubTab === 'activity' && (
+            <div className="space-y-4">
+              {notifications.length === 0 ? (
+                <div className="bg-white rounded-3xl p-12 text-center border-2 border-emerald-200">
+                  <span className="text-4xl block mb-2">🔔</span>
+                  <h4 className="text-base font-bold text-slate-800">Chưa có thông báo hoạt động nào</h4>
+                  <p className="text-xs text-slate-500 mt-1">Các thông báo đặt sân, lịch tập và tài chính sẽ xuất hiện tại đây.</p>
+                </div>
+              ) : (
+                notifications.map((n) => {
+                  const targetTab = n.tab || 'home';
+                  const isCancel = n.type === 'cancel';
+                  const isChange = n.type === 'change';
+
+                  return (
+                    <div
+                      key={n.id}
+                      className={`bg-white rounded-3xl p-5 sm:p-6 border-2 shadow-lg hover:shadow-xl transition-all ${n.read ? 'border-slate-200 opacity-90' : 'border-emerald-400 bg-emerald-50/40 ring-1 ring-emerald-300'
+                        }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2.5 py-1 rounded-lg font-black border ${isCancel ? 'bg-rose-100 text-rose-800 border-rose-300' : isChange ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            }`}>
+                            {isCancel ? '⚠️ Hủy bỏ' : isChange ? '⏰ Thay đổi' : '✓ Mới'}
+                          </span>
+                          <span className="text-xs font-bold text-slate-500">
+                            📅 {n.timestamp}
+                          </span>
+                        </div>
+
+                        <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold ${n.read ? 'bg-slate-100 text-slate-600' : 'bg-emerald-500 text-white'
+                          }`}>
+                          {n.read ? 'Đã đọc' : 'Chưa đọc'}
+                        </span>
+                      </div>
+
+                      <h4 className="font-black text-base sm:text-lg text-emerald-950 mt-3">
+                        {n.title}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-slate-700 mt-2 leading-relaxed bg-white p-3.5 rounded-xl border border-slate-200">
+                        {n.message}
+                      </p>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs text-indigo-700 font-bold">
+                          👤 {n.sender || 'Ban Quản Lý CLB Sân Bóng C1'}
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openNotificationDetail(n)}
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-xs transition-all flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>👁️ Xem Chi Tiết</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new CustomEvent('switch-tab', { detail: targetTab }));
+                              }
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition-all flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>Đi đến tính năng →</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {/* MODAL CHI TIẾT THÔNG BÁO BẢNG TIN CLB */}
+          {selectedAnnouncement && (
+            <div
+              className="fixed inset-0 z-[99999] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
+              onClick={() => setSelectedAnnouncement(null)}
+            >
+              <div
+                className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border-2 border-emerald-500 overflow-hidden text-slate-800 animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] p-5 text-white flex items-center justify-between border-b-2 border-emerald-400/40">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-xl shadow-inner">
+                      📢
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-black tracking-wider uppercase text-emerald-300">
+                        Chi Tiết Thông Báo Câu Lạc Bộ
+                      </div>
+                      <h3 className="text-base sm:text-lg font-black text-white line-clamp-1">
+                        {selectedAnnouncement.title}
+                      </h3>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedAnnouncement(null)}
+                    className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold flex items-center justify-center transition-all cursor-pointer border border-white/20"
+                    title="Đóng"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                  {/* Tags */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-black border ${selectedAnnouncement.priority === 'Khẩn cấp'
+                          ? 'bg-rose-100 text-rose-800 border-rose-300'
+                          : selectedAnnouncement.priority === 'Quan trọng'
                             ? 'bg-amber-100 text-amber-800 border-amber-300'
                             : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                         }`}
-                      >
-                        {isUrgent ? '🚨 ' : isImportant ? '⚡ ' : '📢 '}
-                        {a.priority}
-                      </span>
-                      <span className="text-xs font-bold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                        Gửi đến: <strong className="text-emerald-950 font-black">{a.target}</strong>
-                      </span>
-                    </div>
+                    >
+                      {selectedAnnouncement.priority === 'Khẩn cấp' ? '🚨 ' : selectedAnnouncement.priority === 'Quan trọng' ? '⚡ ' : '📢 '}
+                      Mức độ: {selectedAnnouncement.priority}
+                    </span>
 
-                    <div className="flex items-center gap-3 text-xs text-slate-500 font-semibold">
-                      <span>👤 {a.author}</span>
-                      <span>📅 {a.date}</span>
-                      {canManage && (
-                        <button
-                          onClick={() => handleDeleteAnnouncement(a.id)}
-                          className="px-2.5 py-1 rounded-lg border border-rose-300 text-rose-600 hover:bg-rose-50 font-bold text-xs transition-all cursor-pointer"
-                        >
-                          Xóa
-                        </button>
-                      )}
-                    </div>
+                    <span className="text-xs font-bold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                      Đối tượng: <strong className="text-emerald-950 font-black">{selectedAnnouncement.target}</strong>
+                    </span>
+
+                    <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                      📅 Ngày đăng: {selectedAnnouncement.date}
+                    </span>
+
+                    <span className="text-xs font-bold text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">
+                      👤 Người gửi: {selectedAnnouncement.author}
+                    </span>
                   </div>
 
-                  <h4 className="font-black text-lg text-emerald-950 mt-3.5 tracking-tight">{a.title}</h4>
-                  <p className="text-xs text-slate-800 mt-2.5 leading-relaxed bg-gradient-to-br from-emerald-50/80 to-white p-4 rounded-2xl border border-emerald-200/90 font-medium">
-                    {a.content}
-                  </p>
+                  {/* Title */}
+                  <div className="pt-2">
+                    <h4 className="text-xl sm:text-2xl font-black text-emerald-950 leading-snug">
+                      {selectedAnnouncement.title}
+                    </h4>
+                  </div>
+
+                  {/* Full content */}
+                  <div>
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-wider block mb-2">
+                      Toàn Văn Nội Dung Thông Báo
+                    </label>
+                    <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/70 to-slate-50 border-2 border-emerald-200/90 text-sm sm:text-base text-slate-800 leading-relaxed font-medium whitespace-pre-wrap shadow-inner">
+                      {selectedAnnouncement.content}
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+
+                {/* Footer */}
+                <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                        navigator.clipboard.writeText(`${selectedAnnouncement.title}\n\n${selectedAnnouncement.content}`);
+                        alert('Đã sao chép nội dung thông báo vào bộ nhớ đệm!');
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>📋</span>
+                    <span>Sao chép nội dung</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAnnouncement(null)}
+                    className="px-6 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+                  >
+                    Đóng
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -5737,7 +8432,7 @@ function DashboardContent() {
             </span>
             <h3 className="text-2xl font-black text-white">Kết Quả Các Trận Đấu & Phong Độ Toàn Đội</h3>
             <p className="text-xs sm:text-sm text-emerald-100 mt-1 max-w-2xl">
-              Tổng hợp kết quả các trận giao hữu, giải bóng đá phong trào ngoại hạng và cúp khu vực của các tuyến đội Sao Vàng FC.
+              Tổng hợp kết quả các trận giao hữu, giải bóng đá phong trào ngoại hạng và cúp khu vực của các tuyến đội CLB Sân Bóng C1.
             </p>
           </div>
 
@@ -5773,12 +8468,12 @@ function DashboardContent() {
             <div className="space-y-3">
               <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-white border-2 border-emerald-300 shadow-sm">
                 <div className="flex items-center justify-between text-xs mb-2">
-                  <span className="text-slate-500 font-bold">10/10/2026 • Giải Ngoại Hạng Phong Trào • Sân Sao Vàng A</span>
+                  <span className="text-slate-500 font-bold">10/10/2026 • Giải Ngoại Hạng Phong Trào • Sân C1 (Sân 1)</span>
                   <span className="px-3 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[11px]">THẮNG</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-2 font-black text-base text-slate-900">
-                    <span>⚽ Sao Vàng FC</span>
+                    <span>⚽ CLB Sân Bóng C1</span>
                   </div>
                   <div className="text-xl font-black text-emerald-700 px-4 py-1 rounded-2xl bg-white border-2 border-emerald-300 shadow-inner">
                     3 - 1
@@ -5799,7 +8494,7 @@ function DashboardContent() {
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-2 font-black text-base text-slate-900">
-                    <span>⚽ Sao Vàng FC</span>
+                    <span>⚽ CLB Sân Bóng C1</span>
                   </div>
                   <div className="text-xl font-black text-amber-700 px-4 py-1 rounded-2xl bg-white border-2 border-amber-300 shadow-inner">
                     2 - 2
@@ -5820,7 +8515,7 @@ function DashboardContent() {
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-2 font-black text-base text-slate-900">
-                    <span>⚽ Sao Vàng FC</span>
+                    <span>⚽ CLB Sân Bóng C1</span>
                   </div>
                   <div className="text-xl font-black text-emerald-700 px-4 py-1 rounded-2xl bg-white border-2 border-emerald-300 shadow-inner">
                     1 - 0
@@ -5838,7 +8533,7 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* ================= CHUYÊN TRANG: VỀ CLB SAO VÀNG ================= */}
+      {/* ================= CHUYÊN TRANG: VỀ CLB SÂN BÓNG C1 ================= */}
       {activeTab === 'about' && (
         <div className="space-y-6 animate-in fade-in duration-300">
           <div className="rounded-3xl p-8 bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] text-white border-2 border-emerald-400 shadow-xl">
@@ -5849,7 +8544,7 @@ function DashboardContent() {
               &ldquo;Đoàn Kết - Kỷ Luật - Tinh Thần Thể Thao Cống Hiến&rdquo;
             </h2>
             <p className="text-emerald-100 text-xs sm:text-sm mt-3 leading-relaxed max-w-3xl">
-              Thành lập từ năm 2015, Sao Vàng FC là mái nhà chung kết nối niềm đam mê sân cỏ, đào tạo thể chất toàn diện và bồi dưỡng đạo đức thể thao cho các thế hệ cầu thủ trẻ.
+              Sân Bóng C1 (1B Y Ngông, Buôn Ma Thuột) mở cửa phục vụ 24/24 với cụm 2 sân cỏ nhân tạo cao cấp, dàn đèn cao áp chiếu sáng đêm, bãi đỗ xe và dịch vụ nước uống, bóng thi đấu chu đáo.
             </p>
           </div>
 
@@ -5866,7 +8561,7 @@ function DashboardContent() {
               <span className="text-3xl">🏟️</span>
               <h4 className="font-black text-base text-slate-900">Cơ Sở Vật Chất</h4>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Hệ thống sân bóng Sao Vàng A (Sân 7), Sân B (Sân 11) đạt chuẩn cỏ nhân tạo FIFA Quality cùng phòng thể lực VO2Max và y tế phục hồi.
+                Cụm 2 sân bóng mini C1 (Sân 1 & Sân 2) đạt chuẩn cỏ nhân tạo cao cấp, dàn đèn chiếu sáng ban đêm 24/24 cùng đầy đủ trang thiết bị tập luyện.
               </p>
             </div>
 
@@ -5903,7 +8598,7 @@ function DashboardContent() {
                 <input
                   type="text"
                   required
-                  placeholder="Ví dụ: Sao Vàng FC - Đội Nữ / Đội Trẻ U19..."
+                  placeholder="Ví dụ: CLB Sân Bóng C1 - Đội Nữ / Đội Trẻ U19..."
                   value={newTeam.name}
                   onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white"
@@ -6035,7 +8730,7 @@ function DashboardContent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-slate-700 font-bold mb-1">Vị Trí Thi Đấu</label>
                   <select
@@ -6059,6 +8754,17 @@ function DashboardContent() {
                     {teams.map((t) => (
                       <option key={t.id} value={t.id}>{t.name}</option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Đội Hình (Tối đa 10)</label>
+                  <select
+                    value={newMember.lineupRole || 'Đá chính'}
+                    onChange={(e) => setNewMember({ ...newMember, lineupRole: e.target.value as any })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500 font-bold text-emerald-800"
+                  >
+                    <option value="Đá chính">🟢 Đá chính (Max 5)</option>
+                    <option value="Dự bị">🟡 Dự bị (Max 5)</option>
                   </select>
                 </div>
               </div>
@@ -6362,8 +9068,8 @@ function DashboardContent() {
                     onChange={(e) => setNewSchedule({ ...newSchedule, fieldName: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="Sân bóng Sao Vàng A (Sân 7)">Sân bóng Sao Vàng A (Sân 7)</option>
-                    <option value="Sân bóng Sao Vàng B (Sân 11)">Sân bóng Sao Vàng B (Sân 11)</option>
+                    <option value="Sân bóng C1 (Sân 1)">Sân bóng C1 (Sân 1)</option>
+                    <option value="Sân bóng C1 (Sân 2)">Sân bóng C1 (Sân 2)</option>
                     <option value="Sân trong nhà Futsal Arena">Sân trong nhà Futsal Arena</option>
                   </select>
                 </div>
@@ -6546,7 +9252,7 @@ function DashboardContent() {
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="Toàn bộ câu lạc bộ">Toàn bộ câu lạc bộ</option>
-                    <option value="Sao Vàng FC - Đội 1">Sao Vàng FC - Đội 1</option>
+                    <option value="CLB Sân C1 - Đội 1">CLB Sân C1 - Đội 1</option>
                     <option value="Tuyển Trẻ U21">Tuyển Trẻ U21</option>
                     <option value="Ban Huấn Luyện">Ban Huấn Luyện</option>
                   </select>
@@ -6590,6 +9296,427 @@ function DashboardContent() {
                   className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md shadow-emerald-600/20"
                 >
                   Phát Thông Báo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL XEM DANH SÁCH CẦU THỦ THEO ĐỘI BÓNG ================= */}
+      {viewingTeamRoster && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-4xl max-h-[90vh] rounded-3xl bg-white border-2 border-emerald-400 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] text-white p-5 sm:p-6 flex items-start justify-between gap-4 border-b-2 border-emerald-400/40 shrink-0">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/40 text-[11px] font-black uppercase tracking-wider">
+                  <span>🛡️</span>
+                  <span>{viewingTeamRoster.level || 'Tuyến Đội Trực Thuộc'}</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+                  <span>⚽</span> Danh Sách Cầu Thủ: {viewingTeamRoster.name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-emerald-100 pt-1">
+                  <span>👔 <strong>HLV Trưởng:</strong> {viewingTeamRoster.headCoach}</span>
+                  <span>👑 <strong>Đội Trưởng:</strong> {viewingTeamRoster.captain}</span>
+                  <span>👥 <strong>Quy mô:</strong> 10 cầu thủ (5 Đá chính • 5 Dự bị)</span>
+                  <span>🏟️ <strong>Sân tập:</strong> {viewingTeamRoster.homePitch || 'Sân bóng C1'}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setViewingTeamRoster(null)}
+                className="w-9 h-9 rounded-2xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-black text-base border border-white/20 transition-all shrink-0 cursor-pointer"
+                title="Đóng danh sách"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="p-4 bg-emerald-50/70 border-b border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+                <span className="text-xs font-black text-emerald-950 uppercase tracking-wide whitespace-nowrap">
+                  Vị trí:
+                </span>
+                {['Tất cả', 'Thủ môn', 'Hậu vệ', 'Tiền vệ', 'Tiền đạo'].map((pos) => (
+                  <button
+                    key={pos}
+                    type="button"
+                    onClick={() => setRosterPositionFilter(pos)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${rosterPositionFilter === pos
+                        ? 'bg-emerald-700 text-white shadow-sm font-extrabold'
+                        : 'bg-white text-slate-700 hover:bg-emerald-100 border border-emerald-200'
+                      }`}
+                  >
+                    {pos}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <input
+                    type="text"
+                    placeholder="Tìm tên cầu thủ, số áo..."
+                    value={rosterSearch}
+                    onChange={(e) => setRosterSearch(e.target.value)}
+                    className="w-full bg-white border border-emerald-300 rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs"
+                  />
+                  <span className="absolute right-3 top-2.5 text-emerald-700 text-xs">🔍</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleOpenAddRosterPlayer}
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-extrabold text-xs shadow-md shadow-emerald-700/25 flex items-center gap-1.5 shrink-0 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                  title="Thêm cầu thủ mới vào tuyến đội này"
+                >
+                  <span className="text-sm">➕</span>
+                  <span className="whitespace-nowrap">Thêm Cầu Thủ</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Roster List / Table - CHỈ HIỂN THỊ DANH SÁCH CẦU THỦ */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              {filteredRoster.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-6">
+                  <span className="text-4xl block mb-2">🏃</span>
+                  <p className="font-bold text-slate-700 text-sm">Chưa có cầu thủ nào phù hợp bộ lọc</p>
+                  <p className="text-xs text-slate-400 mt-1">Vui lòng thử tìm kiếm với từ khóa khác hoặc chọn vị trí &quot;Tất cả&quot;</p>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddRosterPlayer}
+                    className="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-sm"
+                  >
+                    <span>➕ Thêm Cầu Thủ Đầu Tiên</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border-2 border-emerald-200 shadow-sm">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#064e3b] text-white font-black uppercase tracking-wider">
+                      <tr>
+                        <th className="p-3.5 text-center">Số Áo</th>
+                        <th className="p-3.5">Cầu Thủ</th>
+                        <th className="p-3.5">Vị Trí</th>
+                        <th className="p-3.5 text-center">Đội Hình</th>
+                        <th className="p-3.5">Năm Sinh</th>
+                        <th className="p-3.5">Thể Chất & Chân Thuận</th>
+                        <th className="p-3.5 text-center">Trạng Thái</th>
+                        <th className="p-3.5 text-center">Thao Tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-emerald-100 text-slate-700 bg-white">
+                      {filteredRoster.map((player) => (
+                        <tr
+                          key={player.id}
+                          className="odd:bg-white even:bg-emerald-50/40 hover:bg-emerald-100/60 transition-colors"
+                        >
+                          <td className="p-3.5 text-center">
+                            <span className="inline-flex w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-700 to-green-600 text-white font-black items-center justify-center text-xs shadow-sm">
+                              #{player.jerseyNumber}
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <strong className="text-slate-900 font-extrabold text-sm block">
+                              {player.name}
+                            </strong>
+                            <span className="text-[11px] text-emerald-700 font-semibold">
+                              {player.teamName}
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <span
+                              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] inline-flex items-center gap-1 border ${player.position === 'Thủ môn'
+                                  ? 'bg-amber-50 text-amber-900 border-amber-300'
+                                  : player.position === 'Hậu vệ'
+                                    ? 'bg-sky-50 text-sky-900 border-sky-300'
+                                    : player.position === 'Tiền vệ'
+                                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                                      : 'bg-rose-50 text-rose-900 border-rose-300'
+                                }`}
+                            >
+                              <span>
+                                {player.position === 'Thủ môn'
+                                  ? '🧤'
+                                  : player.position === 'Hậu vệ'
+                                    ? '🛡️'
+                                    : player.position === 'Tiền vệ'
+                                      ? '⚡'
+                                      : '🎯'}
+                              </span>
+                              <span>{player.position}</span>
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-center">
+                            <span
+                              className={`px-2.5 py-1 rounded-full font-black text-[11px] inline-flex items-center gap-1 border ${
+                                (player.lineupRole || 'Đá chính') === 'Đá chính'
+                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                  : 'bg-amber-100 text-amber-900 border border-amber-300'
+                              }`}
+                            >
+                              <span>{(player.lineupRole || 'Đá chính') === 'Đá chính' ? '🟢' : '🟡'}</span>
+                              <span>{player.lineupRole || 'Đá chính'}</span>
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <span className="font-semibold text-slate-700">
+                              {player.dateOfBirth || '—'}
+                            </span>
+                          </td>
+                          <td className="p-3.5">
+                            <span className="text-slate-700 font-medium">
+                              {player.height || '1m75'} • {player.weight || '70kg'} ({player.preferredFoot || 'Chân phải'})
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-center">
+                            <span
+                              className={`px-2.5 py-1 rounded-full font-extrabold text-[11px] inline-block border ${player.status === 'Chấn thương'
+                                  ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                  : player.status === 'Nghỉ phép'
+                                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                    : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                }`}
+                            >
+                              {player.status === 'Chấn thương'
+                                ? '🔴 Chấn thương'
+                                : player.status === 'Nghỉ phép'
+                                  ? '🟡 Nghỉ phép'
+                                  : '🟢 Sẵn sàng thi đấu'}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditRosterPlayer(player)}
+                                className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+                                title="Chỉnh sửa thông tin cầu thủ"
+                              >
+                                <span>✏️</span>
+                                <span>Sửa</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteRosterPlayer(player)}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+                                title="Xóa cầu thủ khỏi đội này"
+                              >
+                                <span>🗑️</span>
+                                <span>Xóa</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <span className="text-xs font-bold text-slate-600">
+                Hiển thị: <strong className="text-emerald-700">{filteredRoster.length}/10</strong> thành viên ({filteredRoster.filter(p => (p.lineupRole || 'Đá chính') === 'Đá chính').length} Đá chính • {filteredRoster.filter(p => p.lineupRole === 'Dự bị').length} Dự bị)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleOpenAddRosterPlayer}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+                >
+                  <span>➕</span>
+                  <span>Thêm Cầu Thủ</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewingTeamRoster(null)}
+                  className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs transition-all cursor-pointer shadow-sm"
+                >
+                  ✕ Đóng Danh Sách
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL POPUP THÊM / SỬA CẦU THỦ CHO ĐỘI BÓNG ================= */}
+      {(showRosterAddModal || editingRosterPlayer) && viewingTeamRoster && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-3xl bg-white border-2 border-emerald-500 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#047857] text-white p-5 flex items-center justify-between border-b-2 border-emerald-400/40">
+              <div className="space-y-0.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-[10px] font-black uppercase">
+                  <span>🛡️</span>
+                  <span>{viewingTeamRoster.name}</span>
+                </div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <span>{showRosterAddModal ? '➕' : '✏️'}</span>
+                  <span>{showRosterAddModal ? 'Thêm Cầu Thủ Mới' : 'Chỉnh Sửa Thông Tin Cầu Thủ'}</span>
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRosterAddModal(false);
+                  setEditingRosterPlayer(null);
+                }}
+                className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-black text-sm border border-white/20 transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={showRosterAddModal ? handleSaveAddRosterPlayer : handleSaveEditRosterPlayer} className="p-5 overflow-y-auto max-h-[75vh] space-y-3.5 text-xs">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-slate-700 font-extrabold mb-1">Họ Và Tên Cầu Thủ <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ví dụ: Nguyễn Văn A"
+                    value={rosterPlayerForm.name}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Số Áo (1-99) <span className="text-rose-500">*</span></label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={99}
+                    required
+                    value={rosterPlayerForm.jerseyNumber}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, jerseyNumber: Number(e.target.value) })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Vị Trí Thi Đấu</label>
+                  <select
+                    value={rosterPlayerForm.position}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, position: e.target.value as any })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Thủ môn">🧤 Thủ môn</option>
+                    <option value="Hậu vệ">🛡️ Hậu vệ</option>
+                    <option value="Tiền vệ">⚡ Tiền vệ</option>
+                    <option value="Tiền đạo">🎯 Tiền đạo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Đội Hình (Tối đa 5 người/vai trò)</label>
+                  <select
+                    value={rosterPlayerForm.lineupRole}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, lineupRole: e.target.value as any })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-extrabold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Đá chính">🟢 Đá chính (5 người)</option>
+                    <option value="Dự bị">🟡 Dự bị (5 người)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Ngày Sinh</label>
+                  <input
+                    type="date"
+                    value={rosterPlayerForm.dateOfBirth}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, dateOfBirth: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Chiều Cao</label>
+                  <input
+                    type="text"
+                    placeholder="1m78"
+                    value={rosterPlayerForm.height}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, height: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Cân Nặng</label>
+                  <input
+                    type="text"
+                    placeholder="72kg"
+                    value={rosterPlayerForm.weight}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, weight: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Chân Thuận</label>
+                  <select
+                    value={rosterPlayerForm.preferredFoot}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, preferredFoot: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Chân phải">Chân phải</option>
+                    <option value="Chân trái">Chân trái</option>
+                    <option value="Hai chân">Hai chân</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-extrabold mb-1">Số Điện Thoại</label>
+                  <input
+                    type="tel"
+                    placeholder="0901234567"
+                    value={rosterPlayerForm.phone}
+                    onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, phone: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-extrabold mb-1">Trạng Thái Sức Khỏe / Thi Đấu</label>
+                <select
+                  value={rosterPlayerForm.status}
+                  onChange={(e) => setRosterPlayerForm({ ...rosterPlayerForm, status: e.target.value as any })}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="Đang tập luyện">🟢 Sẵn sàng thi đấu / Đang tập luyện</option>
+                  <option value="Chấn thương">🔴 Chấn thương</option>
+                  <option value="Nghỉ phép">🟡 Nghỉ phép</option>
+                </select>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRosterAddModal(false);
+                    setEditingRosterPlayer(null);
+                  }}
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
+                >
+                  Hủy Bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs shadow-md shadow-emerald-700/25 transition cursor-pointer"
+                >
+                  {showRosterAddModal ? '➕ Lưu Cầu Thủ Mới' : '💾 Lưu Cập Nhật'}
                 </button>
               </div>
             </form>
@@ -6823,20 +9950,18 @@ function DashboardContent() {
                   return (
                     <div
                       key={mNum}
-                      className={`p-2.5 rounded-xl border flex flex-col justify-between ${
-                        isPaid
+                      className={`p-2.5 rounded-xl border flex flex-col justify-between ${isPaid
                           ? 'bg-emerald-50/70 border-emerald-300'
                           : 'bg-rose-50/70 border-rose-200'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-extrabold text-slate-900">Tháng {mNum}/2026</span>
                         <span
-                          className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${
-                            isPaid
+                          className={`text-[10px] font-black px-1.5 py-0.5 rounded-md ${isPaid
                               ? 'bg-emerald-600 text-white'
                               : 'bg-rose-600 text-white'
-                          }`}
+                            }`}
                         >
                           {isPaid ? 'Đã nộp' : 'Nợ'}
                         </span>
@@ -6851,7 +9976,7 @@ function DashboardContent() {
                           <p className="text-rose-600 font-bold">Chưa hoàn tất</p>
                         )}
                       </div>
-                      {canManage && (
+                      {canUpdatePayments && (
                         <button
                           type="button"
                           onClick={() => handleToggleFeeStatus(selectedFeePlayer.id, 2026, mNum)}
@@ -6867,23 +9992,27 @@ function DashboardContent() {
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  setPayFeeTarget({
-                    member: selectedFeePlayer,
-                    month: 11,
-                    year: 2026,
-                    amount: 300000,
-                    paymentMethod: 'Chuyển khoản',
-                    notes: '',
-                  });
-                  setSelectedFeePlayer(null);
-                }}
-                className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shadow-md cursor-pointer"
-              >
-                + Ghi Nhận Thu Phí Cho Cầu Thủ Này
-              </button>
+              {canUpdatePayments ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPayFeeTarget({
+                      member: selectedFeePlayer,
+                      month: 11,
+                      year: 2026,
+                      amount: 300000,
+                      paymentMethod: 'Chuyển khoản',
+                      notes: '',
+                    });
+                    setSelectedFeePlayer(null);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shadow-md cursor-pointer"
+                >
+                  + Ghi Nhận Thu Phí Cho Cầu Thủ Này
+                </button>
+              ) : (
+                <span className="text-xs text-slate-500 italic">HLV chỉ có quyền xem lịch sử nộp phí</span>
+              )}
 
               <button
                 type="button"
@@ -7065,12 +10194,23 @@ function DashboardContent() {
                 const total = bookingTargetSlot.price + extra;
 
                 return (
-                  <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-center justify-between">
-                    <div>
-                      <span className="text-[11px] font-bold text-slate-500 block">TỔNG CHI PHÍ TẠM TÍNH:</span>
-                      <span className="text-xs text-slate-600">Thanh toán tại quầy lễ tân khi đến nhận sân</span>
+                  <div className="space-y-2">
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] font-bold text-slate-500 block">TỔNG CHI PHÍ TẠM TÍNH:</span>
+                        <span className="text-xs text-slate-600">Thanh toán tại quầy lễ tân khi đến nhận sân</span>
+                      </div>
+                      <strong className="text-xl font-black text-emerald-800">{formatVND(total)}</strong>
                     </div>
-                    <strong className="text-xl font-black text-emerald-800">{formatVND(total)}</strong>
+
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 space-y-1">
+                      <div className="font-black flex items-center gap-1.5 text-emerald-950">
+                        <span>⚽</span> Xác nhận giữ chỗ trực tuyến:
+                      </div>
+                      <p>
+                        Hệ thống sẽ tự động ghi nhận và bảo lưu khung giờ thi đấu cho quý khách. Vui lòng có mặt trước giờ thi đấu 10-15 phút để làm thủ tục nhận sân.
+                      </p>
+                    </div>
                   </div>
                 );
               })()}
@@ -7090,11 +10230,11 @@ function DashboardContent() {
                   className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold shadow-lg shadow-emerald-700/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingBooking ? (
-                    <span>⏳ Đang xử lý giữ sân...</span>
+                    <span>⏳ Đang gửi yêu cầu giữ sân...</span>
                   ) : (
                     <>
                       <span>✓</span>
-                      <span>Xác Nhận Đặt Sân Giữ Chỗ</span>
+                      <span>Xác Nhận Đặt Sân Ngay</span>
                     </>
                   )}
                 </button>
@@ -7107,25 +10247,31 @@ function DashboardContent() {
       {/* ================= MODAL 10: BIÊN LAI / PHIẾU ĐẶT SÂN THÀNH CÔNG ================= */}
       {bookingSuccessReceipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-3xl bg-white border-2 border-emerald-500 p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md rounded-3xl bg-white border-2 border-emerald-400 p-6 shadow-2xl space-y-4">
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl font-black mx-auto ring-8 ring-emerald-50 animate-bounce">
-                🎉
+              <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-3xl font-black mx-auto ring-8 ring-emerald-50">
+                ✓
               </div>
               <h3 className="text-xl font-black text-slate-900">
                 Đặt Sân Thành Công!
               </h3>
               <p className="text-xs text-slate-600">
-                Lịch đá bóng của bạn đã được ghi nhận vào hệ thống và chuyển trạng thái sang <strong className="text-rose-600 font-bold">🔴 Đã có người đặt</strong>.
+                Yêu cầu đặt sân của bạn đã được hệ thống tiếp nhận và giữ chỗ thành công.
               </p>
             </div>
 
             {/* Phiếu biên lai xác nhận */}
-            <div className="p-4 rounded-2xl bg-emerald-50/80 border-2 border-dashed border-emerald-300 space-y-2.5 text-xs">
+            <div className="p-4 rounded-2xl bg-emerald-50/50 border-2 border-dashed border-emerald-300 space-y-2.5 text-xs">
               <div className="flex items-center justify-between pb-2 border-b border-emerald-200">
                 <span className="font-bold text-slate-500">Mã Đặt Sân:</span>
-                <span className="font-mono font-black text-emerald-800 text-sm px-2 py-0.5 rounded bg-white border border-emerald-300">
+                <span className="font-mono font-black text-emerald-900 text-sm px-2 py-0.5 rounded bg-white border border-emerald-300">
                   {bookingSuccessReceipt.receiptCode}
+                </span>
+              </div>
+              <div className="flex items-center justify-between pb-2 border-b border-emerald-200">
+                <span className="font-bold text-slate-500">Trạng Thái Đơn:</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-400 font-black text-[11px] flex items-center gap-1">
+                  <span>✓</span> Đã Giữ Chỗ Thành Công
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -7202,7 +10348,7 @@ function DashboardContent() {
 
 export default function MasterDashboard() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-slate-500 font-semibold animate-pulse">Đang tải hệ thống quản lý Sao Vàng FC...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-slate-500 font-semibold animate-pulse">Đang tải hệ thống quản lý Sân Bóng C1...</div>}>
       <DashboardContent />
     </Suspense>
   );

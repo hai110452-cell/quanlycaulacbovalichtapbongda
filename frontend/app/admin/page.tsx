@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { PRESET_TEST_ACCOUNTS } from '@/app/login/page';
+import { PRESET_TEST_ACCOUNTS } from '@/lib/auth-constants';
 
 function AdminPortalContent() {
   const router = useRouter();
@@ -60,7 +60,7 @@ function AdminPortalContent() {
       (a) => a.username.toLowerCase() === txtID.trim().toLowerCase() && a.password === txtPass
     );
 
-    let role: 'admin' | 'coach' | 'player' = 'player';
+    let role: any = 'player';
     let name = txtID;
 
     if (matched) {
@@ -74,6 +74,9 @@ function AdminPortalContent() {
       } else if (lower.includes('coach') || lower.includes('hlv')) {
         role = 'coach';
         name = 'HLV. Nguyễn Văn Huấn';
+      } else if (lower.includes('staff') || lower.includes('manager')) {
+        role = 'manager';
+        name = 'Nhân Viên Quản Lý Ca';
       } else {
         role = 'player';
         name = txtID.charAt(0).toUpperCase() + txtID.slice(1);
@@ -103,7 +106,7 @@ function AdminPortalContent() {
               <span>CỔNG QUẢN TRỊ NỘI BỘ (ADMIN & TEAM PORTAL)</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              Hệ Thống Quản Trị CLB Sao Vàng
+              Hệ Thống Quản Trị Sân Bóng C1
             </h1>
             <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed">
               Khu vực bảo mật dành riêng cho <strong>Cầu thủ</strong>, <strong>Huấn luyện viên</strong> và <strong>Ban Quản Trị (Admin)</strong> thực hiện điều hành đội bóng, lịch tập huấn, điểm danh và quỹ sinh hoạt.
@@ -206,12 +209,12 @@ function AdminPortalContent() {
           </div>
         </div>
 
-        {/* Card 1-Click Test cho 3 đối tượng */}
+        {/* Card 1-Click Test cho 4 đối tượng */}
         <div className="bg-gradient-to-br from-emerald-50 via-white to-teal-50 rounded-3xl p-6 sm:p-8 border-2 border-emerald-200 shadow-xl space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-emerald-200">
             <span className="text-lg">⚡</span>
             <h3 className="font-black text-sm text-emerald-950 uppercase tracking-wide">
-              Đăng Nhập Nhanh 1-Chạm (3 Vai Trò)
+              Đăng Nhập Nhanh 1-Chạm (4 Vai Trò)
             </h3>
           </div>
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -219,57 +222,75 @@ function AdminPortalContent() {
           </p>
 
           <div className="space-y-3">
-            {/* 1. Admin */}
+            {/* 1. ADMIN (Chủ Sân) */}
             <button
               onClick={() => handleQuickLogin('admin', '123456')}
-              className="w-full p-4 rounded-2xl bg-white hover:bg-rose-50 border-2 border-rose-200 hover:border-rose-400 text-left transition-all shadow-sm hover:shadow-md cursor-pointer group"
+              className="w-full p-3.5 rounded-2xl bg-white hover:bg-rose-50 border-2 border-rose-200 hover:border-rose-400 text-left transition-all shadow-sm hover:shadow-md cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-black text-sm text-slate-900 group-hover:text-rose-700 flex items-center gap-2">
-                  <span>🛡️</span> Ban Quản Trị CLB (Admin)
+                  <span>👑</span> ADMIN (Chủ sân)
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-extrabold">
                   Toàn Quyền
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Tài khoản: <code>admin</code> • MK: <code>123456</code> (Quản lý đội, nhân sự, tài chính)
+                Tài khoản: <code>admin</code> • MK: <code>123456</code> (Doanh thu, tạo sân, quản lý nhân viên & KPI)
               </p>
             </button>
 
-            {/* 2. Coach */}
+            {/* 2. NHÂN VIÊN (Quản lý ca / CLB) */}
             <button
-              onClick={() => handleQuickLogin('coach01', '123456')}
-              className="w-full p-4 rounded-2xl bg-white hover:bg-amber-50 border-2 border-amber-200 hover:border-amber-400 text-left transition-all shadow-sm hover:shadow-md cursor-pointer group"
+              onClick={() => handleQuickLogin('manager', '123456')}
+              className="w-full p-3.5 rounded-2xl bg-white hover:bg-amber-50 border-2 border-amber-200 hover:border-amber-400 text-left transition-all shadow-sm hover:shadow-md cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-black text-sm text-slate-900 group-hover:text-amber-800 flex items-center gap-2">
-                  <span>📋</span> Huấn Luyện Viên Trưởng (Coach)
+                  <span>📋</span> NHÂN VIÊN (Quản lý ca / Quản lý CLB)
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-extrabold">
-                  Chuyên Môn
+                  Nhân Viên Ca
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Tài khoản: <code>coach01</code> • MK: <code>123456</code> (Điều hành lịch tập, điểm danh)
+                Tài khoản: <code>manager</code> hoặc <code>staff</code> • MK: <code>123456</code> (Duyệt/hủy đặt sân, xếp lịch đá tập, thanh toán & thiết bị)
               </p>
             </button>
 
-            {/* 3. Player */}
+            {/* 3. HUẤN LUYỆN VIÊN (Ban Huấn Luyện) */}
             <button
-              onClick={() => handleQuickLogin('quanghai19', '123456')}
-              className="w-full p-4 rounded-2xl bg-white hover:bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-400 text-left transition-all shadow-sm hover:shadow-md cursor-pointer group"
+              onClick={() => handleQuickLogin('coach', '123456')}
+              className="w-full p-3.5 rounded-2xl bg-white hover:bg-sky-50 border-2 border-sky-300 hover:border-sky-500 text-left transition-all shadow-sm hover:shadow-md cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="font-black text-sm text-slate-900 group-hover:text-emerald-800 flex items-center gap-2">
-                  <span>🏃</span> Cầu Thủ / Đội Trưởng (Player)
+                <span className="font-black text-sm text-slate-900 group-hover:text-sky-800 flex items-center gap-2">
+                  <span>🧢</span> HUẤN LUYỆN VIÊN (Ban Huấn Luyện)
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold">
-                  Thành Viên
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-extrabold">
+                  HLV Đội Bóng
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Tài khoản: <code>quanghai19</code> • MK: <code>123456</code> (Theo dõi lịch tập, điểm danh, quỹ)
+                Tài khoản: <code>coach</code> • MK: <code>123456</code> (Lịch tập: tạo/sửa/hủy lịch đội mình • Điểm danh: đánh dấu có mặt thành viên)
+              </p>
+            </button>
+
+            {/* 4. USER (Khách Hàng / Cầu Thủ) */}
+            <button
+              onClick={() => handleQuickLogin('user01', '123456')}
+              className="w-full p-3.5 rounded-2xl bg-white hover:bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-400 text-left transition-all shadow-sm hover:shadow-md cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-black text-sm text-slate-900 group-hover:text-emerald-800 flex items-center gap-2">
+                  <span>⚽</span> USER (Khách hàng / Cầu thủ)
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold">
+                  Khách Hàng
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Tài khoản: <code>user01</code> • MK: <code>123456</code> (Xem lịch trống, đặt sân, lịch sử cá nhân)
               </p>
             </button>
           </div>
@@ -281,7 +302,7 @@ function AdminPortalContent() {
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-slate-500 font-semibold animate-pulse">Đang tải cổng quản trị nội bộ Sao Vàng FC...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-slate-500 font-semibold animate-pulse">Đang tải cổng quản trị nội bộ Sân Bóng C1...</div>}>
       <AdminPortalContent />
     </Suspense>
   );

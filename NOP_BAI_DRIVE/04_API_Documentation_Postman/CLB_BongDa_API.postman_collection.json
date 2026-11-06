@@ -1,0 +1,193 @@
+{
+  "info": {
+    "_postman_id": "football-c1-api-collection-2026",
+    "name": "CLB SÂN BÓNG C1 - NESTJS RESTFUL API COLLECTION",
+    "description": "Bộ sưu tập kiểm thử API hoàn chỉnh cho Hệ Thống Quản Lý Câu Lạc Bộ & Sân Bóng C1 (NestJS, PostgreSQL, JWT, Roles & API Key Guards)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "apiKey", "value": "football-c1-secret-api-key-2026", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication (Xác thực)",
+      "item": [
+        {
+          "name": "Đăng nhập (Login)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Đăng ký (Register)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cauthu_demo\",\n  \"password\": \"123456\",\n  \"fullName\": \"Trần Quốc Toản\",\n  \"phone\": \"0988777666\",\n  \"role\": \"Player\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Players (Quản lý Cầu Thủ - CRUD)",
+      "item": [
+        {
+          "name": "Lấy danh sách tất cả cầu thủ",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{apiKey}}" }],
+            "url": { "raw": "{{baseUrl}}/players", "host": ["{{baseUrl}}"], "path": ["players"] }
+          }
+        },
+        {
+          "name": "Thêm mới cầu thủ",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "x-api-key", "value": "{{apiKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nguyễn Quang Hải\",\n  \"jerseyNumber\": 19,\n  \"position\": \"Tiền vệ\",\n  \"phone\": \"0988191919\",\n  \"dateOfBirth\": \"1997-04-12\",\n  \"preferredFoot\": \"Chân trái\",\n  \"teamId\": \"team-1\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/players", "host": ["{{baseUrl}}"], "path": ["players"] }
+          }
+        },
+        {
+          "name": "Cập nhật thông tin cầu thủ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Đang tập luyện\",\n  \"height\": \"1m70\",\n  \"weight\": \"68kg\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/players/1", "host": ["{{baseUrl}}"], "path": ["players", "1"] }
+          }
+        },
+        {
+          "name": "Xóa cầu thủ",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/players/1", "host": ["{{baseUrl}}"], "path": ["players", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Schedules (Lịch Tập & Thi Đấu - CRUD)",
+      "item": [
+        {
+          "name": "Lấy danh sách lịch tập",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/schedules", "host": ["{{baseUrl}}"], "path": ["schedules"] }
+          }
+        },
+        {
+          "name": "Tạo mới lịch tập",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-11-10\",\n  \"time\": \"17:00 - 19:00\",\n  \"field\": \"Sân bóng C1 (Sân 1)\",\n  \"type\": \"Chiến thuật\",\n  \"teamId\": \"team-1\",\n  \"coach\": \"HLV. Nguyễn Văn Huấn\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/schedules", "host": ["{{baseUrl}}"], "path": ["schedules"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Fields & Field Bookings (Quản lý Sân & Đặt Sân Online)",
+      "item": [
+        {
+          "name": "Lấy danh sách sân bóng",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/fields", "host": ["{{baseUrl}}"], "path": ["fields"] }
+          }
+        },
+        {
+          "name": "Lấy danh sách đặt sân",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/field-bookings", "host": ["{{baseUrl}}"], "path": ["field-bookings"] }
+          }
+        },
+        {
+          "name": "Đặt sân trực tuyến mới (Khách hàng)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Trần Văn Bảo\",\n  \"customerPhone\": \"0909123456\",\n  \"fieldId\": \"field-c1\",\n  \"bookingDate\": \"2026-11-06\",\n  \"slotTime\": \"18:00 - 19:30\",\n  \"totalAmount\": 350000,\n  \"deposit\": 100000,\n  \"status\": \"Đã duyệt\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/field-bookings", "host": ["{{baseUrl}}"], "path": ["field-bookings"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Attendances (Điểm Danh & Chuyên Cần)",
+      "item": [
+        {
+          "name": "Lấy danh sách điểm danh",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/attendances", "host": ["{{baseUrl}}"], "path": ["attendances"] }
+          }
+        },
+        {
+          "name": "Lưu điểm danh buổi tập",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": 1,\n  \"scheduleId\": 1,\n  \"status\": \"Có mặt\",\n  \"note\": \"Đến đúng giờ\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/attendances", "host": ["{{baseUrl}}"], "path": ["attendances"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Matches (Kết Quả & Tỷ Số Thi Đấu)",
+      "item": [
+        {
+          "name": "Lấy danh sách kết quả trận đấu",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/matches", "host": ["{{baseUrl}}"], "path": ["matches"] }
+          }
+        }
+      ]
+    }
+  ]
+}
